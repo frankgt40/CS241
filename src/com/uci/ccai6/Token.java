@@ -1,7 +1,7 @@
 package com.uci.ccai6;
 
 public class Token {
-	public static enum TokenType {INSTANT,VARIABLE,KEYWORD,REL_OP,OP,NULL};
+	public static enum TokenType {INSTANT,VARIABLE,KEYWORD,REL_OP,OP,NULL,PREDEFINED_FUNCTION};
 	private TokenType type;
 	private String value;
 	public TokenType getType() {
@@ -39,7 +39,9 @@ public class Token {
 			typeStr = "OP";
 		}else if (this.type == TokenType.NULL) {
 			typeStr = "NULL";
-		} 
+		} else if (this.type == TokenType.PREDEFINED_FUNCTION) {
+			typeStr = "PREDEFINED_FUNCTION";
+		}
 //			case VARIABLE:
 //				typeStr = "VARIABLE";
 //				break;

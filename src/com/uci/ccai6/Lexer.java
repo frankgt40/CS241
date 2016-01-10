@@ -171,7 +171,7 @@ public class Lexer {
 				}
 				pb.descreaseForwardPointer();
 				String tokenStr = pb.getAString();
-				token.setAll(Token.TokenType.KEYWORD, tokenStr.trim());
+				token.setAll(getTokenType(tokenStr.trim()), tokenStr.trim());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
@@ -179,6 +179,21 @@ public class Lexer {
 				return token;
 			}
 		}
+	public Token.TokenType getTokenType(String tokenValue) {
+		Token.TokenType type = Token.TokenType.NULL;
+		if (tokenValue.equals("let")|| tokenValue.equals("call")||tokenValue.equals("if")
+				||tokenValue.equals("then") || tokenValue.equals("else")||tokenValue.equals("fi")
+				||tokenValue.equals("while")||tokenValue.equals("do")||tokenValue.equals("od")||tokenValue.equals("return")
+				||tokenValue.equals("var")||tokenValue.equals("array")||tokenValue.equals("function")||tokenValue.equals("procedure")
+				||tokenValue.equals("main")) {
+			type = Token.TokenType.KEYWORD;
+		} else if (tokenValue.equals("InputNum")|| tokenValue.equals("OutputNum")||tokenValue.equals("OutputNewLine")) {
+			type = Token.TokenType.PREDEFINED_FUNCTION;
+		} else{
+			type = Token.TokenType.VARIABLE;
+		}
+		return type;
+	}
 	public Token getAToken() {
 		// for the simple version
 		if (this.isSimpleVersion) {
