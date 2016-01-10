@@ -19,6 +19,7 @@ public class Lexer {
 	private String fileName;
 	private PairBuffer pb;
 	private boolean isSimpleVersion = true;
+	private Token lastToken = new Token(Token.TokenType.NULL,""); // remember the last token
 	
 	public Lexer(String fileName) {
 		super();
@@ -36,6 +37,9 @@ public class Lexer {
 		this.fileName = fileName;
 	}
 	
+	public Token getLastToken() {
+		return lastToken;
+	}
 	public Token simpleNextToken() {
 		Token token  = new Token(Token.TokenType.NULL,"");
 		char aChar = pb.getNextChar();
@@ -80,84 +84,84 @@ public class Lexer {
 							this.getFileName(), 
 							this.pb.getTotalLineNum(), token.print());
 				}
-				return token;
+				break;//return token;
 			case '(':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case ')':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '[':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case ']':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '{':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '}':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '.':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case ',':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case ';':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '+':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '-':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
 			case '*':
 				//
 				token.setAll(Token.TokenType.OP, pb.getAString());
@@ -175,9 +179,12 @@ public class Lexer {
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
+				break;//
 				}
+				lastToken = token;
 				return token;
 			}
+			
 		}
 	public Token.TokenType getTokenType(String tokenValue) {
 		Token.TokenType type = Token.TokenType.NULL;
@@ -341,9 +348,13 @@ public class Lexer {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 //		try {
-			Lexer lx = new Lexer("testCases/factorial.txt");
+			Lexer lx = new Lexer("testCases/big.txt");
 			while (!lx.pb.reachEOF()) {
 				lx.getAToken();
+				Token tmp = lx.getLastToken();
+				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
+						lx.getFileName(), 
+						lx.pb.getTotalLineNum(), tmp.print());
 			}
 //		} catch (IOException e) {
 //			e.printStackTrace();

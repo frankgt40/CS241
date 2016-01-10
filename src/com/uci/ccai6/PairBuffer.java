@@ -284,6 +284,13 @@ public class PairBuffer {
 		this.currPointer = this.forwardPointer;
 		return str;
 	}
+	public char getChar(int i) {
+		if (isForwardPointerInBuffer1) {
+			return buffer1[i];
+		} else {
+			return buffer2[i];
+		}
+	}
 	/**
 	 * @param args
 	 */
