@@ -35,6 +35,7 @@ public class Lexer {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
+	
 	public Token simpleNextToken() {
 		Token token  = new Token(Token.TokenType.NULL,"");
 		char aChar = pb.getNextChar();
@@ -58,7 +59,7 @@ public class Lexer {
 								this.getFileName(), 
 								this.pb.getTotalLineNum(), 
 								"Ignore comment: " + pb.getAString());
-				break;
+				continue;
 						
 			case '/':
 				//
@@ -71,7 +72,7 @@ public class Lexer {
 							this.getFileName(), 
 							this.pb.getTotalLineNum(), 
 							"Ignore comment: " + pb.getAString());
-					break;
+					continue;
 				} else {
 					// then it's the operator DIV
 					token.setAll(Token.TokenType.OP, pb.getAString());
