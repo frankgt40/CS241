@@ -168,7 +168,28 @@ public class Lexer {
 				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
 						this.getFileName(), 
 						this.pb.getTotalLineNum(), token.print());
-				return token;
+				break;//return token;
+			case '<':
+				//
+				token.setAll(Token.TokenType.OP, pb.getAString());
+				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
+						this.getFileName(), 
+						this.pb.getTotalLineNum(), token.print());
+				break;//return token;
+			case '=':
+				//
+				token.setAll(Token.TokenType.OP, pb.getAString());
+				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
+						this.getFileName(), 
+						this.pb.getTotalLineNum(), token.print());
+				break;//return token;
+			case '>':
+				//
+				token.setAll(Token.TokenType.OP, pb.getAString());
+				new ErrorWarningReporter(ErrorWarningReporter.ReportType.VERBOSE, 
+						this.getFileName(), 
+						this.pb.getTotalLineNum(), token.print());
+				break;//return token;
 			default:
 				while (aChar != ' ' && aChar != '\n' && aChar != '\r' && aChar != '{' && aChar != '}'&& aChar != '('&& aChar != ')'&& aChar != '['&& aChar != ']' && aChar != '+'&&aChar != '-'&& aChar != '*'&& aChar != '/'&& aChar != ','&& aChar != ';') {
 					aChar = pb.getNextChar();
@@ -348,7 +369,7 @@ public class Lexer {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 //		try {
-			Lexer lx = new Lexer("testCases/big.txt");
+			Lexer lx = new Lexer("testCases/001.txt");
 			while (!lx.pb.reachEOF()) {
 				lx.getAToken();
 				Token tmp = lx.getLastToken();
