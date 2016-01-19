@@ -1,31 +1,9 @@
-
-#Simple parsing test1
-
-#Simple parsing test2
-
 //Simple parsing test
-
-main
-
-procedure foo();
-var i,b;
+main 
+var x;
+array [3][3] z;
 {
-  let i <- 1;
-  while i <= 4 do
-  let b <- call InputNum();
-    call OutputNum(b);
-    let i <- i + 1
-  od;
-  let i <- 1;
-  while i < 4 do
-  let b <- call InputNum();
-    call OutputNum(b);
-    let i <- i + 1
-  od;
-  let i <- 1;
-  while i < 4 do
-  let b <- call InputNum();
-    call OutputNum(b);
-    let i <- i + 1
-  od;
-  
+    let x <- 51; 
+    let y <- 2 * x;
+    call OutputNum(y)
+}.

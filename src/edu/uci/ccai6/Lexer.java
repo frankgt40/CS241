@@ -4,12 +4,12 @@
  * Course: CS241
  * Our little compiler :-)
  */
-package com.uci.ccai6;
+package edu.uci.ccai6;
 
 
-import java.io.IOException;
+//import java.io.IOException;
 
-import com.uci.ccai6.*;
+//import edu.uci.ccai6.*;
 
 /**
  * @author Frank

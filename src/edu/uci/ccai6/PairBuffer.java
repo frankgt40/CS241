@@ -1,10 +1,10 @@
-package com.uci.ccai6;
+package edu.uci.ccai6;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import com.uci.ccai6.ErrorWarningReporter;
+import edu.uci.ccai6.ErrorWarningReporter;
 
 public class PairBuffer {
 	private static final int BUFFER_SIZE = 20;
