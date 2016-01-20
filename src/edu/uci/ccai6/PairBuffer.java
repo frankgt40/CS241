@@ -7,7 +7,7 @@ import java.io.IOException;
 import edu.uci.ccai6.ErrorWarningReporter;
 
 public class PairBuffer {
-	private static final int BUFFER_SIZE = 20;
+	private static final int BUFFER_SIZE = 512;
 	private String filename;
 	private char[] buffer1;
 	private char[] buffer2;
