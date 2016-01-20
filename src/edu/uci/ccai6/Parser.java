@@ -3,6 +3,8 @@ package edu.uci.ccai6;
 import java.io.File;
 import java.util.Arrays;
 
+
+import edu.uci.ccai6.Token.TokenType;
 //import edu.uci.ccai6.Token.TokenType;
 import edu.uci.ccai6.exception.ParserException;
 
@@ -39,7 +41,6 @@ public class Parser {
 	protected Token current() {
 		if(!loaded) {
 			currentToken = lex.getAToken();
-//			System.out.println("cur: "+currentToken.getValue());
 			loaded = true;
 		}
 		return currentToken;
@@ -49,8 +50,8 @@ public class Parser {
 		return current().getValue();
 	}
 
-	void checkAndConsume(String keyword) throws ParserException {
-		if(!currentString().equals(keyword)) throw new ParserException(keyword, currentString());
+	void checkAndConsume(String s) throws ParserException {
+		if(!currentString().equals(s)) throw new ParserException(s, currentString());
 		next();
 	}
 	/*
@@ -58,6 +59,9 @@ public class Parser {
 	 * TODO: maybe we should implement our own isLetter and isDigit..
 	 */
 	void ident() throws ParserException {
+		if(current().getType() == TokenType.KEYWORD) {
+			throw new ParserException("dont use reserved keyword");
+		}
 		String ident = currentString();
 		if(!Character.isLetter(ident.charAt(0))) {
 			throw new ParserException("identifier", ident);
