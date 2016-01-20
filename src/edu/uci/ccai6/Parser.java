@@ -205,13 +205,10 @@ public class Parser {
 		checkAndConsume(KEYWORD_OD);
 	}
 	void returnStatement() throws ParserException {
+		// this is correct since only }, ; or expression comes after returnStatement
 		checkAndConsume(KEYWORD_RETURN);
-		if(currentString().equals("}")) return; // TODO: right way to do it?
+		if(currentString().equals("}") || currentString().equals(";")) return; 
 		expression();
-		//TODO: how do you distinguish 
-		// return 1==2
-		// return
-		// 1==2
 	}
 	
 	void statement() throws ParserException {
