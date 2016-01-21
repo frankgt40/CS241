@@ -30,7 +30,7 @@ public class Parser {
 			}
 
 			__IR.putCode(".text");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			__IR.putCode("\tmain:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			__IR.putCode("main:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			//__IR.print();
 			
 			if (__currToken.getType() == Token.TokenType.L_BRACE) {
@@ -40,6 +40,7 @@ public class Parser {
 				if (__currToken.getType() == Token.TokenType.R_BRACE) {
 					__currToken = __lx.nextToken();
 					if (__currToken.getType() == Token.TokenType.DOT) {
+						__IR.putCode("end");
 						__IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						System.exit(0);
