@@ -31,14 +31,16 @@ public class Parser {
 
 			__IR.putCode(".text");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__IR.putCode("\tmain:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			__IR.print();
+			//__IR.print();
 			
 			if (__currToken.getType() == Token.TokenType.L_BRACE) {
+				__currToken = __lx.nextToken();
 				// There is a statSequence
 				statSequence(funName);
 				if (__currToken.getType() == Token.TokenType.R_BRACE) {
 					__currToken = __lx.nextToken();
 					if (__currToken.getType() == Token.TokenType.DOT) {
+						__IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						System.exit(0);
 					} else {
@@ -141,8 +143,13 @@ public class Parser {
 				if (__currToken.getType() == Token.TokenType.SEMICOLON) {
 					__currToken = __lx.nextToken();
 					funcBody(functionName);
+					if (__currToken.getType() == Token.TokenType.SEMICOLON) {
+						__currToken = __lx.nextToken();
+					} else {
+						reportError(" In function declaration, after the function body.Missing a semincolon!");						
+					}
 				} else {
-					reportError("Missing a semincolon! In function declaration.");
+					reportError("In function declaration, before the function body. Missing a semincolon! ");
 				}
 			} else {
 				reportError("Missing function indentifier! In function declaration.");
@@ -205,6 +212,7 @@ public class Parser {
 	protected void statSequence(String funName) {
 		statement(funName);
 		while (__currToken.getType() == Token.TokenType.SEMICOLON) {
+			__currToken = __lx.nextToken();
 			statement(funName);
 		}
 	}
@@ -226,7 +234,8 @@ public class Parser {
 			returnStatement(funName);
 			break;
 		default:
-			reportError("Wrong statement!");
+			//reportError("Wrong statement!");
+			return;
 		}
 	}
 	protected void assignment(String funName) {
@@ -234,13 +243,22 @@ public class Parser {
 			String code = "";
 			__currToken = __lx.nextToken();
 			AssignDestination dst = designator(funName);
+			if (dst.isConstant()) {
+				reportError("In assignment, you can assign something to a constant!");
+			}
 			//__currToken = __lx.nextToken();
 			if (__currToken.getType() == Token.TokenType.ASSIGN) {
 				__currToken = __lx.nextToken();
 				AssignDestination source = expression(funName);
 				// Successfully finished
-				String to = funName + __SEP + dst.getDestination();
-				String from = funName + __SEP + source.getDestination();
+				//String to = funName + __SEP + dst.getDestination(); ////jiajiajiajiajiajiajijia
+				String to = dst.getDestination(); ////jiajiajiajiajiajiajijia
+				String from = source.getDestination();
+//				if (source.isConstant()) {
+//					from = source.getDestination();
+//				} else {
+//					from = funName + __SEP + source.getDestination();
+//				}
 				if (dst.isArray()) {
 					// if the destination is array, then we need to store instead of move
 					code = "STORE " + from + ", " + to;
@@ -250,6 +268,7 @@ public class Parser {
 					code = "MOVE " + from + ", " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				}
+				__currToken = __lx.nextToken();
 			} else {
 				reportError("In assignment, missing a \'<-\'!");
 			}
@@ -261,11 +280,15 @@ public class Parser {
 		AssignDestination source;
 		String op;
 		while (__currToken.getType() == Token.TokenType.ADD || __currToken.getType() == Token.TokenType.SUB) {
-			op = __currToken.getType() == Token.TokenType.ADD ? "ADD " : "SUB ";
+			op = __currToken.getType() == Token.TokenType.ADD ? "ADD" : "SUB";
 			__currToken = __lx.nextToken();
 			source = term(funName);
-			
-			String code = op + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			String code;
+			if (source.isConstant()) {
+				code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			} else {
+				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			}
 			__IR.putCode(code);
 		}
 		return dst;
@@ -274,14 +297,19 @@ public class Parser {
 	protected AssignDestination term(String funName) {
 		AssignDestination dst = factor(funName);
 		AssignDestination source;
-		__currToken = __lx.nextToken();
+		//__currToken = __lx.nextToken();
 		String op;
 		while (__currToken.getType() == Token.TokenType.MUL || __currToken.getType() == Token.TokenType.DIV) {
-			op = __currToken.getType() == Token.TokenType.MUL ? "MUL " : "DIV ";
+			op = __currToken.getType() == Token.TokenType.MUL ? "MUL" : "DIV";
 			__currToken = __lx.nextToken();
 			source = factor(funName);
-			
-			String code = op + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			String code;
+			if (source.isConstant()) {
+				code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			} else {
+
+				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			}
 			__IR.putCode(code);
 			__currToken = __lx.nextToken();
 		}
@@ -295,6 +323,7 @@ public class Parser {
 			return dst;
 		case INSTANT:
 			dst = new AssignDestination(__currToken.getValue());
+			dst.setIsConstant(true);
 			return dst;
 		case L_PARENTHESIS:
 			dst = expression(funName);
@@ -315,8 +344,14 @@ public class Parser {
 			return null;
 		}
 	}
-	protected AssignDestination funcCall(String funName) {
+	protected AssignDestination funcCall(String funName) {  //?????????????????????????????????????????????
 		AssignDestination dst;
+		if (!__currToken.getValue().equals("call")) {
+			return null;
+		} else {
+			reportError("In funcCall, missing the \'call\' keyword!");
+			return null;
+		}
 	}
 	protected AssignDestination designator(String funName) {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
@@ -334,7 +369,7 @@ public class Parser {
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				code = "ADDA " + idName + ", " + num.getDestination() + ", " + idName; //a[i]= a + i * 4;
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				__currToken = __lx.nextToken();
+				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
 					// successfully finished this round
 					__currToken = __lx.nextToken();
@@ -342,7 +377,7 @@ public class Parser {
 					reportError("In designator, missing a \']'!");
 				}
 			}
-			__IR.print();
+			//__IR.print();
 			// return the idName who has the address of the array item
 			num.setDestination(idName);
 			return num;

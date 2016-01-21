@@ -9,14 +9,6 @@ var i, j, e;
 {
 	let i[b] <- 0;
 	let j <- 0;
-	while i < 4 do
-		while j < 4 do
-			let b[ i ][ j ] <- j;
-			let j <- j + 1
-		od;
-		let a[ i ] <- i;
-		let i <- i + 1
-	od
 };
 
 {
@@ -24,8 +16,6 @@ var i, j, e;
 	let y <- 0;
 	let z <- 0;
 	
-	call bar( x, z );
-	let c <- call foo;
+	let c <- foo;
 	
-	call OutputNum(c)
 }.
