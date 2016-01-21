@@ -45,6 +45,6 @@ public class FunctionUtil {
 	}
 	
 	public String findVarRealName(String symbol) {
-		return __funName + "." + __nameMap.get(__funName).get(symbol);
+		return __funName + Parser.__SEP + __nameMap.get(__funName).get(symbol);
 	}
 }

@@ -28,6 +28,7 @@ public class Reporter {
 			System.out.println("\n[WARNING]-[File: " + this.filename + "]-[Line: " + this.lineNum + "]-[Char at: " + this.charPos + "]\n\t"+ this.message.trim() +".");
 			break;
 		case VERBOSE:
+			if (Parser.__isVerbose)
 			System.out.println("\n[VERBOSE]-[File: " + this.filename + "]-[Line: " + this.lineNum + "]-[Char at: " + this.charPos + "]\n\t"+ this.message.trim() +".");
 			break;
 		default:

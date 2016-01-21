@@ -1,18 +1,53 @@
 package edu.uci.ccai6.cs241;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.List;
+
 public class Parser {
+	public static boolean __isVerbose = true; // Can be configured later!
+	public static boolean __isWriteToFile = true; // Can be configured later!
 	private Lexer __lx;
 	private Token __currToken;
 	private IRGenerator __IR = new IRGenerator();
 	private FunctionUtil __funUtil = new FunctionUtil("");
-	private String __SEP = "_";
+	public static final String __SEP = "_";
+	private String __inFile;
+	private String __outFile;
+	private PrintWriter __out;
 	public static void main(String args[]) {
 		Parser pa = new Parser("testCases/001.txt");
+		pa.setOutFile("output/001.out.txt");
 		pa.computation();
+		if (__isWriteToFile) {
+			List<String> codeList = pa.getIR().getIRBuffer();
+			for (String codeLine : codeList) {
+				pa.getOut().println(codeLine);
+			}
+			pa.getOut().close();
+		}
+	}
+	public IRGenerator getIR() {
+		return __IR;
+	}
+	public String getInFile() {
+		return __inFile;
+	}
+	public PrintWriter getOut() {
+		return __out;
+	}
+	public void setOutFile(String fileName) {
+		__outFile = fileName;
+		try {
+			__out = new PrintWriter(__outFile);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public Parser(String fileName) {
-		__lx = new Lexer(fileName);
-		
+		__inFile = fileName;
+		__lx = new Lexer(fileName);		
 	}
 	protected void computation() {
 		 __currToken = __lx.nextToken();
@@ -43,7 +78,7 @@ public class Parser {
 						__IR.putCode("end");
 						__IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
-						System.exit(0);
+						//System.exit(0);
 					} else {
 						reportError("Missing the dot!");
 					}
@@ -269,7 +304,7 @@ public class Parser {
 					code = "MOVE " + from + ", " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				}
-				__currToken = __lx.nextToken();
+				//__currToken = __lx.nextToken();
 			} else {
 				reportError("In assignment, missing a \'<-\'!");
 			}
@@ -291,6 +326,7 @@ public class Parser {
 				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
 			}
 			__IR.putCode(code);
+			//__currToken = __lx.nextToken();
 		}
 		return dst;
 		
@@ -325,13 +361,14 @@ public class Parser {
 		case INSTANT:
 			dst = new AssignDestination(__currToken.getValue());
 			dst.setIsConstant(true);
+			__currToken = __lx.nextToken();
 			return dst;
 		case L_PARENTHESIS:
 			dst = expression(funName);
 			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
 				return dst;
 			} else {
-				
+				reportError("In factor, missing a \')\'!");
 			}
 		case KEYWORD:
 			if (__currToken.getValue().equals("call")) {
@@ -344,6 +381,7 @@ public class Parser {
 			reportError("In factor, factor can only be a variable, instant, (expression), or function call!");
 			return null;
 		}
+		//return dst;
 	}
 	protected AssignDestination funcCall(String funName) {  //?????????????????????????????????????????????
 		AssignDestination dst;

@@ -7,7 +7,7 @@ var c;
 procedure bar( x, z );
 var i, j, e;
 {
-	let i[b] <- 0;
+	let i[b] <- j + 0 - 2;
 	let j <- 0;
 };
 

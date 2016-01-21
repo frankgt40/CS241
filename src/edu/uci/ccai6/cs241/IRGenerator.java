@@ -28,6 +28,9 @@ public class IRGenerator {
 		__IRBuffer.add(code);
 		__pc++;
 	}
+	public List<String> getIRBuffer() {
+		return __IRBuffer;
+	}
 	public String getANewVarAddress() {
 		int count = __varAddress.size();
 		__varAddress.add(new Integer(count).toString());
