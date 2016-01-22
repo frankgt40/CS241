@@ -312,60 +312,110 @@ public class Parser {
 	}
 
 	protected AssignDestination expression(String funName) {
-		AssignDestination dst = term(funName);
-		AssignDestination source;
+		AssignDestination left = term(funName);
+		AssignDestination right;
 		String op;
+		boolean allConstant = false;
+		int rsl = 0;
+		int tmpR = 0;
+		int tmpL = 0;
+		String code = null;
 		while (__currToken.getType() == Token.TokenType.ADD || __currToken.getType() == Token.TokenType.SUB) {
 			op = __currToken.getType() == Token.TokenType.ADD ? "ADD" : "SUB";
 			__currToken = __lx.nextToken();
-			source = term(funName);
-			String code;
-			if (source.isConstant()) {
-				if (dst.isConstant()) {
-					//both are constant, then compute them first
-					int rsl = Integer.parseInt(dst.getDestination());
+			right = term(funName);
+			if (right.isConstant()) {
+				tmpR  = Integer.parseInt(right.getDestination());
+				if (left.isConstant()) {
+					tmpL = Integer.parseInt(left.getDestination()); 
 					if (op.equals("ADD")) {
 						// ADD
-						rsl = rsl + Integer.parseInt(source.getDestination());
+						rsl = tmpL + tmpR;
 					} else {
 						// SUB
-						rsl = rsl - Integer.parseInt(source.getDestination());
+						rsl = tmpL - tmpR;
 					}
-					dst.setDestination(new Integer(rsl).toString());
-					dst.setIsConstant(true);
-					return dst;
+					left.setDestination(new Integer(rsl).toString());
+					left.setIsConstant(true);
+					allConstant = true;
 				} else {
-					code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+					allConstant = false;
+					// left is not constant!
+					code = op + "i " + left.getDestination() + ", " + tmpR + ", " + left.getDestination();
 				}
 			} else {
-				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+				allConstant = false;
+				if (left.isConstant()) {
+					tmpL = Integer.parseInt(left.getDestination());
+					code = op + "i " + tmpL + ", " + right.getDestination() + ", " + right.getDestination();
+					left = right; // Important!
+				} else {
+					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
+				}
 			}
-			__IR.putCode(code);
-			//__currToken = __lx.nextToken();
+			if (!allConstant)
+				__IR.putCode(code);
 		}
-		return dst;
+		if (allConstant) {
+			left.setDestination(new Integer(rsl).toString());
+			left.setIsConstant(true);
+		}
+		return left;
 		
 	}
 	protected AssignDestination term(String funName) {
-		AssignDestination dst = factor(funName);
-		AssignDestination source;
+		AssignDestination left = factor(funName);
+		AssignDestination right;
 		//__currToken = __lx.nextToken();
 		String op;
+		String code = null;
+		boolean allConstant = false;
+		int rsl = 0;
+		int tmpR = 0;
+		int tmpL = 0;
 		while (__currToken.getType() == Token.TokenType.MUL || __currToken.getType() == Token.TokenType.DIV) {
 			op = __currToken.getType() == Token.TokenType.MUL ? "MUL" : "DIV";
 			__currToken = __lx.nextToken();
-			source = factor(funName);
-			String code;
-			if (source.isConstant()) {
-				code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+			right = factor(funName);
+			if (right.isConstant()) {
+				tmpR  = Integer.parseInt(right.getDestination());
+				if (left.isConstant()) {
+					tmpL = Integer.parseInt(left.getDestination()); 
+					if (op.equals("MUL")) {
+						// MUL
+						rsl = tmpL * tmpR;
+					} else {
+						// DIV
+						rsl = tmpL / tmpR;
+					}
+					left.setDestination(new Integer(rsl).toString());
+					left.setIsConstant(true);
+					allConstant = true;
+				} else {
+					// a * 3
+					allConstant = false;
+					code = op + "i " + left.getDestination() + ", " + tmpR + ", " + left.getDestination();
+				}
 			} else {
-
-				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+				allConstant = false;
+				if (left.isConstant()) {
+					tmpL = Integer.parseInt(left.getDestination()); 
+					// 3 * a
+					code = op + "i " + tmpL + ", " + right.getDestination() + ", " + right.getDestination();
+					left = right; // Important!
+				} else {
+					// a * b
+					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
+				}
 			}
-			__IR.putCode(code);
-			__currToken = __lx.nextToken();
+			if (!allConstant)//reportError("In expression, expression cannot be empty!");
+				__IR.putCode(code);
 		}
-		return dst;
+		if (allConstant) {
+			left.setDestination(new Integer(rsl).toString());
+			left.setIsConstant(true);
+		}
+		return left;
 	}
 	protected AssignDestination factor(String funName) {
 		AssignDestination dst;
