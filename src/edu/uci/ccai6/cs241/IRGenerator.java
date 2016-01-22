@@ -34,7 +34,7 @@ public class IRGenerator {
 	public String getANewVarAddress() {
 		int count = __varAddress.size();
 		__varAddress.add(new Integer(count).toString());
-		return __varAddress.get(__varAddress.size()-1);
+		return "@"+__varAddress.get(__varAddress.size()-1);
 	}
 	
 	public void addFunctionScope(String functionName) {

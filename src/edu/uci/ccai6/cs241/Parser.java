@@ -354,7 +354,7 @@ public class Parser {
 				}
 			}
 			if (!allConstant)
-				__IR.putCode(code);
+				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		}
 		if (allConstant) {
 			left.setDestination(new Integer(rsl).toString());
@@ -366,7 +366,6 @@ public class Parser {
 	protected AssignDestination term(String funName) {
 		AssignDestination left = factor(funName);
 		AssignDestination right;
-		//__currToken = __lx.nextToken();
 		String op;
 		String code = null;
 		boolean allConstant = false;
@@ -408,8 +407,8 @@ public class Parser {
 					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
 				}
 			}
-			if (!allConstant)//reportError("In expression, expression cannot be empty!");
-				__IR.putCode(code);
+			if (!allConstant)
+				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		}
 		if (allConstant) {
 			left.setDestination(new Integer(rsl).toString());
