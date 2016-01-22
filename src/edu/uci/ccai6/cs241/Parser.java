@@ -321,7 +321,22 @@ public class Parser {
 			source = term(funName);
 			String code;
 			if (source.isConstant()) {
-				code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+				if (dst.isConstant()) {
+					//both are constant, then compute them first
+					int rsl = Integer.parseInt(dst.getDestination());
+					if (op.equals("ADD")) {
+						// ADD
+						rsl = rsl + Integer.parseInt(source.getDestination());
+					} else {
+						// SUB
+						rsl = rsl - Integer.parseInt(source.getDestination());
+					}
+					dst.setDestination(new Integer(rsl).toString());
+					dst.setIsConstant(true);
+					return dst;
+				} else {
+					code = op + "i " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
+				}
 			} else {
 				code = op + " " + dst.getDestination() + ", " + source.getDestination() + ", " + dst.getDestination();
 			}
@@ -364,8 +379,10 @@ public class Parser {
 			__currToken = __lx.nextToken();
 			return dst;
 		case L_PARENTHESIS:
+			__currToken = __lx.nextToken();
 			dst = expression(funName);
 			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
+				__currToken = __lx.nextToken();
 				return dst;
 			} else {
 				reportError("In factor, missing a \')\'!");
