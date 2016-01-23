@@ -470,7 +470,7 @@ public class Parser {
 				__currToken = __lx.nextToken();
 				num = expression(funName);
 				num.setIsArray(true); // Set is the array
-				code = "MUL " + num.getDestination() + ", " + IRGenerator.__DW + ", " + num.getDestination(); 
+				code = "MULi " + num.getDestination() + ", " + IRGenerator.__DW + ", " + num.getDestination(); 		
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				code = "ADDA " + idName + ", " + num.getDestination() + ", " + idName; //a[i]= a + i * 4;
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
