@@ -1,14 +1,14 @@
 main
 var x, y, z;
 array [ 4 ] a;
-array [ 4 ][ 4 ] b;
+array [ 4 ][ 4 ][12] b;
 var c;
 
 procedure bar( x, z );
 var i, j, e;
 {
-	//let i[b] <- (j + (0 * 2 )) / 3;
-	let j <- 0 +1 +(9 + 3 * c) * 9 * b * a +11;
+	let i[b] <- (j + (0 * 2 )) / 3;
+	let j <- 0 +1 +(9 + 3 * c) /9 * b * a +11;
 };
 
 {
