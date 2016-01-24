@@ -29,9 +29,13 @@ public class Parser {
 	Lexer lex = null;
 	boolean loaded = false;
 	Token currentToken = null;
+	InstPointer pointer;
+	IRGenerator irg;
 	
 	Parser(Lexer l) {
 		lex = l;
+		irg = new IRGenerator();
+		pointer = new InstPointer(0);
 	}
 	
 	protected void next() {
@@ -46,6 +50,12 @@ public class Parser {
 		return currentToken;
 	}
 	
+	protected InstPointer getInstPointerAndInc() {
+		InstPointer curPointer = new InstPointer(pointer);
+		pointer.inc();
+		return curPointer;
+	}
+	
 	protected String currentString() {
 		return current().getValue();
 	}
@@ -58,7 +68,7 @@ public class Parser {
 	 * letter{letter | digit}
 	 * TODO: maybe we should implement our own isLetter and isDigit..
 	 */
-	void ident() throws ParserException {
+	Result ident() throws ParserException {
 		if(current().getType() == TokenType.KEYWORD) {
 			throw new ParserException("dont use reserved keyword");
 		}
@@ -73,9 +83,10 @@ public class Parser {
 			}
 		}
 		next();
+		return new Result(ident);
 	}
 	
-	void number() {
+	Result number() {
 		String tokenString = currentString();
 		for(int i=0; i<tokenString.length(); i++) {
 			char c = tokenString.charAt(i);
@@ -85,47 +96,66 @@ public class Parser {
 		}
 		int num = Integer.valueOf(tokenString);
 		next();
+		return new Result(num);
 	}
 	
-	void designator() throws ParserException {
-		ident();
+	Result designator() throws ParserException {
+		// TODO: what to do??
+		Result left = ident();
+		Result right = null;
 		while(currentString().equals("[")) {
 			next();
-			expression();
+			right = expression();
 			checkAndConsume("]");
+			left = irg.addInstruction("+", left, right, getInstPointerAndInc());
+			left.setArray();
+			// TODO: have to mult by later size..
 		}
+		// return array location
+		return left;
 	}
 	
-	void factor() throws ParserException {
+	Result factor() throws ParserException {
+		Result res = null;
 		if(currentString().equals("(")) {
 			next();
-			expression();
+			res = expression();
 			checkAndConsume(")");
 		} else if(currentString().equals("call")) {
 			funcCall();
 		} else if(Character.isLetter(currentString().charAt(0))) {
-			designator();
+			res = designator();
 		} else if(Character.isDigit(currentString().charAt(0))) {
-			number();
+			return number();
 		} else {
 			throw new ParserException("factor", currentString());
 		}
 		
+		return res;
+		
 	}
 	
-	void term() throws ParserException {
-		factor();
+	Result term() throws ParserException {
+		Result left, right;
+		left = factor();
 		while(currentString().equals("*") || currentString().equals("/")) {
+			String op = currentString();
 			next();
-			factor();
+			right = factor();
+			left = irg.addInstruction(op, left, right, getInstPointerAndInc());
 		}
+		return left;
 	}
-	void expression() throws ParserException {
-		term();
+	Result expression() throws ParserException {
+		Result left, right;
+		left = term();
 		while(currentString().equals("+") || currentString().equals("-")) {
+			String op = currentString();
 			next();
-			term();
+			right = term();
+			left = irg.addInstruction(op, left, right, getInstPointerAndInc());
 		}
+		return left;
 	}
 	
 	boolean checkRelOp() {
@@ -147,24 +177,40 @@ public class Parser {
 		return false;
 		
 	}
-	void relation() throws ParserException {
-		expression();
+	Result relation() throws ParserException {
+		Result left = expression();
 		String in = currentString();
 		if(!checkRelOp()) throw new ParserException("REL_OP", in);
 //		next();
-		expression();
+		Result right = expression();
+		left = irg.addInstruction(in, left, right, getInstPointerAndInc());
+		return left;
 	}
 	
-	void assignment() throws ParserException {
+	public void updatePointer(InstPointer nPointer) {
+		if(nPointer == null) return;
+		pointer = new InstPointer(nPointer);
+	}
+	
+	Result assignment() throws ParserException {
 		checkAndConsume(KEYWORD_LET);
 		
-		designator();
+		Result left = designator();
 		
 		// TODO: non-simple returns <- at once?
 		checkAndConsume("<");
 		checkAndConsume("-");
 		
-		expression();
+		Result right = expression();
+		left = irg.addInstruction("move", left, right, getInstPointerAndInc());
+		
+		// TODO: need to find a better way to handle pointer
+		// array will trigger at least 2 consecutive instructions
+		if(left.isArray) pointer.inc();
+		if(right.isArray) pointer.inc();
+		
+		return left;
+		
 	}
 	void funcCall() throws ParserException {
 		checkAndConsume("call");
@@ -320,18 +366,21 @@ public class Parser {
 	}
 
 	public static void main(String[] args) throws ParserException {
-		File folder = new File("./testCases");
-		File[] listOfFiles = folder.listFiles();
-
-	    for (int i = 0; i < listOfFiles.length; i++) {
-	      if (listOfFiles[i].isFile()) {
-	    	if(listOfFiles[i].getName().charAt(0) == '0') continue;
-	        System.out.println("File ./" + listOfFiles[i].getName());
-			Parser parser = new Parser(new Lexer("./testCases/"+ listOfFiles[i].getName()));
-			parser.computation();
-	        System.out.println("done");
-	      }
-	    }
+//		File folder = new File("./testCases");
+//		File[] listOfFiles = folder.listFiles();
+//
+//	    for (int i = 0; i < listOfFiles.length; i++) {
+//	      if (listOfFiles[i].isFile()) {
+//	    	if(listOfFiles[i].getName().charAt(0) == '0') continue;
+//	        System.out.println("File ./" + listOfFiles[i].getName());
+//			Parser parser = new Parser(new Lexer("./testCases/"+ listOfFiles[i].getName()));
+//			parser.computation();
+//	        System.out.println("done");
+//	      }
+//	    }
+	    Parser parser = new Parser(new Lexer("./testCases/001.txt"));
+		parser.computation();
+        System.out.println("done");
 	}
 
 }
