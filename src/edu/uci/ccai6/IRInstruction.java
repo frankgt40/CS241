@@ -14,6 +14,6 @@ public class IRInstruction {
 		this.arg1 = (arg1 == null) ? "" : arg1.toString();
 		this.lineNum = currentPointer.toString();
 		
-		print();
+//		print();
 	}
 }

@@ -16,6 +16,9 @@ public class InstPointer {
 		instLine++;
 	}
 	
+	public void dec() {
+		instLine--;
+	}
 	public String toString() {
 		return "("+instLine+")";
 	}

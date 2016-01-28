@@ -233,22 +233,30 @@ public class Parser {
 		
 	}
 	void ifStatement() throws ParserException {
+		Result left, right, resIf, resElse = null;
 		checkAndConsume(KEYWORD_IF);
-		relation();
+		left = relation();
+		resIf = irg.addInstruction(left.relOp.toString(), left, new Result(pointer), getInstPointerAndInc());
 		checkAndConsume(KEYWORD_THEN);
-		statSequence();
+		right = statSequence();
 		if(currentString().equals(KEYWORD_ELSE)) {
+			resElse = irg.addInstruction("bra", new Result(pointer), null, getInstPointerAndInc());
 			next();
-			statSequence();
+			right = statSequence();
+			irg.fix("bra", new Result(pointer), null, resElse.getPointer());
 		}
+		irg.fix(left.relOp.toString(), left, right, resIf.getPointer());
 		checkAndConsume(KEYWORD_FI);
 	}
 	void whileStatement() throws ParserException {
+		Result left, right, res;
 		checkAndConsume(KEYWORD_WHILE);
-		relation();
+		left = relation();
+		res = irg.addInstruction(left.relOp.toString(), left, new Result(pointer), getInstPointerAndInc());
 		checkAndConsume(KEYWORD_DO);
-		statSequence();
+		right = statSequence();
 		checkAndConsume(KEYWORD_OD);
+		irg.fix(left.relOp.toString(), left, new Result(pointer), res.getPointer());
 	}
 	void returnStatement() throws ParserException {
 		// this is correct since only }, ; or expression comes after returnStatement
@@ -257,12 +265,12 @@ public class Parser {
 		expression();
 	}
 	
-	void statement() throws ParserException {
+	Result statement() throws ParserException {
 		String[] validKeywords = new String[] {KEYWORD_LET, KEYWORD_CALL,
 				KEYWORD_IF, KEYWORD_WHILE, KEYWORD_RETURN};
 		String in = currentString();
 		if(in.equals(KEYWORD_LET)) {
-			assignment();
+			return assignment();
 		} else if (in.equals(KEYWORD_CALL)) {
 			funcCall();
 		} else if (in.equals(KEYWORD_IF)) {
@@ -274,13 +282,15 @@ public class Parser {
 		} else {
 			throw new ParserException("keyword", currentString());
 		}
+		return null;
 	}
-	void statSequence() throws ParserException {
-		statement();
+	Result statSequence() throws ParserException {
+		Result res = statement();
 		while(currentString().equals(";")) {
 			next();
-			statement();
+			res = statement();
 		}
+		return res;
 	}
 	
 	void typeDecl() throws ParserException {
@@ -363,6 +373,8 @@ public class Parser {
 		statSequence();
 		checkAndConsume("}");
 		checkAndConsume(".");
+
+        irg.print();
 	}
 
 	public static void main(String[] args) throws ParserException {
@@ -378,9 +390,8 @@ public class Parser {
 //	        System.out.println("done");
 //	      }
 //	    }
-	    Parser parser = new Parser(new Lexer("./testCases/001.txt"));
+	    Parser parser = new Parser(new Lexer("./testCases/test001.txt"));
 		parser.computation();
-        System.out.println("done");
 	}
 
 }

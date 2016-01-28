@@ -5,16 +5,37 @@ public class Result {
 	public enum Type {
 		CONSTANT, VAR, POINTER;
 	}
+	
+	public enum RelOp {
+		BNE("bne"), BEQ("beq"),
+		BLE("ble"), BLT("blt"),
+		BGE("bge"), BGT("bgt");
+		
+		String name = null;
+		
+		RelOp(String name) {
+			this.name = name;
+		}
+		
+		public String toString() {
+			return name;
+		}
+	}
 
 	Type type;
 	int val = -1;
 	String varName = null;
 	InstPointer pointer;
 	boolean isArray = false;
+	RelOp relOp = null;
 	
 	public Result(int num) {
 		val = num;
 		type = Type.CONSTANT;
+	}
+	
+	public void setRelOp(RelOp ro) {
+		relOp = ro;
 	}
 	
 	public void rename(String nn) throws Exception {
@@ -23,6 +44,10 @@ public class Result {
 			return;
 		}
 		varName = nn;
+	}
+	
+	public boolean isPointer() {
+		return (type == Type.POINTER);
 	}
 	
 	public InstPointer getPointer() {
