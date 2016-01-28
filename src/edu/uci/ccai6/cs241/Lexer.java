@@ -115,11 +115,15 @@ public class Lexer {
 				return token;
 			} else {
 				/*
-				 * ch could be: =,!,<,>,-,+,/,*,(,),[,],{,},',',;,.,
+				 * ch could be: ==,!,<,>,-,+,/,*,(,),[,],{,},',',;,.,
 				 */
 				switch (ch) {
 				case '=':
-					token.setAll(Token.TokenType.EQ, lexeme);
+					ch = __pBuffer.next();
+					if (ch == '=')
+						token.setAll(Token.TokenType.EQ, lexeme);
+					else 
+						new Reporter(Reporter.ReportType.ERROR,fileName(), lineNum(), charPos(), "Unexpected character: " + lexeme);						
 					return token;
 				case '-':
 					token.setAll(Token.TokenType.SUB, lexeme);
