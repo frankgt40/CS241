@@ -21,12 +21,16 @@ public class IRGenerator {
 		
 		__scopeNames.add(new Integer(__scope).toString());
 	}
+	public void fixCode(String code, long loc) {
+		__IRBuffer.set((int) loc, code);
+	}
 	public long getCurrPc() {
 		return __pc - 1;
 	}
-	public void putCode(String code) {
+	public AssignDestination putCode(String code) {
 		__IRBuffer.add(code);
 		__pc++;
+		return new AssignDestination(__pc);
 	}
 	public List<String> getIRBuffer() {
 		return __IRBuffer;
