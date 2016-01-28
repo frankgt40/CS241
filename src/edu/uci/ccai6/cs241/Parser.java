@@ -355,7 +355,7 @@ public class Parser {
 				}
 			}
 			if (!allConstant)
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				left = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		}
 		if (allConstant) {
 			left.setDestination(new Integer(rsl).toString());
@@ -409,7 +409,7 @@ public class Parser {
 				}
 			}
 			if (!allConstant)
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				left = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		}
 		if (allConstant) {
 			left.setDestination(new Integer(rsl).toString());
@@ -498,39 +498,72 @@ public class Parser {
 		__currToken = __lx.nextToken();
 	}
 	
-	void relation(String funName) {
-		expression(funName);
+	AssignDestination relation(String funName) {
+		AssignDestination left = expression(funName);
 		if(!Arrays.asList(new String[] {"<",">","<=",">=","==","!="}).contains(__currToken.getValue())) {
 			reportError("where's relop??");
-			return;
 		}
+		Token relOp = __currToken;
 		next();
-		expression(funName);
+		AssignDestination right = expression(funName);
+		left = __IR.putCode("CMP "+left.getDestination()+" "+right.getDestination());
+		left.setRelOp(relOp.getValue());
+		return left;
 		
 	}
 	protected void ifStatement(String funName) {
 		if(!__currToken.getValue().equals("if")) {
 			reportError("where's if keyword??");
-			return;
 		}
 		next();
-		relation(funName);
+		AssignDestination resRel = relation(funName);
+		if(resRel.getRelOp() == null) {
+			reportError("relop is invalid");
+		}
+		
+		// check relOp and convert/invert it to corresponding branch
+		String op = null;
+		switch(resRel.getRelOp()) {
+		case "<":
+			op = "BGE";
+			break;
+		case "<=":
+			op = "BGT";
+			break;
+		case ">":
+			op = "BLE";
+			break;
+		case ">=":
+			op = "BLT";
+			break;
+		case "==":
+			op = "BNE";
+			break;
+		case "!=":
+			op = "BEQ";
+			break;
+		}
+		long ifPointer = __IR.getCurrPc()+1;
+		__IR.putCode(op+" "+resRel.getDestination()+" "+new AssignDestination(ifPointer).getDestination());
 		if(!__currToken.getValue().equals("then")) {
 			reportError("where's then keyword??");
-			return;
 		}
 		next();
 		statSequence(funName);
+		long elsePointer = -1;
 		if(__currToken.getValue().equals("else")) {
+			elsePointer = __IR.getCurrPc()+1;
+			__IR.putCode("dummy");
 			next();
 			statSequence(funName);
+			__IR.fixCode("BRA"+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), elsePointer);
 		}
+		if(elsePointer == -1) elsePointer = __IR.getCurrPc();
+		__IR.fixCode(op+" "+resRel.getDestination()+" "+new AssignDestination(elsePointer+2).getDestination(), ifPointer);
 		if(!__currToken.getValue().equals("fi")) {
 			reportError("where's fi keyword??");
-			return;
 		}
 		next();
-
 	}
 	protected void whileStatement(String funName) {
 
