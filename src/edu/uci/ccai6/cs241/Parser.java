@@ -2,6 +2,7 @@ package edu.uci.ccai6.cs241;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -492,7 +493,43 @@ public class Parser {
 		return null;
 		
 	}
+	
+	void next() {
+		__currToken = __lx.nextToken();
+	}
+	
+	void relation(String funName) {
+		expression(funName);
+		if(!Arrays.asList(new String[] {"<",">","<=",">=","==","!="}).contains(__currToken.getValue())) {
+			reportError("where's relop??");
+			return;
+		}
+		next();
+		expression(funName);
+		
+	}
 	protected void ifStatement(String funName) {
+		if(!__currToken.getValue().equals("if")) {
+			reportError("where's if keyword??");
+			return;
+		}
+		next();
+		relation(funName);
+		if(!__currToken.getValue().equals("then")) {
+			reportError("where's then keyword??");
+			return;
+		}
+		next();
+		statSequence(funName);
+		if(__currToken.getValue().equals("else")) {
+			next();
+			statSequence(funName);
+		}
+		if(!__currToken.getValue().equals("fi")) {
+			reportError("where's fi keyword??");
+			return;
+		}
+		next();
 
 	}
 	protected void whileStatement(String funName) {
