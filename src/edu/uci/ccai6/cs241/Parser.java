@@ -511,12 +511,8 @@ public class Parser {
 		return left;
 		
 	}
-	protected void ifStatement(String funName) {
-		if(!__currToken.getValue().equals("if")) {
-			reportError("where's if keyword??");
-		}
-		next();
-		AssignDestination resRel = relation(funName);
+	private String getBranchOp(AssignDestination resRel) {
+
 		if(resRel.getRelOp() == null) {
 			reportError("relop is invalid");
 		}
@@ -543,6 +539,17 @@ public class Parser {
 			op = "BEQ";
 			break;
 		}
+		return op;
+	}
+	protected void ifStatement(String funName) {
+		if(!__currToken.getValue().equals("if")) {
+			reportError("where's if keyword??");
+		}
+		next();
+		AssignDestination resRel = relation(funName);
+		
+		// check relOp and convert/invert it to corresponding branch
+		String op = getBranchOp(resRel);
 		long ifPointer = __IR.getCurrPc()+1;
 		__IR.putCode(op+" "+resRel.getDestination()+" "+new AssignDestination(ifPointer).getDestination());
 		if(!__currToken.getValue().equals("then")) {
@@ -566,7 +573,23 @@ public class Parser {
 		next();
 	}
 	protected void whileStatement(String funName) {
-
+		AssignDestination whileRel;
+		if(!__currToken.getValue().equals("while")) reportError("where's while?");
+		next();
+		whileRel = relation(funName);
+		String branchOp = getBranchOp(whileRel);
+		long whilePtr = __IR.getCurrPc()+1;
+		__IR.putCode("dummy while");
+		
+		if(!__currToken.getValue().equals("do")) reportError("where's do?");
+		next();
+		statSequence(funName);
+		if(!__currToken.getValue().equals("od")) reportError("where's od?");
+		next();
+		__IR.putCode("BRA "+new AssignDestination(whilePtr).getDestination());
+		// for some reason, need to do +2, instead of +1. maybe because of .data?
+		__IR.fixCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), whilePtr);
+		
 	}
 	protected void returnStatement(String funName) {
 
