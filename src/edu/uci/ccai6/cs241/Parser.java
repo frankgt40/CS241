@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class Parser {
 	public static boolean __isVerbose = true; // Can be configured later!
@@ -246,36 +247,38 @@ public class Parser {
 			reportError("Missing a \'{\'! In function function body.");
 		}
 	}
-	protected void statSequence(String funName) {
-		statement(funName);
+	protected AssignDestination statSequence(String funName) {
+		AssignDestination left = statement(funName);
+		AssignDestination right = null;
 		while (__currToken.getType() == Token.TokenType.SEMICOLON) {
 			__currToken = __lx.nextToken();
-			statement(funName);
+			right = statement(funName);
+			if(left != null) left = left.join(right);
+			else left = right;
 		}
+		return left;
 	}
-	protected void statement(String funName) {
+	protected AssignDestination statement(String funName) {
 		switch(__currToken.getValue()) {
 		case "let":
-			assignment(funName);
-			break;
+			return assignment(funName);
 		case "call":
 			funcCall(funName);
 			break;
 		case "if":
-			ifStatement(funName);
-			break;
+			return ifStatement(funName);
 		case "while":
-			whileStatement(funName);
-			break;
+			return whileStatement(funName);
 		case "return":
 			returnStatement(funName);
 			break;
 		default:
 			//reportError("Wrong statement!");
-			return;
+			return null;
 		}
+		return null;
 	}
-	protected void assignment(String funName) {
+	protected AssignDestination assignment(String funName) {
 		if (__currToken.getValue().equals("let")) {
 			String code = "";
 			__currToken = __lx.nextToken();
@@ -309,7 +312,9 @@ public class Parser {
 			} else {
 				reportError("In assignment, missing a \'<-\'!");
 			}
+			return dst;
 		}
+		return null;
 	}
 
 	protected AssignDestination expression(String funName) {
@@ -354,8 +359,10 @@ public class Parser {
 					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
 				}
 			}
-			if (!allConstant)
+			if (!allConstant) {
 				left = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				left.join(right);
+			}
 		}
 		if (allConstant) {
 			left.setDestination(new Integer(rsl).toString());
@@ -506,9 +513,9 @@ public class Parser {
 		Token relOp = __currToken;
 		next();
 		AssignDestination right = expression(funName);
-		left = __IR.putCode("CMP "+left.getDestination()+" "+right.getDestination());
-		left.setRelOp(relOp.getValue());
-		return left;
+		AssignDestination res = __IR.putCode("CMP "+left.getDestination()+" "+right.getDestination());
+		res.setRelOp(relOp.getValue());
+		return res.join(left).join(right);
 		
 	}
 	private String getBranchOp(AssignDestination resRel) {
@@ -541,7 +548,7 @@ public class Parser {
 		}
 		return op;
 	}
-	protected void ifStatement(String funName) {
+	protected AssignDestination ifStatement(String funName) {
 		if(!__currToken.getValue().equals("if")) {
 			reportError("where's if keyword??");
 		}
@@ -556,40 +563,50 @@ public class Parser {
 			reportError("where's then keyword??");
 		}
 		next();
-		statSequence(funName);
+		AssignDestination ifSS = statSequence(funName);
+		AssignDestination elseSS = null;
 		long elsePointer = -1;
 		if(__currToken.getValue().equals("else")) {
 			elsePointer = __IR.getCurrPc()+1;
 			__IR.putCode("dummy");
 			next();
-			statSequence(funName);
+			elseSS = statSequence(funName);
 			__IR.fixCode("BRA"+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), elsePointer);
 		}
 		if(elsePointer == -1) elsePointer = __IR.getCurrPc();
+		ifSS = ifSS.intersectVars(elseSS);
+		for(String pv : ifSS.getAssignedVars()) {
+          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+		}
 		__IR.fixCode(op+" "+resRel.getDestination()+" "+new AssignDestination(elsePointer+2).getDestination(), ifPointer);
 		if(!__currToken.getValue().equals("fi")) {
 			reportError("where's fi keyword??");
 		}
 		next();
+		return ifSS;
 	}
-	protected void whileStatement(String funName) {
-		AssignDestination whileRel;
+	protected AssignDestination whileStatement(String funName) {
 		if(!__currToken.getValue().equals("while")) reportError("where's while?");
 		next();
-		whileRel = relation(funName);
+		AssignDestination whileRel = relation(funName);
+		System.out.println("WR: "+whileRel.getAssignedVars().toString());
 		String branchOp = getBranchOp(whileRel);
 		long whilePtr = __IR.getCurrPc()+1;
 		__IR.putCode("dummy while");
 		
 		if(!__currToken.getValue().equals("do")) reportError("where's do?");
 		next();
-		statSequence(funName);
+		AssignDestination whileSS = statSequence(funName);
 		if(!__currToken.getValue().equals("od")) reportError("where's od?");
 		next();
 		__IR.putCode("BRA "+new AssignDestination(whilePtr).getDestination());
+		// TODO: we need to squeez in these phi's before CMP ie while(x<y){x=x+1}
+		for(String pv : whileRel.intersectVars(whileSS).getAssignedVars()) {
+          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+		}
 		// for some reason, need to do +2, instead of +1. maybe because of .data?
 		__IR.fixCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), whilePtr);
-		
+		return whileSS;
 	}
 	protected void returnStatement(String funName) {
 
