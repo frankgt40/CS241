@@ -588,24 +588,34 @@ public class Parser {
 	protected AssignDestination whileStatement(String funName) {
 		if(!__currToken.getValue().equals("while")) reportError("where's while?");
 		next();
+		long cmpPtr = __IR.getCurrPc()+1; // location of CMP op, which will be loc of PHI's later
 		AssignDestination whileRel = relation(funName);
-		System.out.println("WR: "+whileRel.getAssignedVars().toString());
 		String branchOp = getBranchOp(whileRel);
-		long whilePtr = __IR.getCurrPc()+1;
-		__IR.putCode("dummy while");
 		
 		if(!__currToken.getValue().equals("do")) reportError("where's do?");
 		next();
 		AssignDestination whileSS = statSequence(funName);
 		if(!__currToken.getValue().equals("od")) reportError("where's od?");
 		next();
-		__IR.putCode("BRA "+new AssignDestination(whilePtr).getDestination());
-		// TODO: we need to squeez in these phi's before CMP ie while(x<y){x=x+1}
+		
+		// compute intersection of assigned vars in both blocks
+		Set<String> intersectVars = whileRel.intersectVars(whileSS).getAssignedVars();
+		// point to CMP if no PHI's exist or first PHI pointer otherwise
+		// location of next PHI is curr+1+sizeof(PHIS)
+		__IR.putCode("BRA "+new AssignDestination(intersectVars.size() == 0 ? cmpPtr : __IR.getCurrPc()+1+intersectVars.size()).getDestination());
+
+		// add all phis
 		for(String pv : whileRel.intersectVars(whileSS).getAssignedVars()) {
-          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+          __IR.putCode("PHI "+pv+" "+pv+" "+pv, cmpPtr);
 		}
-		// for some reason, need to do +2, instead of +1. maybe because of .data?
-		__IR.fixCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), whilePtr);
+		
+		// insert branchOp right after CMP
+		// first argument is pointer of CMP
+		// second argument is jumping address, which is (currPc+1 (actual currPC))+1(for next I)
+		// put this code after all PHI's
+		__IR.putCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr+1+intersectVars.size());
+
+		
 		return whileSS;
 	}
 	protected void returnStatement(String funName) {
