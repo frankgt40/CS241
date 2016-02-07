@@ -1,0 +1,32 @@
+main
+var x, y, z;
+array [ 4 ] a;
+array [ 4 ][ 4 ][12] b;
+var c;
+
+procedure bar( x, z );
+var i, j, e;
+{
+	let i[b] <- (j + (0 * 2 )) / 3;
+	let j <- 0 +1 +(9 + 3 * c) /9 * b * a +11;
+};
+
+{
+	let x <- 0;
+	let y <- 0;
+	let z <- 0;
+	while x >= y do
+		let x <- 5+2-y;
+		while y < z do
+			let y <- y;
+			let x <- x
+		od;
+		let y <- 5;
+		while y >= x do
+			let z <- 10
+		od;
+	od;
+	
+	let c <- foo
+	
+}.

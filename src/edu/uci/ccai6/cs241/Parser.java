@@ -556,29 +556,46 @@ public class Parser {
 		AssignDestination resRel = relation(funName);
 		
 		// check relOp and convert/invert it to corresponding branch
-		String op = getBranchOp(resRel);
-		long ifPointer = __IR.getCurrPc()+1;
-		__IR.putCode(op+" "+resRel.getDestination()+" "+new AssignDestination(ifPointer).getDestination());
+		String relOp = getBranchOp(resRel);
+		long cmpPtr = __IR.getCurrPc()+1; // one instruction below CMP
 		if(!__currToken.getValue().equals("then")) {
 			reportError("where's then keyword??");
 		}
 		next();
 		AssignDestination ifSS = statSequence(funName);
-		AssignDestination elseSS = null;
-		long elsePointer = -1;
+		
+		// now we are done with if(rel) then statSequence(..)
+		// so if there's no else, instruction number of follow is currPc+2
+		//
+		// again this advanced ptr is dangerous 
+		// so call putCode(Code) before calling putCode(Code,Index) after calling IfStatement
+
 		if(__currToken.getValue().equals("else")) {
-			elsePointer = __IR.getCurrPc()+1;
-			__IR.putCode("dummy");
+			long elsePtr = __IR.getCurrPc()+1;
 			next();
-			elseSS = statSequence(funName);
-			__IR.fixCode("BRA"+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), elsePointer);
+			AssignDestination elseSS = statSequence(funName);
+			
+			// now followPtr should point to either first Phi if existed or first follow inst
+			long followPtr = __IR.getCurrPc()+3; 
+			__IR.putCode("BRA"+" "+new AssignDestination(followPtr).getDestination(), elsePtr);
+
+			// put relOp at CMP+1
+			// 1st arg is result of relation
+			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
+			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			
+			ifSS = ifSS.intersectVars(elseSS);
+			for(String pv : ifSS.getAssignedVars()) {
+	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+			}
+		} else {
+			long followPtr = __IR.getCurrPc()+2;
+			// put relOp at CMP+1
+			// 1st arg is result of relation
+			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
+			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
 		}
-		if(elsePointer == -1) elsePointer = __IR.getCurrPc();
-		ifSS = ifSS.intersectVars(elseSS);
-		for(String pv : ifSS.getAssignedVars()) {
-          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
-		}
-		__IR.fixCode(op+" "+resRel.getDestination()+" "+new AssignDestination(elsePointer+2).getDestination(), ifPointer);
+		
 		if(!__currToken.getValue().equals("fi")) {
 			reportError("where's fi keyword??");
 		}
