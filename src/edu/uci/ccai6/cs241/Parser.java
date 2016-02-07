@@ -613,6 +613,14 @@ public class Parser {
 		// first argument is pointer of CMP
 		// second argument is jumping address, which is (currPc+1 (actual currPC))+1(for next I)
 		// put this code after all PHI's
+		
+		// Note: The idea of using advanced pointer (i.e. currPointer+2) is dangerous
+		// because the next pointer has to be created by putCode(String)
+		// and thus is below after current instruction
+		// If the next pointer is inserted into higher location (i.e. putCode(String,Index))
+		// then this will be incorrect
+		//
+		// TLDR: dont use putCode(String,Index) right after calling while statement
 		__IR.putCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr+1+intersectVars.size());
 
 		
