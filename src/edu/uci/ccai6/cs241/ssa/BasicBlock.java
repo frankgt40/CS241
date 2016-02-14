@@ -6,6 +6,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * Here's BasicBlock construction
+ * For if-else:
+ * 				Beginning Block
+ * 					/   \
+ * 		  Direct   /     \ Indirect
+ * 				  If	 Else
+ *                 \     /
+ *        Indirect  \   /  Direct
+ *                  Joined
+ * For while:
+ * 
+ * 								  	 Beginning
+ * 							   Direct   /
+ * 									   /
+ * 							   -------/-----------
+ * 								\    /			 |
+ * 							 While Comp			 |
+ * 						Direct	/   \ Indirect   |  Indirect
+ * 							   /     \			 |
+ * 						   In while   \			 |
+ * 								\	  Follow	 /
+ *  							 ----------------
+ * @author norrathep
+ *
+ */
 public class BasicBlock {
 	
 	int index = 0;
