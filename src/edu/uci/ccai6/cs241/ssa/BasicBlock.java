@@ -1,20 +1,42 @@
 package edu.uci.ccai6.cs241.ssa;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class BasicBlock {
 	
 	int index = 0;
 	BasicBlock nextDirect, nextIndirect;
+	BasicBlock prevDirect, prevIndirect;
 	
-	List<Instruction> data = new ArrayList<Instruction>();
+	// contains latest variables reachable at this block
+	Map<String, Integer> ssaVars = new HashMap<String, Integer>();
+	List<Instruction> instructions = new LinkedList<Instruction>();
 	
 	public BasicBlock(int ind) {
 		index = ind;
 	}
 	
-	public void add(Instruction inst) {
-		data.add(inst);
+	public void updateVar(String var, int indx) {
+		if(!ssaVars.containsKey(var) || ssaVars.get(var) < indx) {
+			ssaVars.put(var, indx);
+		}
 	}
+	
+	public void add(Instruction inst) {
+		instructions.add(inst);
+	}
+	
+	public void mergeVars(BasicBlock two) {
+		for(Entry<String, Integer> e2 : two.ssaVars.entrySet()) {
+			if(!ssaVars.containsKey(e2.getKey()) || ssaVars.get(e2.getKey()) < e2.getValue()) {
+				ssaVars.put(e2.getKey(), e2.getValue());
+			}
+		}
+	}
+	
+	
 }

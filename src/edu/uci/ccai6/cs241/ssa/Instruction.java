@@ -6,7 +6,7 @@ public class Instruction {
 		FUNC,
 		NONE,
 		LOAD, STORE,
-		ADD, ADDi, MUL, MULi, DIV, DIVi,
+		ADD, ADDi, MUL, MULi, DIV, DIVi, SUB, SUBi,
 		MOVE,
 		BGE, BGT, BLE, BLT, BNE, BEQ,
 		BRA,
