@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-
 public class Parser {
 	public static boolean __isVerbose = true; // Can be configured later!
 	public static boolean __isWriteToFile = true; // Can be configured later!
@@ -205,7 +204,7 @@ public class Parser {
 				// There is a parameter, then go get it
 				String tokenValue = __currToken.getValue();
 				__funUtil.newVarName(tokenValue);
-				__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + ", " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
 				while (__currToken.getType() == Token.TokenType.COMMA) {
@@ -214,7 +213,7 @@ public class Parser {
 						// There is a parameter, then go get it
 						tokenValue = __currToken.getValue();
 						__funUtil.newVarName(tokenValue);
-						__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + ", " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+						__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
 						reportError("Missing a viarable! In function formal parameter part.");
@@ -349,16 +348,16 @@ public class Parser {
 				} else {
 					allConstant = false;
 					// left is not constant!
-					code = op + "i " + left.getDestination() + ", " + tmpR + ", " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination());
-					code = op + "i " + tmpL + ", " + right.getDestination() + ", " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
 					left = right; // Important!
 				} else {
-					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
 				}
 			}
 			if (!allConstant) {
@@ -403,18 +402,18 @@ public class Parser {
 				} else {
 					// a * 3
 					allConstant = false;
-					code = op + "i " + left.getDestination() + ", " + tmpR + ", " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination()); 
 					// 3 * a
-					code = op + "i " + tmpL + ", " + right.getDestination() + ", " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
 					left = right; // Important!
 				} else {
 					// a * b
-					code = op + " " + left.getDestination() + ", " + right.getDestination() + ", " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
 				}
 			}
 			if (!allConstant)
@@ -480,9 +479,9 @@ public class Parser {
 				__currToken = __lx.nextToken();
 				num = expression(funName);
 				num.setIsArray(true); // Set is the array
-				code = "MULi " + num.getDestination() + ", " + IRGenerator.__DW + ", " + num.getDestination(); 		
+				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW + " " + num.getDestination(); 		
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				code = "ADDA " + idName + ", " + num.getDestination() + ", " + idName; //a[i]= a + i * 4;
+				code = "ADDA " + idName + " " + num.getDestination() + " " + idName; //a[i]= a + i * 4;
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
