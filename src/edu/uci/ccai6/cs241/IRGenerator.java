@@ -3,6 +3,7 @@ package edu.uci.ccai6.cs241;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class IRGenerator {
 	private List<String> __IRBuffer;

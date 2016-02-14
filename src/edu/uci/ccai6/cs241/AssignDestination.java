@@ -43,6 +43,10 @@ public class AssignDestination {
 		return __relOp;
 	}
 	
+	public String toString() {
+		return getDestination();
+	}
+	
 	public String getDestination() {
 		return __destination;
 	}

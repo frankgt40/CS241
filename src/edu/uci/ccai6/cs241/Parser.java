@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+
 public class Parser {
 	public static boolean __isVerbose = true; // Can be configured later!
 	public static boolean __isWriteToFile = true; // Can be configured later!
@@ -27,6 +28,7 @@ public class Parser {
 				pa.getOut().println(codeLine);
 			}
 			pa.getOut().close();
+			
 		}
 	}
 	public IRGenerator getIR() {
@@ -301,11 +303,11 @@ public class Parser {
 //				}
 				if (dst.isArray()) {
 					// if the destination is array, then we need to store instead of move
-					code = "STORE " + from + ", " + to;
+					code = "STORE " + from + " " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				} else {
 					// the destination is a variable, then we can move
-					code = "MOVE " + from + ", " + to;
+					code = "MOVE " + from + " " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				}
 				//__currToken = __lx.nextToken();
@@ -582,7 +584,7 @@ public class Parser {
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
 			
 			ifSS = ifSS.intersectVars(elseSS);
 			for(String pv : ifSS.getAssignedVars()) {
