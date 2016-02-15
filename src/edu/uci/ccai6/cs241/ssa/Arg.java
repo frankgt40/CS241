@@ -75,7 +75,7 @@ public class Arg {
 		hash = hash*17+num;
 		hash = hash*17+pointer;
 		hash = hash*31+(var == null ? 0 : var.hashCode());
-		hash = hash*4+type.hashCode();
+		hash = hash*5+type.hashCode();
 		return hash;
 	}
 }
