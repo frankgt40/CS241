@@ -7,11 +7,17 @@ public class Instruction {
 		NONE,
 		LOAD, STORE,
 		ADD, ADDi, MUL, MULi, DIV, DIVi, SUB, SUBi,
+		ADDA,
 		MOVE,
 		BGE, BGT, BLE, BLT, BNE, BEQ,
 		BRA,
 		CMP,
-		PHI;
+		PHI,
+		
+		
+		PTR // means its value is the same as pointer's or constant
+		
+		;
 		
 		public boolean isBranch() {
 			return isCondJump() || this == BRA;
@@ -29,6 +35,16 @@ public class Instruction {
 	Arg arg0, arg1, arg2;
 	String funcName;
 	int numArgs;
+	
+	public Instruction(Instruction two) {
+		pointer = two.pointer;
+		op = two.op;
+		arg0 = two.arg0;
+		arg1 = two.arg1;
+		arg2 = two.arg2;
+		funcName = two.funcName;
+		numArgs = two.numArgs;
+	}
 	
 	public Instruction(String str) {
 		String[] splited = str.split("\\s+");
@@ -57,10 +73,22 @@ public class Instruction {
 	public String toString() {
 		String out = pointer+" ";
 		out += op+" ";
+		if(op == Operation.FUNC) out += funcName+" ";
 		if(arg0 != null) out += arg0+" ";
 		if(arg1 != null) out += arg1+" ";
 		if(arg2 != null) out += arg2+" ";
 		return out;
+	}
+	
+	public int hashCodeWoPointer() {
+		int hash = 7;
+//		hash = 5*hash + pointer.hashCode();
+		hash = 31*hash + (funcName == null ? 0 : funcName.hashCode());
+		hash = 5*hash + (arg0 == null ? 0 : arg0.hashCode());
+		hash = 5*hash + (arg1 == null ? 0 : arg1.hashCode());
+		hash = 5*hash + (arg2 == null ? 0 : arg2.hashCode());
+		hash = 17*hash + op.hashCode();
+		return hash;
 	}
 	
 }

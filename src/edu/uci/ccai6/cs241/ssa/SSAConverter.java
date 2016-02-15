@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MoveAction;
+
 import edu.uci.ccai6.cs241.ssa.Arg.Type;
 import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
 
@@ -245,10 +247,6 @@ public class SSAConverter {
 			if(bb.nextIndirect != null) bb.nextIndirect.mergeVars(bb);
 		}
 		
-//		for(BasicBlock bb : bbs) {
-//			System.out.println(bb.index+" "+bb.ssaVars);
-//		}
-		
 		// now we have to fix first two addresses in PHI
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
@@ -263,7 +261,74 @@ public class SSAConverter {
 				inst.arg1.var += "@"+curBb.prevDirect.ssaVars.get(inst.arg1.var);
 			}
 		}
+
+		copyProp();
+		cse();
+		copyProp();
+	}
+	
+	/**
+	 * common subexpression elimination
+	 * @param bbs
+	 * @param bbInd
+	 */
+	public void cse() {
+		// do local cse first
+		Map<Integer, Integer> mapping = new HashMap<Integer, Integer>();
+		for(int i=0; i<instructions.size(); i++) {
+			Instruction inst = instructions.get(i);
+			if(inst.op == Operation.PTR) continue;
+			int hc = inst.hashCodeWoPointer();
+			if(mapping.containsKey(hc)) {
+				Integer dupe = mapping.get(hc);
+				inst = new Instruction(inst.pointer.pointer+" "+Operation.PTR+" ("+dupe+")");
+				instructions.set(i, inst);
+			} else {
+				mapping.put(hc, inst.pointer.pointer);
+			}
+		}
+	}
+	
+	// TODO: need to consider control flow - basic blocks
+	public void copyProp() {
+		Map<Arg, Arg> mapping = new HashMap<Arg, Arg>();
+		int idx = 0;
+		for(Instruction inst : instructions) {
+			if(inst.op == Operation.MOVE) {
+				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.arg1, inst.arg0);
+				else mapping.put(inst.arg1, mapping.get(inst.arg0));
+				inst.op = Operation.PTR;
+				inst.arg1 = null;
+				inst.arg2 = null;
+				inst.numArgs = 1;
+			} else if(inst.op == Operation.PHI) {
+				if(!mapping.containsKey(inst.pointer))	mapping.put(inst.arg2, inst.pointer);
+				else mapping.put(inst.arg2, mapping.get(inst.pointer));
+				inst.arg2 = null;
+				inst.numArgs = 2;
+			} 
+			else if(inst.op == Operation.PTR) {
+				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.pointer, inst.arg0);
+				else mapping.put(inst.pointer, mapping.get(inst.arg0));
+				System.out.println("PHI: "+inst.pointer+" "+inst.arg0);
+			}
+			instructions.set(idx, inst);
+			idx++;
+		}
 		
+		int index = 0;
+		for(Instruction inst : instructions) {
+			inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
+			if(inst.arg1 != null) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
+			if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
+
+			instructions.set(index, inst);
+			index++;
+		}
+		
+		for(Instruction inst : instructions) {
+			System.out.println(inst);
+		}
 	}
 	
 }
