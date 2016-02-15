@@ -8,6 +8,12 @@ import java.util.Map.Entry;
 
 /**
  * Here's BasicBlock construction
+ * Direct always spawned to the left and indirect is to the right
+ * Thus, given a block, an incoming direct should be from right
+ * and an incoming indirect is from left
+ * 
+ * Example:
+ * 
  * For if-else:
  * 				Beginning Block
  * 					/   \
@@ -16,13 +22,24 @@ import java.util.Map.Entry;
  *                 \     /
  *        Indirect  \   /  Direct
  *                  Joined
+ * 
+ * For if-no else:
+ * 				Beginning Block
+ * 					/   \
+ * 		  Direct   /     \ 
+ * 				  If	  |
+ *      ------    /       |
+ *     /      \  /        | Indirect
+ *     |     Joined       |
+ *     \                  /
+ *      ------------------
  * For while:
  * 
  * 								  	 Beginning
  * 							   Direct   /
  * 									   /
- * 							   -------/-----------
- * 								\    /			 |
+ * 							   -------/----------
+ * 								\    /			 \
  * 							 While Comp			 |
  * 						Direct	/   \ Indirect   |  Indirect
  * 							   /     \			 |
