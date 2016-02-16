@@ -585,7 +585,7 @@ public class Parser {
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
 			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
 			
-			ifSS = ifSS.intersectVars(elseSS);
+			ifSS = ifSS.join(elseSS);
 			for(String pv : ifSS.getAssignedVars()) {
 	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
 			}
@@ -595,6 +595,10 @@ public class Parser {
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
 			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			
+			for(String pv : ifSS.getAssignedVars()) {
+	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+			}
 		}
 		
 		if(!__currToken.getValue().equals("fi")) {
@@ -617,13 +621,13 @@ public class Parser {
 		next();
 		
 		// compute intersection of assigned vars in both blocks
-		Set<String> intersectVars = whileRel.intersectVars(whileSS).getAssignedVars();
+		Set<String> whileVars = whileSS.getAssignedVars();
 		// point to CMP if no PHI's exist or first PHI pointer otherwise
 		// location of next PHI is curr+1+sizeof(PHIS)
-		__IR.putCode("BRA "+new AssignDestination(intersectVars.size() == 0 ? cmpPtr : __IR.getCurrPc()+1+intersectVars.size()).getDestination());
+		__IR.putCode("BRA "+new AssignDestination(whileVars.size() == 0 ? cmpPtr : __IR.getCurrPc()+1+whileVars.size()).getDestination());
 
 		// add all phis
-		for(String pv : whileRel.intersectVars(whileSS).getAssignedVars()) {
+		for(String pv : whileVars) {
           __IR.putCode("PHI "+pv+" "+pv+" "+pv, cmpPtr);
 		}
 		
@@ -639,7 +643,7 @@ public class Parser {
 		// then this will be incorrect
 		//
 		// TLDR: dont use putCode(String,Index) right after calling while statement
-		__IR.putCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr+1+intersectVars.size());
+		__IR.putCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr+1+whileVars.size());
 
 		
 		return whileSS;
