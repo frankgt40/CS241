@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MoveAction;
-
-import edu.uci.ccai6.cs241.ssa.Arg.Type;
 import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
 
 public class SSAConverter {
@@ -26,31 +23,29 @@ public class SSAConverter {
 	 * Make sure all pointers are sequential
 	 */
 	public void remapPointer() {
-		Map<Arg, Arg> pointerMap = new HashMap<Arg, Arg>();
+		Map<PointerArg, PointerArg> pointerMap = new HashMap<PointerArg, PointerArg>();
 		List<Instruction> mappedInstructions = new ArrayList<Instruction>();
 		
 		// first get the mapping
 		int instNum = 0;
 		for(Instruction inst : instructions) {
-			pointerMap.put(new Arg(inst.pointer), new Arg("("+instNum+")"));
+			pointerMap.put((PointerArg)Arg.clone(inst.pointer), new PointerArg(instNum));
 			instNum++;
 		}
 		
 		// now remap it
 		for(Instruction inst : instructions) {
-			Arg instPtr = pointerMap.get(inst.pointer);
-			inst.pointer.setPointer(instPtr.pointer);
-			if(inst.arg0 != null && inst.arg0.type == Type.POINTER) {
-				Arg np = pointerMap.get(inst.arg0);
-				inst.arg0.setPointer(np.pointer);
+			inst.pointer = pointerMap.get(inst.pointer).clone();
+			if(inst.arg0 != null && inst.arg0 instanceof PointerArg) {
+	            inst.arg0 = pointerMap.get(inst.arg0).clone();
 			}
-			if(inst.arg1 != null && inst.arg1.type == Type.POINTER) {
-				Arg np = pointerMap.get(inst.arg1);
-				inst.arg1.setPointer(np.pointer);
+			if(inst.arg1 != null && inst.arg1 instanceof PointerArg) {
+			    PointerArg np = pointerMap.get(inst.arg1);
+                inst.arg1 = new PointerArg(np.pointer);
 			}
-			if(inst.arg2 != null && inst.arg2.type == Type.POINTER) {
-				Arg np = pointerMap.get(inst.arg2);
-				inst.arg2.setPointer(np.pointer);
+			if(inst.arg2 != null && inst.arg2 instanceof PointerArg) {
+			    PointerArg np = pointerMap.get(inst.arg2);
+                inst.arg2 = new PointerArg(np.pointer);
 			}
 			mappedInstructions.add(inst);
 		}
@@ -91,6 +86,71 @@ public class SSAConverter {
 		return bbNum;
 	}
 	
+	// TODO: now just doesnt work since we dont have output function
+	/**
+	 * 
+	 * @return life ranges of pointers
+	 */
+	public Map<Arg, Arg> deadCodeElimination() {
+	  // traverse backward
+	  Map<Arg, Arg> lastUsed = new HashMap<Arg, Arg>();
+	  for(int j=instructions.size()-1; j>=0; j--) {
+	      Instruction inst = instructions.get(j);
+	      
+	      // put used variable into lastUsed
+	      if(inst.arg0 != null && !(inst.arg0 instanceof ConstArg) && !lastUsed.containsKey(inst.arg0)) {
+	        lastUsed.put(inst.arg0, inst.pointer);
+	      }
+          if(inst.arg1 != null && !(inst.arg1 instanceof ConstArg) && !lastUsed.containsKey(inst.arg1)) {
+            lastUsed.put(inst.arg1, inst.pointer);
+          }
+          if(inst.arg2 != null && !(inst.arg2 instanceof ConstArg) && !lastUsed.containsKey(inst.arg2)) {
+            lastUsed.put(inst.arg2, inst.pointer);
+          }
+          
+          // check if result of this instruction has been used
+        if(!inst.op.isFuncCall() && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
+          instructions.set(j, new Instruction(inst.pointer.pointer+" "+Operation.NOOP));
+        }
+	  }
+	  return lastUsed;
+	}
+//	
+//	public void allocateRegister() {
+//	    Map<Arg, Integer> regs = new HashMap<Arg, Integer>();
+//	    int counter = 1;
+//	    for(Instruction inst : instructions) {
+//	      if(inst.op == Operation.PHI) {
+//	        regs.put(inst.pointer, counter);
+//            regs.put(inst.arg0, counter);
+//            regs.put(inst.arg1, counter);
+//            counter++;
+//	      }
+//	    }
+//	    
+//	    for(int i=0; i<instructions.size(); i++) {
+//	      Instruction inst = instructions.get(i);
+//	      if(inst.op == Operation.READ) {
+//	        inst.arg0 = new Arg("R"+regs.get(inst.pointer));
+//	      } else if(inst.op.isBranch()) {
+//            continue;
+//          } else if(inst.op == Operation.PHI) {
+//            inst = new Instruction(inst.pointer.pointer+" "+Operation.KILL);
+//          } else {
+//            if(inst.arg0 != null && inst.arg0 instanceof PointerArg && regs.containsKey(inst.arg0)) {
+//              inst.arg0 = new Arg("R"+regs.get(inst.arg0));
+//            }
+//            if(inst.arg1 != null && inst.arg1 instanceof PointerArg && regs.containsKey(inst.arg1)) {
+//              inst.arg1 = new Arg("R"+regs.get(inst.arg1));
+//            }
+//            if(inst.arg2 != null && inst.arg2 instanceof PointerArg && regs.containsKey(inst.arg2)) {
+//              inst.arg2 = new Arg("R"+regs.get(inst.arg2));
+//            }
+//          }
+//          instructions.set(i, inst);
+//	    }
+//	}
+	
 	/**
 	 * generate all basic blocks
 	 * @param assignedBlockNum
@@ -126,12 +186,12 @@ public class SSAConverter {
 			
 			if(inst.op.isCondJump()) {
 				// for cond jump, it creates an indirect chain
-				Arg jumpAddr = inst.arg1;
+				PointerArg jumpAddr = (PointerArg) inst.arg1;
 				int jumpBlock = assignedBlockNum.get(jumpAddr.pointer);
 				curBlock.nextIndirect = bbs.get(jumpBlock);
 				bbs.get(jumpBlock).prevIndirect = curBlock;
 			} else if(inst.op == Operation.BRA) {
-				Arg jumpAddr = inst.arg0;
+			    PointerArg jumpAddr = (PointerArg) inst.arg0;
 				int jumpBlock = assignedBlockNum.get(jumpAddr.pointer);
 				curBlock.nextIndirect = bbs.get(jumpBlock);
 				bbs.get(jumpBlock).prevIndirect = curBlock;
@@ -214,29 +274,32 @@ public class SSAConverter {
 			BasicBlock curBb = bbs.get(bbNum);
 			
 			// PHI is tricky for arg0 and arg1, we will skip it for now
-			if(inst.arg0 != null && inst.op != Operation.PHI && inst.arg0.type == Type.VARIABLE) {
-				int varIdx = (vars.containsKey(inst.arg0.var) ? vars.get(inst.arg0.var) : 0);
-				curBb.updateVar(inst.arg0.var, varIdx);
-				inst.arg0.var += "@"+varIdx;
+			if(inst.arg0 != null && inst.op != Operation.PHI && inst.arg0 instanceof VarArg) {
+			    String varName = ((VarArg) inst.arg0).name;
+				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
+				curBb.updateVar(varName, varIdx);
+				inst.arg0 = new VarArg(varName+"@"+varIdx);
 			}
-			if(inst.arg1 != null && inst.op != Operation.PHI && inst.arg1.type == Type.VARIABLE) {
-				int varIdx = (vars.containsKey(inst.arg1.var) ? vars.get(inst.arg1.var) : 0);
+			if(inst.arg1 != null && inst.op != Operation.PHI && inst.arg1 instanceof VarArg) {
+                String varName = ((VarArg) inst.arg1).name;
+				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
 				if(inst.op == Operation.MOVE) {
 					// create a new var name for arg1 at MOVE
 					varIdx++;
-					vars.put(inst.arg1.var, varIdx);
+					vars.put(varName, varIdx);
 				}
-				curBb.updateVar(inst.arg1.var, varIdx);
-				inst.arg1.var += "@"+varIdx;
+				curBb.updateVar(varName, varIdx);
+                inst.arg1 = new VarArg(varName+"@"+varIdx);
 			}
-			if(inst.arg2 != null && inst.op == Operation.PHI && inst.arg2.type == Type.VARIABLE) {
+			if(inst.arg2 != null && inst.op == Operation.PHI && inst.arg2 instanceof VarArg) {
 				// this one is easy since we always create a new var name
 				// for last arg at PHI 
-				int varIdx = (vars.containsKey(inst.arg2.var) ? vars.get(inst.arg2.var) : 0);
+                String varName = ((VarArg) inst.arg2).name;
+				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
 				varIdx++;
-				vars.put(inst.arg2.var, varIdx);
-				curBb.updateVar(inst.arg2.var, varIdx);
-				inst.arg2.var += "@"+varIdx;
+				vars.put(varName, varIdx);
+				curBb.updateVar(varName, varIdx);
+                inst.arg2 = new VarArg(varName+"@"+varIdx);
 			}
 		}
 		
@@ -257,14 +320,17 @@ public class SSAConverter {
 				// fix arg0 -> from prevDirect and arg2 -> from prevIndirect
 				// TODO: is this correct for while?? I think so but need to check
 				// with lecture note
-				inst.arg0.var += "@"+curBb.prevIndirect.ssaVars.get(inst.arg0.var);
-				inst.arg1.var += "@"+curBb.prevDirect.ssaVars.get(inst.arg1.var);
+			    String varName = ((VarArg) inst.arg0).name;
+                inst.arg0 = new VarArg(varName+"@"+curBb.prevIndirect.ssaVars.get(varName));
+                varName = ((VarArg) inst.arg1).name;
+                inst.arg1 = new VarArg(varName+"@"+curBb.prevDirect.ssaVars.get(varName));
 			}
 		}
 
 		copyProp();
 		cse();
-		copyProp();
+        copyProp();
+//		deadCodeElimination();
 	}
 	
 	/**
@@ -318,7 +384,7 @@ public class SSAConverter {
 		
 		int index = 0;
 		for(Instruction inst : instructions) {
-			inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
+		    if(inst.arg0 != null) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
 			if(inst.arg1 != null) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
 			if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
 

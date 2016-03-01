@@ -14,10 +14,16 @@ public class Instruction {
 		CMP,
 		PHI,
 		
+		CALL,
 		
+		NOOP,
 		PTR // means its value is the same as pointer's or constant
 		
 		;
+	  
+	    public boolean isFuncCall() {
+	      return this == CALL;
+	    }
 		
 		public boolean isBranch() {
 			return isCondJump() || this == BRA;
@@ -30,7 +36,7 @@ public class Instruction {
 		}
 	}
 
-	Arg pointer;
+	PointerArg pointer;
 	public Operation op;
 	Arg arg0, arg1, arg2;
 	String funcName;
@@ -48,7 +54,7 @@ public class Instruction {
 	
 	public Instruction(String str) {
 		String[] splited = str.split("\\s+");
-		pointer = new Arg("("+splited[0]+")");
+		pointer = (PointerArg) Arg.create("("+splited[0]+")");
 		try {
 			op = Operation.valueOf(splited[1]);
 		} catch(Exception e) {
@@ -62,11 +68,11 @@ public class Instruction {
 		numArgs = splited.length-2;
 		switch(numArgs) {
 		case 3:
-			arg2 = new Arg(splited[4]);
+			arg2 = Arg.create(splited[4]);
 		case 2:
-			arg1 = new Arg(splited[3]);
+			arg1 = Arg.create(splited[3]);
 		case 1:
-			arg0 = new Arg(splited[2]);
+			arg0 = Arg.create(splited[2]);
 		}
 	}
 	
