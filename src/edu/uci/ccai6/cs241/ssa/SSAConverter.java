@@ -267,11 +267,16 @@ public class SSAConverter {
 		
 		// keeping track of latest index for all vars
 		// We also keep track of variables in each basic block
-		Map<String, Integer> vars = new HashMap<String, Integer>();
+		Map<String, Integer> globalVars = new HashMap<String, Integer>();
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
 			int bbNum = bbInd.get(i);
 			BasicBlock curBb = bbs.get(bbNum);
+			
+			// update SSA vars from prev blocks
+			if(curBb.prevDirect != null) curBb.mergeVars(curBb.prevDirect);
+			if(curBb.prevIndirect != null) curBb.mergeVars(curBb.prevIndirect);
+			Map<String, Integer> vars = curBb.ssaVars;
 			
 			// PHI is tricky for arg0 and arg1, we will skip it for now
 			if(inst.arg0 != null && inst.op != Operation.PHI && inst.arg0 instanceof VarArg) {
@@ -285,8 +290,9 @@ public class SSAConverter {
 				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
 				if(inst.op == Operation.MOVE) {
 					// create a new var name for arg1 at MOVE
+					varIdx = (globalVars.containsKey(varName) ? globalVars.get(varName) : 0);
 					varIdx++;
-					vars.put(varName, varIdx);
+					globalVars.put(varName, varIdx);
 				}
 				curBb.updateVar(varName, varIdx);
                 inst.arg1 = new VarArg(varName+"@"+varIdx);
@@ -297,17 +303,10 @@ public class SSAConverter {
                 String varName = ((VarArg) inst.arg2).name;
 				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
 				varIdx++;
-				vars.put(varName, varIdx);
+				globalVars.put(varName, varIdx);
 				curBb.updateVar(varName, varIdx);
                 inst.arg2 = new VarArg(varName+"@"+varIdx);
 			}
-		}
-		
-		// All variables in each basic block 
-		// have to be latest variables reachable at this block
-		for(BasicBlock bb : bbs) {
-			if(bb.nextDirect != null) bb.nextDirect.mergeVars(bb);
-			if(bb.nextIndirect != null) bb.nextIndirect.mergeVars(bb);
 		}
 		
 		// now we have to fix first two addresses in PHI
@@ -326,6 +325,7 @@ public class SSAConverter {
                 inst.arg1 = new VarArg(varName+"@"+curBb.prevDirect.ssaVars.get(varName));
 			}
 		}
+		
 
 		copyProp();
 		cse();
@@ -390,7 +390,6 @@ public class SSAConverter {
 			else if(inst.op == Operation.PTR) {
 				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.pointer, inst.arg0);
 				else mapping.put(inst.pointer, mapping.get(inst.arg0));
-				System.out.println("PHI: "+inst.pointer+" "+inst.arg0);
 			}
 			instructions.set(idx, inst);
 			idx++;
