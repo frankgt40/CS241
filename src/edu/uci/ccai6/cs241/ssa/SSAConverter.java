@@ -331,6 +331,20 @@ public class SSAConverter {
 		cse();
         copyProp();
 //		deadCodeElimination();
+        killPtrOp();
+	}
+	
+	public void killPtrOp() {
+		for(int i=0; i<instructions.size(); i++) {
+			Instruction inst = instructions.get(i);
+			if(inst.op == Operation.PTR) {
+				inst.op = Operation.NOOP;
+				inst.arg0 = null;
+				inst.arg1 = null;
+				inst.arg2 = null;
+			}
+			instructions.set(i, inst);
+		}
 	}
 	
 	/**
@@ -384,8 +398,10 @@ public class SSAConverter {
 		
 		int index = 0;
 		for(Instruction inst : instructions) {
-		    if(inst.arg0 != null) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
-			if(inst.arg1 != null) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
+			// BRA (ptr) shouldnt change
+		    if(inst.arg0 != null && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
+		    // BGT (10) (ptr) ptr shouldnt change
+			if(inst.arg1 != null && !inst.op.isBranch()) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
 			if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
 
 			instructions.set(index, inst);
