@@ -7,7 +7,7 @@ var i, j, e, a, b, c;
 {
 	let i[b] <- (j + (0 * 2 )) / 3;
 	let j <- 0 +1 +(9 + 3 * c) /9 * b * a +11;
-	let x <- x / z + 1;
+	let x <- x / z + 1 +y;
 };
 
 {
