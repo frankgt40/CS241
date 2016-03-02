@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import edu.uci.ccai6.cs241.ssa.Instruction;
+import edu.uci.ccai6.cs241.ssa.SSAConverter;
+
 public class Parser {
 	public static boolean __isVerbose = true; // Can be configured later!
 	public static boolean __isWriteToFile = true; // Can be configured later!
@@ -17,17 +20,22 @@ public class Parser {
 	private String __inFile;
 	private String __outFile;
 	private PrintWriter __out;
+	
 	public static void main(String args[]) {
-		Parser pa = new Parser("testCases/001.txt");
-		pa.setOutFile("output/001.out.txt");
+		Parser pa = new Parser("testCases/test001.txt");
+		pa.setOutFile("output/test001.out.txt");
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();
-			for (String codeLine : codeList) {
-				pa.getOut().println(codeLine);
-			}
+//			for (String codeLine : codeList) {
+//				pa.getOut().println(codeLine);
+//			}
 			pa.getOut().close();
-			
+			SSAConverter cnv = new SSAConverter(codeList);
+			cnv.assignBlockNum();
+			for(Instruction inst : cnv.instructions) {
+				System.out.println(inst);
+			}
 		}
 	}
 	public IRGenerator getIR() {
@@ -54,13 +62,15 @@ public class Parser {
 	}
 	protected void computation() {
 		 __currToken = __lx.nextToken();
+		 Reporter.initialize(__lx);
 		if (__currToken.getValue().equals("main")) {
+			VarScoper.enter("main");
 			String funName = __currToken.getValue();
 			__IR.putCode(".data");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__currToken = __lx.nextToken();
 			while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
 				// There are some varDecl
-				varDecl(funName);
+				varDecl();
 			} 
 			while (__currToken.getValue().equals("function")  || __currToken.getValue().equals("procedure")) {
 				// There are some funcDecl
@@ -74,10 +84,11 @@ public class Parser {
 			if (__currToken.getType() == Token.TokenType.L_BRACE) {
 				__currToken = __lx.nextToken();
 				// There is a statSequence
-				statSequence(funName);
+				statSequence();
 				if (__currToken.getType() == Token.TokenType.R_BRACE) {
 					__currToken = __lx.nextToken();
 					if (__currToken.getType() == Token.TokenType.DOT) {
+						VarScoper.exit();
 						__IR.putCode("end");
 						__IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
@@ -96,12 +107,14 @@ public class Parser {
 			reportError("There should be \"main\" keyword!");
 		}
 	}
-	protected void varDecl(String funName) {
+	protected void varDecl() {
 		Result rsl = typeDecl();
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
 			//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 			//String fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress()); 
-			String fixed = rsl.fix(funName + __SEP +__currToken.getValue(), __IR.getANewVarAddress());
+			VarScoper.declare(__currToken.getValue());
+			String varName = VarScoper.genVarName(__currToken.getValue());
+			String fixed = rsl.fix(varName, __IR.getANewVarAddress());
 			__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			/// To be continued...
 
@@ -109,9 +122,10 @@ public class Parser {
 			while (__currToken.getType() == Token.TokenType.COMMA) {
 				__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.VARIABLE) {
+					VarScoper.declare(__currToken.getValue());
 					//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 					//fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress());
-					fixed = rsl.fix(funName + __SEP +__currToken.getValue(), __IR.getANewVarAddress());
+					fixed = rsl.fix(VarScoper.genVarName(__currToken.getValue()), __IR.getANewVarAddress());
 					__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				} else {
 					reportError("There should be a variable!");
@@ -176,14 +190,16 @@ public class Parser {
 			__currToken = __lx.nextToken();
 			if (__currToken.getType() == Token.TokenType.VARIABLE) {
 				functionName = __currToken.getValue();
+				VarScoper.enter(functionName);
 				__IR.putCode(functionName + ":");
 				__funUtil.setFunName(functionName);
 				formalParam();
 				if (__currToken.getType() == Token.TokenType.SEMICOLON) {
 					__currToken = __lx.nextToken();
-					funcBody(functionName);
+					funcBody();
 					if (__currToken.getType() == Token.TokenType.SEMICOLON) {
 						__currToken = __lx.nextToken();
+						VarScoper.exit();
 					} else {
 						reportError(" In function declaration, after the function body.Missing a semincolon!");						
 					}
@@ -203,6 +219,7 @@ public class Parser {
 			if (__currToken.getType() == Token.TokenType.VARIABLE) {
 				// There is a parameter, then go get it
 				String tokenValue = __currToken.getValue();
+				VarScoper.declare(tokenValue);
 				__funUtil.newVarName(tokenValue);
 				__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
@@ -212,6 +229,7 @@ public class Parser {
 					if (__currToken.getType() == Token.TokenType.VARIABLE) {
 						// There is a parameter, then go get it
 						tokenValue = __currToken.getValue();
+						VarScoper.declare(tokenValue);
 						__funUtil.newVarName(tokenValue);
 						__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
@@ -229,15 +247,15 @@ public class Parser {
 			// Then there is no formalParam
 		}
 	}
-	protected void funcBody(String funName) {
+	protected void funcBody() {
 		while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
 			// There are some varDecl
-			varDecl(funName);
+			varDecl();
 		} 
 		if (__currToken.getType() == Token.TokenType.L_BRACE) {
 			// To be continued...
 			__currToken = __lx.nextToken();
-			statSequence(funName);
+			statSequence();
 			if (__currToken.getType() == Token.TokenType.R_BRACE) {
 				// Successfully finished
 				__currToken = __lx.nextToken();
@@ -248,30 +266,30 @@ public class Parser {
 			reportError("Missing a \'{\'! In function function body.");
 		}
 	}
-	protected AssignDestination statSequence(String funName) {
-		AssignDestination left = statement(funName);
+	protected AssignDestination statSequence() {
+		AssignDestination left = statement();
 		AssignDestination right = null;
 		while (__currToken.getType() == Token.TokenType.SEMICOLON) {
 			__currToken = __lx.nextToken();
-			right = statement(funName);
+			right = statement();
 			if(left != null) left = left.join(right);
 			else left = right;
 		}
 		return left;
 	}
-	protected AssignDestination statement(String funName) {
+	protected AssignDestination statement() {
 		switch(__currToken.getValue()) {
 		case "let":
-			return assignment(funName);
+			return assignment();
 		case "call":
-			funcCall(funName);
+			funcCall();
 			break;
 		case "if":
-			return ifStatement(funName);
+			return ifStatement();
 		case "while":
-			return whileStatement(funName);
+			return whileStatement();
 		case "return":
-			returnStatement(funName);
+			returnStatement();
 			break;
 		default:
 			//reportError("Wrong statement!");
@@ -279,18 +297,18 @@ public class Parser {
 		}
 		return null;
 	}
-	protected AssignDestination assignment(String funName) {
+	protected AssignDestination assignment() {
 		if (__currToken.getValue().equals("let")) {
 			String code = "";
 			__currToken = __lx.nextToken();
-			AssignDestination dst = designator(funName);
+			AssignDestination dst = designator();
 			if (dst.isConstant()) {
-				reportError("In assignment, you can assign something to a constant!");
+				reportError("In assignment, you cannot assign something to a constant!");
 			}
 			//__currToken = __lx.nextToken();
 			if (__currToken.getType() == Token.TokenType.ASSIGN) {
 				__currToken = __lx.nextToken();
-				AssignDestination source = expression(funName);
+				AssignDestination source = expression();
 				// Successfully finished
 				//String to = funName + __SEP + dst.getDestination(); ////jiajiajiajiajiajiajijia
 				String to = dst.getDestination(); ////jiajiajiajiajiajiajijia
@@ -318,8 +336,8 @@ public class Parser {
 		return null;
 	}
 
-	protected AssignDestination expression(String funName) {
-		AssignDestination left = term(funName);
+	protected AssignDestination expression() {
+		AssignDestination left = term();
 		AssignDestination right;
 		String op;
 		boolean allConstant = false;
@@ -330,7 +348,7 @@ public class Parser {
 		while (__currToken.getType() == Token.TokenType.ADD || __currToken.getType() == Token.TokenType.SUB) {
 			op = __currToken.getType() == Token.TokenType.ADD ? "ADD" : "SUB";
 			__currToken = __lx.nextToken();
-			right = term(funName);
+			right = term();
 			if (right.isConstant()) {
 				tmpR  = Integer.parseInt(right.getDestination());
 				if (left.isConstant()) {
@@ -348,16 +366,16 @@ public class Parser {
 				} else {
 					allConstant = false;
 					// left is not constant!
-					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR;
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination());
-					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination();
 					left = right; // Important!
 				} else {
-					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination();
 				}
 			}
 			if (!allConstant) {
@@ -372,8 +390,8 @@ public class Parser {
 		return left;
 		
 	}
-	protected AssignDestination term(String funName) {
-		AssignDestination left = factor(funName);
+	protected AssignDestination term() {
+		AssignDestination left = factor();
 		AssignDestination right;
 		String op;
 		String code = null;
@@ -384,7 +402,7 @@ public class Parser {
 		while (__currToken.getType() == Token.TokenType.MUL || __currToken.getType() == Token.TokenType.DIV) {
 			op = __currToken.getType() == Token.TokenType.MUL ? "MUL" : "DIV";
 			__currToken = __lx.nextToken();
-			right = factor(funName);
+			right = factor();
 			if (right.isConstant()) {
 				tmpR  = Integer.parseInt(right.getDestination());
 				if (left.isConstant()) {
@@ -402,18 +420,18 @@ public class Parser {
 				} else {
 					// a * 3
 					allConstant = false;
-					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR;
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination()); 
 					// 3 * a
-					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination();
 					left = right; // Important!
 				} else {
 					// a * b
-					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination();
 				}
 			}
 			if (!allConstant)
@@ -425,11 +443,11 @@ public class Parser {
 		}
 		return left;
 	}
-	protected AssignDestination factor(String funName) {
+	protected AssignDestination factor() {
 		AssignDestination dst;
 		switch(__currToken.getType()) {
 		case VARIABLE:
-			dst = designator(funName);
+			dst = designator();
 			return dst;
 		case INSTANT:
 			dst = new AssignDestination(__currToken.getValue());
@@ -438,7 +456,7 @@ public class Parser {
 			return dst;
 		case L_PARENTHESIS:
 			__currToken = __lx.nextToken();
-			dst = expression(funName);
+			dst = expression();
 			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
 				__currToken = __lx.nextToken();
 				return dst;
@@ -447,7 +465,7 @@ public class Parser {
 			}
 		case KEYWORD:
 			if (__currToken.getValue().equals("call")) {
-				dst = funcCall(funName);
+				dst = funcCall();
 				return dst;
 			} else {
 				reportError("In factor, factor can only be a variable, instant, (expression), or function call!");
@@ -458,7 +476,7 @@ public class Parser {
 		}
 		//return dst;
 	}
-	protected AssignDestination funcCall(String funName) {  //?????????????????????????????????????????????
+	protected AssignDestination funcCall() {  //?????????????????????????????????????????????
 		AssignDestination dst;
 		if (!__currToken.getValue().equals("call")) {
 			return null;
@@ -467,17 +485,17 @@ public class Parser {
 			return null;
 		}
 	}
-	protected AssignDestination designator(String funName) {
+	protected AssignDestination designator() {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
 			String idName = __currToken.getValue();
-			idName = funName + __SEP +idName;
+			idName = VarScoper.genVarName(idName);
 			__currToken = __lx.nextToken();
 			//String nestNo = funName+".";
 			String code = "";
 			AssignDestination num = new AssignDestination(idName);
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
 				__currToken = __lx.nextToken();
-				num = expression(funName);
+				num = expression();
 				num.setIsArray(true); // Set is the array
 				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW + " " + num.getDestination(); 		
 				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -506,14 +524,14 @@ public class Parser {
 		__currToken = __lx.nextToken();
 	}
 	
-	AssignDestination relation(String funName) {
-		AssignDestination left = expression(funName);
+	AssignDestination relation() {
+		AssignDestination left = expression();
 		if(!Arrays.asList(new String[] {"<",">","<=",">=","==","!="}).contains(__currToken.getValue())) {
 			reportError("where's relop??");
 		}
 		Token relOp = __currToken;
 		next();
-		AssignDestination right = expression(funName);
+		AssignDestination right = expression();
 		AssignDestination res = __IR.putCode("CMP "+left.getDestination()+" "+right.getDestination());
 		res.setRelOp(relOp.getValue());
 		return res.join(left).join(right);
@@ -549,12 +567,12 @@ public class Parser {
 		}
 		return op;
 	}
-	protected AssignDestination ifStatement(String funName) {
+	protected AssignDestination ifStatement() {
 		if(!__currToken.getValue().equals("if")) {
 			reportError("where's if keyword??");
 		}
 		next();
-		AssignDestination resRel = relation(funName);
+		AssignDestination resRel = relation();
 		
 		// check relOp and convert/invert it to corresponding branch
 		String relOp = getBranchOp(resRel);
@@ -563,7 +581,7 @@ public class Parser {
 			reportError("where's then keyword??");
 		}
 		next();
-		AssignDestination ifSS = statSequence(funName);
+		AssignDestination ifSS = statSequence();
 		
 		// now we are done with if(rel) then statSequence(..)
 		// so if there's no else, instruction number of follow is currPc+2
@@ -574,7 +592,7 @@ public class Parser {
 		if(__currToken.getValue().equals("else")) {
 			long elsePtr = __IR.getCurrPc()+1;
 			next();
-			AssignDestination elseSS = statSequence(funName);
+			AssignDestination elseSS = statSequence();
 			
 			// now followPtr should point to either first Phi if existed or first follow inst
 			long followPtr = __IR.getCurrPc()+3; 
@@ -607,16 +625,16 @@ public class Parser {
 		next();
 		return ifSS;
 	}
-	protected AssignDestination whileStatement(String funName) {
+	protected AssignDestination whileStatement() {
 		if(!__currToken.getValue().equals("while")) reportError("where's while?");
 		next();
 		long cmpPtr = __IR.getCurrPc()+1; // location of CMP op, which will be loc of PHI's later
-		AssignDestination whileRel = relation(funName);
+		AssignDestination whileRel = relation();
 		String branchOp = getBranchOp(whileRel);
 		
 		if(!__currToken.getValue().equals("do")) reportError("where's do?");
 		next();
-		AssignDestination whileSS = statSequence(funName);
+		AssignDestination whileSS = statSequence();
 		if(!__currToken.getValue().equals("od")) reportError("where's od?");
 		next();
 		
@@ -648,7 +666,7 @@ public class Parser {
 		
 		return whileSS;
 	}
-	protected void returnStatement(String funName) {
+	protected void returnStatement() {
 
 	}
 	
