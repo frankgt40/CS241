@@ -366,16 +366,16 @@ public class Parser {
 				} else {
 					allConstant = false;
 					// left is not constant!
-					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR;
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination());
-					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination();
 					left = right; // Important!
 				} else {
-					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination();
 				}
 			}
 			if (!allConstant) {
@@ -420,18 +420,18 @@ public class Parser {
 				} else {
 					// a * 3
 					allConstant = false;
-					code = op + "i " + left.getDestination() + " " + tmpR + " " + left.getDestination();
+					code = op + "i " + left.getDestination() + " " + tmpR;
 				}
 			} else {
 				allConstant = false;
 				if (left.isConstant()) {
 					tmpL = Integer.parseInt(left.getDestination()); 
 					// 3 * a
-					code = op + "i " + tmpL + " " + right.getDestination() + " " + right.getDestination();
+					code = op + "i " + tmpL + " " + right.getDestination();
 					left = right; // Important!
 				} else {
 					// a * b
-					code = op + " " + left.getDestination() + " " + right.getDestination() + " " + left.getDestination();
+					code = op + " " + left.getDestination() + " " + right.getDestination();
 				}
 			}
 			if (!allConstant)
