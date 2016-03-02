@@ -390,7 +390,7 @@ public class Parser {
 //	        System.out.println("done");
 //	      }
 //	    }
-	    Parser parser = new Parser(new Lexer("./testCases/test001.txt"));
+	    Parser parser = new Parser(new Lexer("./testCases/test005.txt"));
 		parser.computation();
 	}
 
