@@ -20,7 +20,7 @@ public class RegisterArg extends Arg {
   }
   
   public String toString() {
-    return num+"";
+    return "R"+num;
   }
 
   @Override
