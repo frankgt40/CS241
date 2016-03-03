@@ -3,6 +3,7 @@ package edu.uci.ccai6.cs241;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,6 +21,7 @@ public class Parser {
 	private String __inFile;
 	private String __outFile;
 	private PrintWriter __out;
+	private final String GLOBAL_VAR_REG = "R30"; 
 	
 	public static void main(String args[]) {
 		Parser pa = new Parser("testCases/test001.txt");
@@ -90,7 +92,7 @@ public class Parser {
 					if (__currToken.getType() == Token.TokenType.DOT) {
 						VarScoper.exit();
 						__IR.putCode("end");
-						__IR.print();
+				        __IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						//System.exit(0);
 					} else {
@@ -126,7 +128,7 @@ public class Parser {
 					//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 					//fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress());
 					fixed = rsl.fix(VarScoper.genVarName(__currToken.getValue()), __IR.getANewVarAddress());
-					__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//					__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				} else {
 					reportError("There should be a variable!");
 				}
@@ -301,7 +303,7 @@ public class Parser {
 		if (__currToken.getValue().equals("let")) {
 			String code = "";
 			__currToken = __lx.nextToken();
-			AssignDestination dst = designator();
+			AssignDestination dst = designator(true);
 			if (dst.isConstant()) {
 				reportError("In assignment, you cannot assign something to a constant!");
 			}
@@ -318,7 +320,8 @@ public class Parser {
 //				} else {
 //					from = funName + __SEP + source.getDestination();
 //				}
-				if (dst.isArray()) {
+				int offset;
+				if (dst.isArray() || dst.isPointer()) {
 					// if the destination is array, then we need to store instead of move
 					code = "STORE " + from + " " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -486,21 +489,36 @@ public class Parser {
 		}
 	}
 	protected AssignDestination designator() {
+	  return designator(false);
+	}
+	protected AssignDestination designator(boolean isDest) {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
-			String idName = __currToken.getValue();
-			idName = VarScoper.genVarName(idName);
-			__currToken = __lx.nextToken();
-			//String nestNo = funName+".";
-			String code = "";
-			AssignDestination num = new AssignDestination(idName);
+			String originalIdName = __currToken.getValue();
+			String idName = VarScoper.genVarName(originalIdName);
+
+            __currToken = __lx.nextToken();
+            //String nestNo = funName+".";
+            AssignDestination num = new AssignDestination(idName);
+            
+            
+			int offset;
+            if( (offset = VarScoper.getGlobalVarOffset(idName)) != -1) {
+              // get offset of global variable
+              num = __IR.putCode("SUBi "+GLOBAL_VAR_REG+" "+offset);
+            }
+
+            // TODO: global array is not working atm
+            String code = "";
+			boolean isArray = false;
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
+			    isArray = true;
 				__currToken = __lx.nextToken();
 				num = expression();
 				num.setIsArray(true); // Set is the array
-				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW + " " + num.getDestination(); 		
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				code = "ADDA " + idName + " " + num.getDestination() + " " + idName; //a[i]= a + i * 4;
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW; 		
+				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				code = "ADDA " + idName + " " + num.getDestination(); //a[i]= a + i * 4;
+				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
 					// successfully finished this round
@@ -509,9 +527,14 @@ public class Parser {
 					reportError("In designator, missing a \']'!");
 				}
 			}
+			
+			// we LOAD if
+			// 1) is a right side in assignment AND
+			// 2) is in memory => either array or global variable
+            if(!isDest && (isArray || (offset != -1))) num = __IR.putCode("LOAD "+num.getDestination());
 			//__IR.print();
 			// return the idName who has the address of the array item
-			num.setDestination(idName);
+//			num.setDestination(idName);
 			return num;
 		} else {
 			reportError("In designator, missing a variable!");
