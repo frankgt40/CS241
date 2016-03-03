@@ -60,7 +60,7 @@ public class Instruction {
 		} catch(Exception e) {
 			if(splited[1].charAt(splited[1].length()-1) == ':') { 
 				op = Operation.FUNC;
-				funcName = splited[1];
+				funcName = splited[1].substring(0, splited[1].length()-1);
 			} else op = Operation.NONE;
 			
 		}

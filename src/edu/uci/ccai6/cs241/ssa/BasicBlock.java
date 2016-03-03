@@ -52,6 +52,7 @@ import java.util.Map.Entry;
 public class BasicBlock {
 	
 	int index = 0;
+	String scope = null;
 	BasicBlock nextDirect, nextIndirect;
 	BasicBlock prevDirect, prevIndirect;
 	

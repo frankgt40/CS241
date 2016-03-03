@@ -14,8 +14,15 @@ public class SSAConverter {
 	public List<Instruction> instructions = new ArrayList<Instruction>();
 	
 	public SSAConverter(List<String> codes) {
+	    // assume codes.get(0) is always data:
+	    String scope = null;
 		for(String s : codes) {
-			instructions.add(new Instruction(s));
+		    Instruction inst = new Instruction(s);
+			instructions.add(inst);
+			
+			// add scope to every instruction
+			if(inst.op == Operation.FUNC) scope = inst.funcName;
+			inst.funcName = scope;
 		}
 	}
 	
@@ -184,6 +191,13 @@ public class SSAConverter {
 			BasicBlock curBlock = bbs.get(curBb);
 			curBlock.add(inst);
 			
+            curBlock.scope = inst.funcName;
+            if(curBlock.prevDirect != null && curBlock.prevDirect.scope != null
+                && !curBlock.prevDirect.scope.equals(curBlock.scope)) {
+              curBlock.prevDirect.nextDirect = null;
+              curBlock.prevDirect = null;
+            }
+			
 			if(inst.op.isCondJump()) {
 				// for cond jump, it creates an indirect chain
 				PointerArg jumpAddr = (PointerArg) inst.arg1;
@@ -204,25 +218,25 @@ public class SSAConverter {
 			curNum++;
 			
 		}
-//		for(int i=0; i<numBlocks; i++) {
-//			BasicBlock bb = bbs.get(i);
-//			if(bb.nextDirect != null)
-//				System.out.println("Direct next: "+bb.index+"->"+bb.nextDirect.index);
-//		}
-//		for(int i=0; i<numBlocks; i++) {
-//			BasicBlock bb = bbs.get(i);
-//			if(bb.prevDirect != null)
-//				System.out.println("Direct prev: "+bb.index+"<-"+bb.prevDirect.index);
-//		}
-//		
-//		for(int i=0; i<numBlocks; i++) {
-//			BasicBlock bb = bbs.get(i);
-//			if(bb.nextIndirect != null)
-//				System.out.println(bb.index+"->"+bb.nextIndirect.index);
-//
-//			if(bb.prevIndirect != null)
-//				System.out.println(bb.prevIndirect.index+"<-"+bb.index);
-//		}
+		for(int i=0; i<numBlocks; i++) {
+			BasicBlock bb = bbs.get(i);
+			if(bb.nextDirect != null)
+				System.out.println("Direct next: "+bb.index+"->"+bb.nextDirect.index);
+		}
+		for(int i=0; i<numBlocks; i++) {
+			BasicBlock bb = bbs.get(i);
+			if(bb.prevDirect != null)
+				System.out.println("Direct prev: "+bb.index+"<-"+bb.prevDirect.index);
+		}
+		
+		for(int i=0; i<numBlocks; i++) {
+			BasicBlock bb = bbs.get(i);
+			if(bb.nextIndirect != null)
+				System.out.println(bb.index+"->"+bb.nextIndirect.index);
+
+			if(bb.prevIndirect != null)
+				System.out.println(bb.prevIndirect.index+"<-"+bb.index);
+		}
 		return bbs;
 	}
 	
