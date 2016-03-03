@@ -34,9 +34,9 @@ public class Parser {
 //			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
-			cnv.assignBlockNum();
-			for(Instruction inst : cnv.instructions) {
-				System.out.println(inst);
+			List<Integer> bbNum = cnv.assignBlockNum();
+			for(int i=0; i<bbNum.size(); i++) {
+				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i));
 			}
 		}
 	}
@@ -68,7 +68,7 @@ public class Parser {
 		if (__currToken.getValue().equals("main")) {
 			VarScoper.enter("main");
 			String funName = __currToken.getValue();
-			__IR.putCode(".data");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			__IR.putCode("data:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__currToken = __lx.nextToken();
 			while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
 				// There are some varDecl
