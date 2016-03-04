@@ -117,7 +117,7 @@ public class Parser {
 			VarScoper.declare(__currToken.getValue());
 			String varName = VarScoper.genVarName(__currToken.getValue());
 			String fixed = rsl.fix(varName, __IR.getANewVarAddress());
-			__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			//__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			/// To be continued...
 
 			__currToken = __lx.nextToken();
@@ -223,7 +223,8 @@ public class Parser {
 				String tokenValue = __currToken.getValue();
 				VarScoper.declare(tokenValue);
 				__funUtil.newVarName(tokenValue);
-				__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
 				while (__currToken.getType() == Token.TokenType.COMMA) {
@@ -233,7 +234,8 @@ public class Parser {
 						tokenValue = __currToken.getValue();
 						VarScoper.declare(tokenValue);
 						__funUtil.newVarName(tokenValue);
-						__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
 						reportError("Missing a viarable! In function formal parameter part.");
