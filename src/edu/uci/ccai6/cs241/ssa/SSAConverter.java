@@ -397,17 +397,17 @@ public class SSAConverter {
 	 */
 	public void cse() {
 		// do local cse first
-		Map<Integer, Integer> mapping = new HashMap<Integer, Integer>();
+		Map<String, Integer> mapping = new HashMap<String, Integer>();
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
 			if(inst.op == Operation.PTR || inst.skipOptimize()) continue;
-			int hc = inst.hashCodeWoPointer();
-			if(mapping.containsKey(hc)) {
-				Integer dupe = mapping.get(hc);
+			String instSimpString = inst.toSimpleString();
+			if(mapping.containsKey(instSimpString)) {
+				Integer dupe = mapping.get(instSimpString);
 				inst = new Instruction(inst.pointer.pointer+" "+Operation.PTR+" ("+dupe+")");
 				instructions.set(i, inst);
 			} else {
-				mapping.put(hc, inst.pointer.pointer);
+				mapping.put(instSimpString, inst.pointer.pointer);
 			}
 		}
 	}

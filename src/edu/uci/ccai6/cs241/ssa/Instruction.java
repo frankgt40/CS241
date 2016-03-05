@@ -1,12 +1,9 @@
 package edu.uci.ccai6.cs241.ssa;
 
-import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
-
 public class Instruction {
 	
 	public enum Operation {
 		FUNC,
-		NONE,
 		LOAD, STORE,
 		ADD, ADDi, MUL, MULi, DIV, DIVi, SUB, SUBi,
 		ADDA,
@@ -70,7 +67,7 @@ public class Instruction {
 			if(splited[1].charAt(splited[1].length()-1) == ':') { 
 				op = Operation.FUNC;
 				funcName = splited[1].substring(0, splited[1].length()-1);
-			} else op = Operation.NONE;
+			} else op = Operation.NOOP;
 			
 		}
 		
@@ -99,6 +96,21 @@ public class Instruction {
 		if(arg1 != null) out += arg1+" ";
 		if(arg2 != null) out += arg2+" ";
 		return out;
+	}
+	
+	/**
+	 * 
+	 * used this in CSE to find duplicate instructions
+	 * @return toString but w/o pointer at the beginning
+	 */
+	public String toSimpleString() {
+		String out = op+" ";
+		if(op == Operation.FUNC) out += funcName+" ";
+		if(arg0 != null) out += arg0+" ";
+		if(arg1 != null) out += arg1+" ";
+		if(arg2 != null) out += arg2+" ";
+		return out;
+		
 	}
 	
 	public int hashCodeWoPointer() {
