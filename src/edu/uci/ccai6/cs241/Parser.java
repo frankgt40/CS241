@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import edu.uci.ccai6.cs241.Token.TokenType;
+import edu.uci.ccai6.cs241.RA.RegisterAllocator;
+import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
 
@@ -35,10 +37,21 @@ public class Parser {
 //			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
-			List<Integer> bbNum = cnv.assignBlockNum();
+
+		      List<Integer> bbNum = cnv.assignBlockNum();
+		      int numBlocks = bbNum.get(bbNum.size()-1)+1;
+		      List<BasicBlock> bbs = cnv.generateBasicBlocks(bbNum, numBlocks);
+		      cnv.rename(bbs, bbNum);
+		      cnv.copyProp();
+		      cnv.cse();
+		      cnv.copyProp();
+		      cnv.deadCodeElimination();
+		      cnv.killPtrOp();
 			for(int i=0; i<bbNum.size(); i++) {
-				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i));
+				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i)+" : "+cnv.instructions.get(i).funcName);
 			}
+			List<Instruction> insts = RegisterAllocator.assign(cnv.generateBasicBlocks(bbNum, numBlocks));
+			for(Instruction inst : insts) System.out.println(inst);
 		}
 	}
 	public IRGenerator getIR() {
