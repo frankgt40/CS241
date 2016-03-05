@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
 
@@ -223,6 +224,8 @@ public class Parser {
 				String tokenValue = __currToken.getValue();
 				VarScoper.declare(tokenValue);
 				__funUtil.newVarName(tokenValue);
+
+		          long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
 			      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
 				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
@@ -234,7 +237,8 @@ public class Parser {
 						tokenValue = __currToken.getValue();
 						VarScoper.declare(tokenValue);
 						__funUtil.newVarName(tokenValue);
-					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+						  // popping backwards
+					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
@@ -481,10 +485,21 @@ public class Parser {
 		}
 		//return dst;
 	}
-	protected AssignDestination funcCall() {  //?????????????????????????????????????????????
-		AssignDestination dst;
-		if (!__currToken.getValue().equals("call")) {
-			return null;
+	protected AssignDestination funcCall() {  
+		if (__currToken.getValue().equals("call")) {
+		    next();
+		    String funcName = __currToken.getValue();
+		    next();
+		    if(__currToken.getType() != TokenType.L_PARENTHESIS) reportError("In funCall, missing left paran");
+		    next(); // (
+		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
+		      AssignDestination param_in = expression();
+		      __IR.putCode("PUSH "+param_in);
+		      if(__currToken.getType() == TokenType.COMMA) next();
+		      // this is correct but bad for error detection
+		    }
+		    next(); // )
+			return __IR.putCode("CALL "+funcName);
 		} else {
 			reportError("In funcCall, missing the \'call\' keyword!");
 			return null;
