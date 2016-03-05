@@ -119,7 +119,11 @@ public class SSAConverter {
           if(inst.skipOptimize()) continue;
           // check if result of this instruction has been used
         if(inst.op != Operation.PUSH && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
-          instructions.set(j, new Instruction(inst.pointer.pointer+" "+Operation.NOOP));
+          inst.op = Operation.NOOP;
+          inst.arg0 = null;
+          inst.arg1 = null;
+          inst.arg2 = null;
+          instructions.set(j, inst);
         }
 	  }
 	  return lastUsed;
@@ -242,6 +246,20 @@ public class SSAConverter {
 		return bbs;
 	}
 	
+	public List<Instruction> runAll() {
+	  List<Integer> bbNum = assignBlockNum();
+      int numBlocks = bbNum.get(bbNum.size()-1)+1;
+      List<BasicBlock> bbs = generateBasicBlocks(bbNum, numBlocks);
+      rename(bbs, bbNum);
+      // TODO: put these into proper places
+      copyProp();
+      cse();
+      copyProp();
+      deadCodeElimination();
+      killPtrOp();
+      return this.instructions;
+	}
+	
 	/**
 	 * assign each instruction into basic block
 	 * return the corresponding result
@@ -266,10 +284,7 @@ public class SSAConverter {
 		}
 		
 		List<Integer> bbNum = assignBlockNum(jumpedAddrs);
-		int numBlocks = bbNum.get(bbNum.size()-1)+1;
 		
-		List<BasicBlock> bbs = generateBasicBlocks(bbNum, numBlocks);
-		rename(bbs, bbNum);
 		return bbNum;
 	}
 	
@@ -356,12 +371,6 @@ public class SSAConverter {
 		}
 		
 
-		// TODO: put these into proper places
-		copyProp();
-		cse();
-        copyProp();
-		deadCodeElimination();
-        killPtrOp();
 	}
 	
 	/**
