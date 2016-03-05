@@ -114,9 +114,11 @@ public class SSAConverter {
           if(inst.arg2 != null && !(inst.arg2 instanceof ConstArg) && !lastUsed.containsKey(inst.arg2)) {
             lastUsed.put(inst.arg2, inst.pointer);
           }
+
           
+          if(inst.skipOptimize()) continue;
           // check if result of this instruction has been used
-        if(!inst.op.isFuncCall() && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
+        if(inst.op != Operation.PUSH && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
           instructions.set(j, new Instruction(inst.pointer.pointer+" "+Operation.NOOP));
         }
 	  }
@@ -279,8 +281,9 @@ public class SSAConverter {
 	 */
 	public void rename(List<BasicBlock> bbs, List<Integer> bbInd) {
 		
-		// keeping track of latest index for all vars
-		// We also keep track of variables in each basic block
+		// we keep global variable names - so that we can correctly assign the new name for def variables
+	    // and
+	    // local variable names within the control flow path - so that we can give the correct name for use variable
 		Map<String, Integer> globalVars = new HashMap<String, Integer>();
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
@@ -292,18 +295,29 @@ public class SSAConverter {
 			if(curBb.prevIndirect != null) curBb.mergeVars(curBb.prevIndirect);
 			Map<String, Integer> vars = curBb.ssaVars;
 			
+			if(inst.op == Operation.CALL) continue;
 			// PHI is tricky for arg0 and arg1, we will skip it for now
+			// TODO: This is very complicated and so many duplicates. Need to generalize/abstract this if I have time 
 			if(inst.arg0 != null && inst.op != Operation.PHI && inst.arg0 instanceof VarArg) {
 			    String varName = ((VarArg) inst.arg0).name;
 				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
+				
+				// check if its definition
+				if(inst.op == Operation.POP) {
+                  varIdx = (globalVars.containsKey(varName) ? globalVars.get(varName) : 0);
+                  varIdx++;
+                  globalVars.put(varName, varIdx);
+			
+		        } 
 				curBb.updateVar(varName, varIdx);
 				inst.arg0 = new VarArg(varName+"@"+varIdx);
 			}
 			if(inst.arg1 != null && inst.op != Operation.PHI && inst.arg1 instanceof VarArg) {
                 String varName = ((VarArg) inst.arg1).name;
 				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
+				
+                // check if its definition
 				if(inst.op == Operation.MOVE) {
-					// create a new var name for arg1 at MOVE
 					varIdx = (globalVars.containsKey(varName) ? globalVars.get(varName) : 0);
 					varIdx++;
 					globalVars.put(varName, varIdx);
@@ -328,7 +342,8 @@ public class SSAConverter {
 			Instruction inst = instructions.get(i);
 			int bbNum = bbInd.get(i);
 			BasicBlock curBb = bbs.get(bbNum);
-			
+
+            if(inst.op == Operation.CALL) continue;
 			if(inst.op == Operation.PHI) {
 				// fix arg0 -> from prevDirect and arg2 -> from prevIndirect
 				// TODO: is this correct for while?? I think so but need to check
@@ -341,13 +356,17 @@ public class SSAConverter {
 		}
 		
 
+		// TODO: put these into proper places
 		copyProp();
 		cse();
         copyProp();
-//		deadCodeElimination();
+		deadCodeElimination();
         killPtrOp();
 	}
 	
+	/**
+	 * Kill all PTR since they are duplicates
+	 */
 	public void killPtrOp() {
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
@@ -363,6 +382,7 @@ public class SSAConverter {
 	
 	/**
 	 * common subexpression elimination
+	 * pretty simple here: create a link of duplicated instructions
 	 * @param bbs
 	 * @param bbInd
 	 */
@@ -371,7 +391,7 @@ public class SSAConverter {
 		Map<Integer, Integer> mapping = new HashMap<Integer, Integer>();
 		for(int i=0; i<instructions.size(); i++) {
 			Instruction inst = instructions.get(i);
-			if(inst.op == Operation.PTR) continue;
+			if(inst.op == Operation.PTR || inst.skipOptimize()) continue;
 			int hc = inst.hashCodeWoPointer();
 			if(mapping.containsKey(hc)) {
 				Integer dupe = mapping.get(hc);
@@ -383,10 +403,10 @@ public class SSAConverter {
 		}
 	}
 	
-	// TODO: need to consider control flow - basic blocks
 	public void copyProp() {
 		Map<Arg, Arg> mapping = new HashMap<Arg, Arg>();
 		int idx = 0;
+		// TODO: again complicated. generalize this if have time
 		for(Instruction inst : instructions) {
 			if(inst.op == Operation.MOVE) {
 				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.arg1, inst.arg0);
@@ -400,10 +420,12 @@ public class SSAConverter {
 				else mapping.put(inst.arg2, mapping.get(inst.pointer));
 				inst.arg2 = null;
 				inst.numArgs = 2;
-			} 
-			else if(inst.op == Operation.PTR) {
+			} else if(inst.op == Operation.PTR) {
 				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.pointer, inst.arg0);
 				else mapping.put(inst.pointer, mapping.get(inst.arg0));
+			} else if(inst.op == Operation.POP) {
+              if(!mapping.containsKey(inst.pointer)) mapping.put(inst.arg0, inst.pointer);
+              else mapping.put(inst.arg0, mapping.get(inst.pointer));
 			}
 			instructions.set(idx, inst);
 			idx++;
@@ -411,6 +433,13 @@ public class SSAConverter {
 		
 		int index = 0;
 		for(Instruction inst : instructions) {
+		  
+		    if(inst.skipOptimize()) { 
+	            instructions.set(index, inst);
+	            index++;
+	            continue;
+		    }
+		  
 			// BRA (ptr) shouldnt change
 		    if(inst.arg0 != null && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
 		    // BGT (10) (ptr) ptr shouldnt change
@@ -419,10 +448,6 @@ public class SSAConverter {
 
 			instructions.set(index, inst);
 			index++;
-		}
-		
-		for(Instruction inst : instructions) {
-			System.out.println(inst);
 		}
 	}
 	

@@ -1,5 +1,7 @@
 package edu.uci.ccai6.cs241.ssa;
 
+import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
+
 public class Instruction {
 	
 	public enum Operation {
@@ -13,6 +15,8 @@ public class Instruction {
 		BRA,
 		CMP,
 		PHI,
+		
+		PUSH, POP,
 		
 		CALL,
 		
@@ -74,6 +78,12 @@ public class Instruction {
 		case 1:
 			arg0 = Arg.create(splited[2]);
 		}
+	}
+	
+	public boolean skipOptimize() {
+	  return (op == Operation.LOAD) || (op == Operation.CALL) || (op == Operation.FUNC)
+	      || (op == Operation.STORE) || (arg0 != null && arg0 instanceof RegisterArg)
+	      || (arg1 != null && arg1 instanceof RegisterArg) || (arg2 != null && arg2 instanceof RegisterArg);
 	}
 	
 	public String toString() {
