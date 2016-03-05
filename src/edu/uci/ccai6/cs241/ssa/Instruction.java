@@ -1,5 +1,7 @@
 package edu.uci.ccai6.cs241.ssa;
 
+import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
+
 public class Instruction {
 	
 	public enum Operation {
@@ -13,6 +15,8 @@ public class Instruction {
 		BRA,
 		CMP,
 		PHI,
+		
+		PUSH, POP,
 		
 		CALL,
 		
@@ -34,12 +38,17 @@ public class Instruction {
 					|| this == BLE || this == BLT
 					|| this == BNE || this == BEQ;
 		}
+		
+		public boolean hasOutput() {
+		  return this != STORE && !this.isBranch() && this != PUSH
+		      && this != NOOP && this != PTR && this != FUNC && this != POP;
+		}
 	}
 
-	PointerArg pointer;
+	public PointerArg pointer;
 	public Operation op;
-	Arg arg0, arg1, arg2;
-	String funcName;
+	public Arg arg0, arg1, arg2;
+	public String funcName;
 	int numArgs;
 	
 	public Instruction(Instruction two) {
@@ -60,7 +69,7 @@ public class Instruction {
 		} catch(Exception e) {
 			if(splited[1].charAt(splited[1].length()-1) == ':') { 
 				op = Operation.FUNC;
-				funcName = splited[1];
+				funcName = splited[1].substring(0, splited[1].length()-1);
 			} else op = Operation.NONE;
 			
 		}
@@ -74,6 +83,12 @@ public class Instruction {
 		case 1:
 			arg0 = Arg.create(splited[2]);
 		}
+	}
+	
+	public boolean skipOptimize() {
+	  return (op == Operation.LOAD) || (op == Operation.CALL) || (op == Operation.FUNC)
+	      || (op == Operation.STORE) || (arg0 != null && arg0 instanceof RegisterArg)
+	      || (arg1 != null && arg1 instanceof RegisterArg) || (arg2 != null && arg2 instanceof RegisterArg);
 	}
 	
 	public String toString() {

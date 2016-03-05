@@ -51,10 +51,10 @@ import java.util.Map.Entry;
  */
 public class BasicBlock {
 	
-	int index = 0;
+	public int index = 0;
+	String scope = null;
 	public BasicBlock nextDirect, nextIndirect;
 	public BasicBlock prevDirect, prevIndirect;
-	
 	boolean printed = false;
 	
 	// contains latest variables reachable at this block

@@ -3,9 +3,13 @@ package edu.uci.ccai6.cs241;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.uci.ccai6.cs241.Token.TokenType;
+import edu.uci.ccai6.cs241.RA.RegisterAllocator;
+import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
 
@@ -20,6 +24,7 @@ public class Parser {
 	private String __inFile;
 	private String __outFile;
 	private PrintWriter __out;
+	private final String GLOBAL_VAR_REG = "R30"; 
 	
 	public static void main(String args[]) {
 		Parser pa = new Parser("testCases/test001.txt");
@@ -32,10 +37,21 @@ public class Parser {
 //			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
-			cnv.assignBlockNum();
-			for(Instruction inst : cnv.instructions) {
-				System.out.println(inst);
+
+		      List<Integer> bbNum = cnv.assignBlockNum();
+		      int numBlocks = bbNum.get(bbNum.size()-1)+1;
+		      List<BasicBlock> bbs = cnv.generateBasicBlocks(bbNum, numBlocks);
+		      cnv.rename(bbs, bbNum);
+		      cnv.copyProp();
+		      cnv.cse();
+		      cnv.copyProp();
+		      cnv.deadCodeElimination();
+		      cnv.killPtrOp();
+			for(int i=0; i<bbNum.size(); i++) {
+				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i)+" : "+cnv.instructions.get(i).funcName);
 			}
+			List<Instruction> insts = RegisterAllocator.assign(cnv.generateBasicBlocks(bbNum, numBlocks));
+			for(Instruction inst : insts) System.out.println(inst);
 		}
 	}
 	public IRGenerator getIR() {
@@ -66,7 +82,7 @@ public class Parser {
 		if (__currToken.getValue().equals("main")) {
 			VarScoper.enter("main");
 			String funName = __currToken.getValue();
-			__IR.putCode(".data");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			__IR.putCode("data:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__currToken = __lx.nextToken();
 			while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
 				// There are some varDecl
@@ -90,7 +106,7 @@ public class Parser {
 					if (__currToken.getType() == Token.TokenType.DOT) {
 						VarScoper.exit();
 						__IR.putCode("end");
-						__IR.print();
+				        __IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						//System.exit(0);
 					} else {
@@ -115,7 +131,7 @@ public class Parser {
 			VarScoper.declare(__currToken.getValue());
 			String varName = VarScoper.genVarName(__currToken.getValue());
 			String fixed = rsl.fix(varName, __IR.getANewVarAddress());
-			__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			//__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			/// To be continued...
 
 			__currToken = __lx.nextToken();
@@ -126,7 +142,7 @@ public class Parser {
 					//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 					//fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress());
 					fixed = rsl.fix(VarScoper.genVarName(__currToken.getValue()), __IR.getANewVarAddress());
-					__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//					__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				} else {
 					reportError("There should be a variable!");
 				}
@@ -221,7 +237,10 @@ public class Parser {
 				String tokenValue = __currToken.getValue();
 				VarScoper.declare(tokenValue);
 				__funUtil.newVarName(tokenValue);
-				__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+		          long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
+			      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
 				while (__currToken.getType() == Token.TokenType.COMMA) {
@@ -231,7 +250,9 @@ public class Parser {
 						tokenValue = __currToken.getValue();
 						VarScoper.declare(tokenValue);
 						__funUtil.newVarName(tokenValue);
-						__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+						  // popping backwards
+					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
+						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
 						reportError("Missing a viarable! In function formal parameter part.");
@@ -301,7 +322,7 @@ public class Parser {
 		if (__currToken.getValue().equals("let")) {
 			String code = "";
 			__currToken = __lx.nextToken();
-			AssignDestination dst = designator();
+			AssignDestination dst = designator(true);
 			if (dst.isConstant()) {
 				reportError("In assignment, you cannot assign something to a constant!");
 			}
@@ -318,7 +339,8 @@ public class Parser {
 //				} else {
 //					from = funName + __SEP + source.getDestination();
 //				}
-				if (dst.isArray()) {
+				int offset;
+				if (dst.isArray() || dst.isPointer()) {
 					// if the destination is array, then we need to store instead of move
 					code = "STORE " + from + " " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -476,31 +498,60 @@ public class Parser {
 		}
 		//return dst;
 	}
-	protected AssignDestination funcCall() {  //?????????????????????????????????????????????
-		AssignDestination dst;
-		if (!__currToken.getValue().equals("call")) {
-			return null;
+	protected AssignDestination funcCall() {  
+		if (__currToken.getValue().equals("call")) {
+		    next();
+		    String funcName = __currToken.getValue();
+		    next();
+		    
+		    // TODO: push base ptr here? and move stack ptr to base ptr here too?
+		    if(__currToken.getType() != TokenType.L_PARENTHESIS) reportError("In funCall, missing left paran");
+		    next(); // (
+		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
+		      AssignDestination param_in = expression();
+		      __IR.putCode("PUSH "+param_in);
+		      if(__currToken.getType() == TokenType.COMMA) next();
+		      // this is correct but bad for error detection
+		    }
+		    next(); // )
+		 
+			return __IR.putCode("CALL "+funcName);
 		} else {
 			reportError("In funcCall, missing the \'call\' keyword!");
 			return null;
 		}
 	}
 	protected AssignDestination designator() {
+	  return designator(false);
+	}
+	protected AssignDestination designator(boolean isDest) {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
-			String idName = __currToken.getValue();
-			idName = VarScoper.genVarName(idName);
-			__currToken = __lx.nextToken();
-			//String nestNo = funName+".";
-			String code = "";
-			AssignDestination num = new AssignDestination(idName);
+			String originalIdName = __currToken.getValue();
+			String idName = VarScoper.genVarName(originalIdName);
+
+            __currToken = __lx.nextToken();
+            //String nestNo = funName+".";
+            AssignDestination num = new AssignDestination(idName);
+            
+            
+			int offset;
+            if( (offset = VarScoper.getGlobalVarOffset(idName)) != -1) {
+              // get offset of global variable
+              num = __IR.putCode("SUBi "+GLOBAL_VAR_REG+" "+offset);
+            }
+
+            // TODO: global array is not working atm
+            String code = "";
+			boolean isArray = false;
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
+			    isArray = true;
 				__currToken = __lx.nextToken();
 				num = expression();
 				num.setIsArray(true); // Set is the array
-				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW + " " + num.getDestination(); 		
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				code = "ADDA " + idName + " " + num.getDestination() + " " + idName; //a[i]= a + i * 4;
-				__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW; 		
+				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				code = "ADDA " + idName + " " + num.getDestination(); //a[i]= a + i * 4;
+				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
 					// successfully finished this round
@@ -509,9 +560,14 @@ public class Parser {
 					reportError("In designator, missing a \']'!");
 				}
 			}
+			
+			// we LOAD if
+			// 1) is a right side in assignment AND
+			// 2) is in memory => either array or global variable
+            if(!isDest && (isArray || (offset != -1))) num = __IR.putCode("LOAD "+num.getDestination());
 			//__IR.print();
 			// return the idName who has the address of the array item
-			num.setDestination(idName);
+//			num.setDestination(idName);
 			return num;
 		} else {
 			reportError("In designator, missing a variable!");

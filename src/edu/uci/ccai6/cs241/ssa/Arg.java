@@ -21,6 +21,8 @@ public abstract class Arg {
 			}
 			int pointer = Integer.parseInt(pointerStr);
 			return new PointerArg(pointer);
+		} else if(str.charAt(0) == 'R'){
+		    return new RegisterArg(Integer.parseInt(str.substring(1)));
 		} else {
 		    return new VarArg(str);
 		}

@@ -6,6 +6,9 @@ public class VarScoper {
 	private static List<String> __level1 = new ArrayList<String>();
 	private static List<String> __level2 = new ArrayList<String>();
 	private static List<String> __scopes = new ArrayList<String>();
+	
+	private static Map<String, Integer> __globalVarOffset = new HashMap<String, Integer>();
+	private static int offset = 0;
 
 	private static boolean __inLevel2 = false;
 	private static String __currScope = "";
@@ -50,18 +53,35 @@ public class VarScoper {
 			}
 		}
 	}
+	public static int getGlobalVarOffset(String fullName) {
+	    return (__globalVarOffset.containsKey(fullName) ? __globalVarOffset.get(fullName) : -1);
+	}
+	private static void storeGlobalVar(String genName) {
+	  if(!__globalVarOffset.containsKey(genName)) {
+	    __globalVarOffset.put(genName, offset);
+        offset += 4;
+	  }
+	}
 	public static String genVarName(String varName) {
 		if (__inLevel2) {
 			if (__level2.contains(varName)) {
 				return __currScope + __CONNECTOR + varName;
 			} else if (__level1.contains(varName)) {
-				return "main" + __CONNECTOR + varName;
+			    String genName = "main" + __CONNECTOR + varName;
+			    
+			    // for optimization, not all vars in main have to be global variable
+			    if(!__currScope.equals("main")) storeGlobalVar(genName);
+				return genName;
 			} else {
 				new Reporter(Reporter.ReportType.ERROR, "Undefined variable:" + varName + "!");
 			} 
 		} else {
 			if (__level1.contains(varName)) {
-				return "main" + __CONNECTOR + varName;
+              String genName = "main" + __CONNECTOR + varName;
+              
+              // for optimization, not all vars in main have to be global variable
+              if(!__currScope.equals("main")) storeGlobalVar(genName);
+              return genName;
 			} else {
 				new Reporter(Reporter.ReportType.ERROR, "Undefined variable:" + varName + "!");
 			}
