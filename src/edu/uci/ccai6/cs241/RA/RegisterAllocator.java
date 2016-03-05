@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
@@ -16,6 +15,8 @@ import edu.uci.ccai6.cs241.ssa.PointerArg;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
 
 public class RegisterAllocator {
+	
+	static final int MAX_COLORS = 8;
 	
 
 	/**
@@ -80,11 +81,15 @@ public class RegisterAllocator {
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
 				if(inst.op != Operation.PHI) continue;
+				// if its PHI R1 R2 R3 -> remove this and 
+				// add MOVE R1->R3 at prevIndirect and MOVE R2->R3 at prevDirect
 				// has to be 1 higher because there's a BRA instruction at the end of the block
-				bb.prevIndirect.instructions.add(bb.prevIndirect.instructions.size()-1,
-						new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
-				bb.prevDirect.instructions.add(
-						new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+				if(!inst.arg0.equals(inst.arg2))
+					bb.prevIndirect.instructions.add(bb.prevIndirect.instructions.size()-1,
+							new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
+				if(!inst.arg1.equals(inst.arg2))
+					bb.prevDirect.instructions.add(
+							new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
 				numInsts++;
 				inst.op = Operation.NOOP;
 				inst.arg0 = null;
@@ -105,10 +110,24 @@ public class RegisterAllocator {
 		Set<Integer> universe = new HashSet<Integer>();
 		
 		// now fill edges
-		Set<Integer> sparseEdges = new HashSet<Integer>();
+		Set<SimpleEdge> sparseEdges = new HashSet<SimpleEdge>();
 		int numInsts = 0;
 		for(int i=bbs.size()-1; i>=0; i--) {
 			BasicBlock bb = bbs.get(i);
+			
+			// first check if this block is inside a loop
+			// because if it is, then it would be defined at the head of the loop
+			// which we havent reached yet
+			if(bb.nextIndirect != null && bb.nextIndirect.nextDirect != null
+					&& bb.index == bb.nextIndirect.nextDirect.index) {
+				// if its in while block, get def in PHI's in while statement
+				for(Instruction whileInst : bb.nextIndirect.instructions) {
+					if(whileInst.op != Operation.PHI || !(whileInst.arg0 instanceof PointerArg)) 
+						continue;
+					int num = ((PointerArg)whileInst.arg0).pointer;
+					alive.add(num);
+				}
+			}
 			numInsts += bb.instructions.size();
 			for(int j=bb.instructions.size()-1; j>=0; j--) {
 				Instruction inst = bb.instructions.get(j);
@@ -119,22 +138,27 @@ public class RegisterAllocator {
 				// arg0 is used here, add edges to all alive pointers
 				if(inst.arg0 != null && inst.op != Operation.BRA 
 						&& inst.arg0 instanceof PointerArg) {
+					// if its a while phi, ignore it since we alrdy handled that
+					if(inst.op == Operation.PHI
+							&&bb.nextDirect != null && bb.nextIndirect != null
+							&& bb.nextDirect.nextIndirect.index == bb.index)
+						continue;
+					
 					int num = ((PointerArg)inst.arg0).pointer;
-					sparseEdges.addAll(createEdges(num, alive));
+					sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
 					alive.add(num);
 					universe.add(num);
 				}
 				if(inst.arg1 != null && !inst.op.isBranch() 
 						&& inst.arg1 instanceof PointerArg) {
 					int num = ((PointerArg)inst.arg1).pointer;
-					sparseEdges.addAll(createEdges(num, alive));
+					sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
 					alive.add(num);
 					universe.add(num);
 				}
 			}
 		}
-		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, 8);
-		System.out.println(instructionColor);
+		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, MAX_COLORS);
 		
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
@@ -163,7 +187,14 @@ public class RegisterAllocator {
 		return fixPhis(bbs, numInsts);
 	}
 	
-	private static Map<Integer, Integer> color(Set<Integer> universe, Set<Integer> edges, int maxColors){
+	/**
+	 * exact coloring algorithm, recursion
+	 * @param universe
+	 * @param edges
+	 * @param maxColors
+	 * @return
+	 */
+	private static Map<Integer, Integer> color(Set<Integer> universe, Set<SimpleEdge> edges, int maxColors){
 		if(universe.size() == 1) {
 			Map<Integer, Integer> out = new HashMap<Integer, Integer>();
 			out.put(universe.iterator().next(), 1);
@@ -173,10 +204,10 @@ public class RegisterAllocator {
 		universe.remove(x);
 		List<Integer> neighbors = new ArrayList<Integer>();
 		for(Integer i : universe) {
-			int hash = hash(x,i);
-			if(edges.contains(hash)) {
+			SimpleEdge e = new SimpleEdge(x,i);
+			if(edges.contains(e)) {
 				neighbors.add(i);
-				edges.remove(hash(x,i));
+				edges.remove(e);
 			}
 		}
 		Map<Integer, Integer> out = color(universe, edges, maxColors);
@@ -187,12 +218,12 @@ public class RegisterAllocator {
 		}
 		List<Integer> neighborColors = new ArrayList<Integer>();
 		for(Integer nb : neighbors) {
-			neighborColors.add(nb);
-			edges.add(hash(x,nb));
+			neighborColors.add(out.get(nb));
+			edges.add(new SimpleEdge(x,nb));
 		}
 		
 		Collections.sort(neighborColors);
-		int xColor = out.get(neighborColors.get(neighborColors.size()-1))+1;
+		int xColor = neighborColors.get(neighborColors.size()-1)+1;
 		for(int i=0; i<neighborColors.size()-1; i++) {
 			if(neighborColors.get(i+1)-neighborColors.get(i) > 1) {
 				xColor = out.get(neighborColors.get(i))+1;
@@ -201,27 +232,5 @@ public class RegisterAllocator {
 		}
 		out.put(x, xColor);
 		return out;
-	}
-	
-	private static int hash(int i, int j) {
-		int hash = 1;
-		if(i<j) {
-			int tmp = j;
-			j = i;
-			i = tmp;
-		}
-		hash = hash*31+i;
-		hash = hash*17+j;
-		return hash;
-	}
-	
-	private static Set<Integer> createEdges(int i, Set<Integer> j) {
-		Set<Integer> sparseEdges = new HashSet<Integer>();
-		for(Integer jj : j) {
-			if(i==jj) continue;
-			int edgeIndex = hash(i,jj);
-			sparseEdges.add(edgeIndex);
-		}
-		return sparseEdges;
 	}
 }
