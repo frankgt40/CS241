@@ -51,14 +51,14 @@ import java.util.Map.Entry;
  */
 public class BasicBlock {
 	
-	int index = 0;
+	public int index = 0;
 	String scope = null;
-	BasicBlock nextDirect, nextIndirect;
-	BasicBlock prevDirect, prevIndirect;
+	public BasicBlock nextDirect, nextIndirect;
+	public BasicBlock prevDirect, prevIndirect;
 	
 	// contains latest variables reachable at this block
 	Map<String, Integer> ssaVars = new HashMap<String, Integer>();
-	List<Instruction> instructions = new LinkedList<Instruction>();
+	public List<Instruction> instructions = new LinkedList<Instruction>();
 	
 	public BasicBlock(int ind) {
 		index = ind;

@@ -2,7 +2,7 @@ package edu.uci.ccai6.cs241.ssa;
 
 public class PointerArg extends Arg {
 
-  int pointer;
+  public int pointer;
 
   public PointerArg(int n) {
     pointer = n;

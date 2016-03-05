@@ -38,12 +38,17 @@ public class Instruction {
 					|| this == BLE || this == BLT
 					|| this == BNE || this == BEQ;
 		}
+		
+		public boolean hasOutput() {
+		  return this != STORE && !this.isBranch() && this != PUSH
+		      && this != NOOP && this != PTR && this != FUNC && this != POP;
+		}
 	}
 
-	PointerArg pointer;
+	public PointerArg pointer;
 	public Operation op;
-	Arg arg0, arg1, arg2;
-	String funcName;
+	public Arg arg0, arg1, arg2;
+	public String funcName;
 	int numArgs;
 	
 	public Instruction(Instruction two) {
