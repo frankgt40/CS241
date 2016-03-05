@@ -52,12 +52,14 @@ import java.util.Map.Entry;
 public class BasicBlock {
 	
 	int index = 0;
-	BasicBlock nextDirect, nextIndirect;
-	BasicBlock prevDirect, prevIndirect;
+	public BasicBlock nextDirect, nextIndirect;
+	public BasicBlock prevDirect, prevIndirect;
+	
+	boolean printed = false;
 	
 	// contains latest variables reachable at this block
 	Map<String, Integer> ssaVars = new HashMap<String, Integer>();
-	List<Instruction> instructions = new LinkedList<Instruction>();
+	public List<Instruction> instructions = new LinkedList<Instruction>();
 	
 	public BasicBlock(int ind) {
 		index = ind;
@@ -78,6 +80,25 @@ public class BasicBlock {
 			if(!ssaVars.containsKey(e2.getKey()) || ssaVars.get(e2.getKey()) < e2.getValue()) {
 				ssaVars.put(e2.getKey(), e2.getValue());
 			}
+		}
+	}
+	
+	public void printInstructions() {
+		for(Instruction inst : instructions) {
+			System.out.println(inst);
+		}
+	}
+	
+	public void printAll(int depth) {
+		for(Instruction inst : this.instructions) {
+			for(int i=0; i<depth; i++) System.out.print('\t');
+			System.out.println(index+": "+inst);
+		}
+		printed = true;
+		if(nextDirect != null && !nextDirect.printed) nextDirect.printAll(depth+1);
+		if(nextIndirect != null && !nextIndirect.printed) {
+			System.out.println();
+			nextIndirect.printAll(depth+1);
 		}
 	}
 	
