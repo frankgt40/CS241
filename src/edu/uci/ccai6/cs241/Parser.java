@@ -490,6 +490,8 @@ public class Parser {
 		    next();
 		    String funcName = __currToken.getValue();
 		    next();
+		    
+		    // TODO: push base ptr here? and move stack ptr to base ptr here too?
 		    if(__currToken.getType() != TokenType.L_PARENTHESIS) reportError("In funCall, missing left paran");
 		    next(); // (
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
@@ -499,6 +501,7 @@ public class Parser {
 		      // this is correct but bad for error detection
 		    }
 		    next(); // )
+		 
 			return __IR.putCode("CALL "+funcName);
 		} else {
 			reportError("In funcCall, missing the \'call\' keyword!");
