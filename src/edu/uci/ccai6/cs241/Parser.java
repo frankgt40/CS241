@@ -258,11 +258,11 @@ public class Parser {
 						reportError("Missing a viarable! In function formal parameter part.");
 					}
 				}
-				if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
-					__currToken = __lx.nextToken(); // Successfully finished
-				} else {
-					reportError("Missing a \')\'! In function formal parameter part.");
-				}
+			}
+			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
+				__currToken = __lx.nextToken(); // Successfully finished
+			} else {
+				reportError("Missing a \')\'! In function formal parameter part.");
 			}
 		} else {
 			// Then there is no formalParam
@@ -505,7 +505,7 @@ public class Parser {
 		    next();
 		    
 		    // TODO: push base ptr here? and move stack ptr to base ptr here too?
-		    if(__currToken.getType() != TokenType.L_PARENTHESIS) reportError("In funCall, missing left paran");
+		    if(__currToken.getType() != TokenType.L_PARENTHESIS) return __IR.putCode("CALL "+funcName);
 		    next(); // (
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
 		      AssignDestination param_in = expression();
