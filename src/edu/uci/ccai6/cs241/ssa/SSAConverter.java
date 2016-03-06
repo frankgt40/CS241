@@ -23,6 +23,7 @@ public class SSAConverter {
 			// add scope to every instruction
 			if(inst.op == Operation.FUNC) scope = inst.funcName;
 			inst.funcName = scope;
+			System.out.println(inst+" ? "+inst.funcName);
 		}
 	}
 	
@@ -224,25 +225,25 @@ public class SSAConverter {
 			curNum++;
 			
 		}
-		for(int i=0; i<numBlocks; i++) {
-			BasicBlock bb = bbs.get(i);
-			if(bb.nextDirect != null)
-				System.out.println("Direct next: "+bb.index+"->"+bb.nextDirect.index);
-		}
-		for(int i=0; i<numBlocks; i++) {
-			BasicBlock bb = bbs.get(i);
-			if(bb.prevDirect != null)
-				System.out.println("Direct prev: "+bb.index+"<-"+bb.prevDirect.index);
-		}
-		
-		for(int i=0; i<numBlocks; i++) {
-			BasicBlock bb = bbs.get(i);
-			if(bb.nextIndirect != null)
-				System.out.println(bb.index+"->"+bb.nextIndirect.index);
-
-			if(bb.prevIndirect != null)
-				System.out.println(bb.prevIndirect.index+"<-"+bb.index);
-		}
+//		for(int i=0; i<numBlocks; i++) {
+//			BasicBlock bb = bbs.get(i);
+//			if(bb.nextDirect != null)
+//				System.out.println("Direct next: "+bb.index+"->"+bb.nextDirect.index);
+//		}
+//		for(int i=0; i<numBlocks; i++) {
+//			BasicBlock bb = bbs.get(i);
+//			if(bb.prevDirect != null)
+//				System.out.println("Direct prev: "+bb.index+"<-"+bb.prevDirect.index);
+//		}
+//		
+//		for(int i=0; i<numBlocks; i++) {
+//			BasicBlock bb = bbs.get(i);
+//			if(bb.nextIndirect != null)
+//				System.out.println(bb.index+"->"+bb.nextIndirect.index);
+//
+//			if(bb.prevIndirect != null)
+//				System.out.println(bb.prevIndirect.index+"<-"+bb.index);
+//		}
 		return bbs;
 	}
 	
@@ -404,7 +405,9 @@ public class SSAConverter {
 			String instSimpString = inst.toSimpleString();
 			if(mapping.containsKey(instSimpString)) {
 				Integer dupe = mapping.get(instSimpString);
+				String funcName = inst.funcName;
 				inst = new Instruction(inst.pointer.pointer+" "+Operation.PTR+" ("+dupe+")");
+				inst.funcName = funcName;
 				instructions.set(i, inst);
 			} else {
 				mapping.put(instSimpString, inst.pointer.pointer);
