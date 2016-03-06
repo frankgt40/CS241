@@ -35,6 +35,7 @@ public class VarScoper {
 			__level1 = null;
 		} else {
 			__currScope = "main";
+			__level2 = new ArrayList<String>();
 			__inLevel2 = false;
 		}
 	}
