@@ -32,9 +32,9 @@ public class Parser {
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();
-//			for (String codeLine : codeList) {
-//				pa.getOut().println(codeLine);
-//			}
+			for (String codeLine : codeList) {
+				pa.getOut().println(codeLine);
+			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
 
@@ -722,8 +722,30 @@ public class Parser {
 		
 		return whileSS;
 	}
+	protected String getCurrTokenVal() {
+		return __currToken.getValue();
+	}
 	protected void returnStatement() {
-
+		// Suppose we use register R28 to store the return value
+		String register = " R28";
+		if (getCurrTokenVal().equals("return")) {
+			next();
+			String code = "";
+			AssignDestination returnValue = expression();
+			code += "MOV " + returnValue.getDestination() + register;
+			__IR.putCode(code);
+//			if (returnValue.isConstant()) {
+//				code += "MOV " + returnValue.getDestination() + register;
+//			} else if (returnValue.isArray()) {
+//				returnValue.
+//			} else if (returnValue.isPointer()) {
+//				
+//			} else {
+//				
+//			}
+		} else {
+			new Reporter(Reporter.ReportType.ERROR, "No return keyword!");
+		}
 	}
 	
 }
