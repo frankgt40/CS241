@@ -658,14 +658,11 @@ public class Parser {
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
 			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
-			try {
-			ifSS = ifSS.join(elseSS);
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Buffers: " + __lx.__pBuffer.print());
-			}
-			for(String pv : ifSS.getAssignedVars()) {
-	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+			if(ifSS != null) {
+				ifSS = ifSS.join(elseSS);
+				for(String pv : ifSS.getAssignedVars()) {
+		          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+				}
 			}
 		} else {
 			long followPtr = __IR.getCurrPc()+2;
