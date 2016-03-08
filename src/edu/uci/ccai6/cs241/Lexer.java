@@ -119,10 +119,11 @@ public class Lexer {
 				 */
 				switch (ch) {
 				case '=':
-					ch = __pBuffer.next();
-					if (ch == '=')
+					if ((ch = __pBuffer.oracle()) == '=') {
+						ch = __pBuffer.next();
+						lexeme += ch;
 						token.setAll(Token.TokenType.EQ, lexeme);
-					else 
+					} else 
 						new Reporter(Reporter.ReportType.ERROR,fileName(), lineNum(), charPos(), "Unexpected character: " + lexeme);						
 					return token;
 				case '-':
@@ -171,7 +172,7 @@ public class Lexer {
 						lexeme += ch;
 						token.setAll(Token.TokenType.ASSIGN, lexeme);
 						return token;
-					} else if (ch == '=') {
+					} else if ((ch = __pBuffer.oracle()) == '=') {
 						ch = __pBuffer.next();
 						lexeme += ch;
 						token.setAll(Token.TokenType.LE, lexeme);

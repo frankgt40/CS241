@@ -27,8 +27,8 @@ public class Parser {
 	private final String GLOBAL_VAR_REG = "R30"; 
 	
 	public static void main(String args[]) {
-		Parser pa = new Parser("testCases/test001.txt");
-		pa.setOutFile("output/test001.out.txt");
+		Parser pa = new Parser("testCases/final.txt");
+		pa.setOutFile("output/final.out.txt");
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();
@@ -658,8 +658,12 @@ public class Parser {
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
 			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
-			
+			try {
 			ifSS = ifSS.join(elseSS);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Buffers: " + __lx.__pBuffer.print());
+			}
 			for(String pv : ifSS.getAssignedVars()) {
 	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
 			}
