@@ -5,6 +5,11 @@ var x, y;
 procedure bar( x, z );
 var i, j, e, a, b, c;
 {
+	let j <- 0;
+	let c <- j;
+	let a <- c;
+	let b <- a;
+	let e <- b;
 	let i <- (j + (0 * 2 )) / 3;
 	let j <- 0 +1 +(9 + 3 * c) /9 * b * a +11;
 	let x <- x / z + 1 +y+i;

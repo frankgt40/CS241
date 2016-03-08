@@ -2,14 +2,19 @@ FUNC data
 FUNC bar 
 POP R4 
 POP R2 
-ADDi bar_j@0 0 R1 
+NOOP 
+NOOP 
+NOOP 
+NOOP 
+NOOP 
+ADDi 0 0 R1 
 DIVi R1 3 R3 
 NOOP 
-MULi 3 bar_c@0 R1 
+MULi 3 0 R1 
 ADDi 9 R1 R1 
 DIVi R1 9 R1 
-MUL R1 bar_b@0 R1 
-MUL R1 bar_a@0 R1 
+MUL R1 0 R1 
+MUL R1 0 R1 
 ADDi 1 R1 R1 
 ADDi R1 11 R1000 
 NOOP 
@@ -36,9 +41,9 @@ LOAD R1 R1
 ADD R1 R3 R1 
 STORE R1 R2 
 PUSH R3 
-CALL OutputNum 
+CALL OutputNum R1000 
 SUBi R30 0 R1 
 LOAD R1 R1 
 PUSH R1 
-CALL OutputNum 
+CALL OutputNum R1000 
 NOOP 
