@@ -309,43 +309,32 @@ public class RegisterAllocator {
 		Integer x = selectNode(universe, edges, maxColors);
 		Set<Integer> xCluster = phis.getCluster(x);
 		
-		// we need to color x and xCluster the same color
-		// remove all nodes in xCluster and their edges as well
-		System.out.println("x: "+x);
-		System.out.println("xCluster: "+xCluster);
-		
-		// map from node -> its neighborss
-		Map<Integer, HashSet<Integer>> neighborSet = new HashMap<Integer, HashSet<Integer>>();
-		
-		// remove clusters from universe as well as their edges
+		Set<Integer> clusterNeighbors = new HashSet<Integer>();
+		Set<SimpleEdge> clusterEdges = new HashSet<SimpleEdge>(); 
+		// remove nodes and edges
+		// also keep track neighbors and edges
 		for(Integer xct : xCluster) {
 			universe.remove(xct);
-			HashSet<Integer> neighbors = new HashSet<Integer>();
 			for(Integer i : universe) {
 				SimpleEdge e = new SimpleEdge(xct,i);
 				if(edges.contains(e)) {
-					neighbors.add(i);
+					clusterNeighbors.add(i);
+					clusterEdges.add(e);
 					edges.remove(e);
 				}
 			}
-			neighborSet.put(xct, neighbors);
 		}
-		System.out.println(universe);
 		Map<Integer, Integer> colors = color(universe, edges, phis, maxColors);
 		
-		int validColor = determineColor(colors, xCluster, neighborSet);
+		int validColor = determineColor(colors, clusterNeighbors);
+		// add nodes back
+		universe.addAll(xCluster);
+		
+		// add edges back
+		edges.addAll(clusterEdges);
+		
+		// color nodes
 		for(Integer elt : xCluster) {
-			universe.add(elt);
-			
-			// find elt's neighbor
-			Set<Integer> neighbors = neighborSet.get(elt);
-			
-			// put edges back
-			for(Integer nb : neighbors) {
-				edges.add(new SimpleEdge(elt,nb));
-			}
-			
-			// color elt
 			colors.put(elt, validColor);
 		}
 		
@@ -412,16 +401,12 @@ public class RegisterAllocator {
 	 * @param neighborSet
 	 * @return a valid color
 	 */
-	private static Integer determineColor(Map<Integer, Integer> colors,
-			Set<Integer> xCluster, Map<Integer, HashSet<Integer>> neighborSet) {
+	private static Integer determineColor(Map<Integer, Integer> colors, Set<Integer> neighbors) {
 		Set<Integer> invalidColors = new HashSet<Integer>();
 		
 		// get all colors from their neighbors and we shouldnt assign one from this list
-		for(Integer x : xCluster) {
-			HashSet<Integer> neighbors = neighborSet.get(x);
-			for(Integer nb : neighbors) {
-				invalidColors.add(colors.get(nb));
-			}
+		for(Integer nb : neighbors) {
+			invalidColors.add(colors.get(nb));
 		}
 		
 		// empty check
