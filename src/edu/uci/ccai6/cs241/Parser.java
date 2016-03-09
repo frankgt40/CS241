@@ -24,7 +24,12 @@ public class Parser {
 	private String __inFile;
 	private String __outFile;
 	private PrintWriter __out;
-	private final String GLOBAL_VAR_REG = "R30"; 
+	public static final int GLB_REG = 30; // return reg
+	public static final String GLOBAL_VAR_REG = "R"+GLB_REG; 
+	public static final int CMP_REG = 27;
+	public static final String CMP_VAR_REG = "R"+CMP_REG; 
+	public static final int RTR_REG = 28; // return reg
+	public static final String RTR_VAR_REG = "R"+RTR_REG; 
 	
 	public static void main(String args[]) {
 		Parser pa = new Parser("testCases/final.txt");
@@ -45,7 +50,7 @@ public class Parser {
 		      cnv.copyProp();
 		      cnv.cse();
 		      cnv.copyProp();
-		      cnv.deadCodeElimination();
+//		      cnv.deadCodeElimination();
 		      cnv.killPtrOp();
 			for(int i=0; i<bbNum.size(); i++) {
 				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i)+" : "+cnv.instructions.get(i).funcName);
@@ -657,7 +662,7 @@ public class Parser {
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
+			__IR.putCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
 			if(ifSS != null) {
 				ifSS = ifSS.join(elseSS);
 				for(String pv : ifSS.getAssignedVars()) {
@@ -669,7 +674,7 @@ public class Parser {
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.putCode(relOp+" "+resRel.getDestination()+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			__IR.putCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
 			
 			for(String pv : ifSS.getAssignedVars()) {
 	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
@@ -685,8 +690,10 @@ public class Parser {
 	protected AssignDestination whileStatement() {
 		if(!__currToken.getValue().equals("while")) reportError("where's while?");
 		next();
-		long cmpPtr = __IR.getCurrPc()+1; // location of CMP op, which will be loc of PHI's later
+		// location of the beginning of the block - PHI should be here, if exist
+		long startBlockPtr = __IR.getCurrPc()+1;
 		AssignDestination whileRel = relation();
+		long cmpPtr = __IR.getCurrPc(); // location of CMP op, which will be loc of PHI's later
 		String branchOp = getBranchOp(whileRel);
 		
 		if(!__currToken.getValue().equals("do")) reportError("where's do?");
@@ -699,11 +706,11 @@ public class Parser {
 		Set<String> whileVars = whileSS.getAssignedVars();
 		// point to CMP if no PHI's exist or first PHI pointer otherwise
 		// location of next PHI is curr+1+sizeof(PHIS)
-		__IR.putCode("BRA "+new AssignDestination(whileVars.size() == 0 ? cmpPtr : __IR.getCurrPc()+1+whileVars.size()).getDestination());
+		__IR.putCode("BRA "+new AssignDestination(whileVars.size() == 0 ? startBlockPtr : __IR.getCurrPc()+1+whileVars.size()).getDestination());
 
 		// add all phis
 		for(String pv : whileVars) {
-          __IR.putCode("PHI "+pv+" "+pv+" "+pv, cmpPtr);
+          __IR.putCode("PHI "+pv+" "+pv+" "+pv, startBlockPtr);
 		}
 		
 		// insert branchOp right after CMP
@@ -718,7 +725,8 @@ public class Parser {
 		// then this will be incorrect
 		//
 		// TLDR: dont use putCode(String,Index) right after calling while statement
-		__IR.putCode(branchOp+" "+whileRel.getDestination()+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr+1+whileVars.size());
+		cmpPtr = cmpPtr+1+whileVars.size(); // update ptr of CMP since it might be pushed by PHI
+		__IR.putCode(branchOp+" "+CMP_VAR_REG+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr);
 
 		
 		return whileSS;
@@ -728,12 +736,11 @@ public class Parser {
 	}
 	protected void returnStatement() {
 		// Suppose we use register R28 to store the return value
-		String register = " R28";
 		if (getCurrTokenVal().equals("return")) {
 			next();
 			String code = "";
 			AssignDestination returnValue = expression();
-			code += "MOV " + returnValue.getDestination() + register;
+			code += "MOV " + returnValue.getDestination() + " " + RTR_VAR_REG;
 			__IR.putCode(code);
 //			if (returnValue.isConstant()) {
 //				code += "MOV " + returnValue.getDestination() + register;
