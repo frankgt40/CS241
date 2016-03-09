@@ -84,11 +84,19 @@ public class RegisterAllocator {
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
 				if(inst.op != Operation.PHI) continue;
+				
+				// TODO: the order of PHI MATTERS now when converting out of SSA
+				// i.e in while loop
+				// (152) PHI R3 R6 R6 
+				// (153) PHI R6 R5 R5 -> supposed to use R6 in previous loop
+				// (xxx) PHI R5 R6 R6 -> hopefully this case wouldnt happen -> deadlock here
+				// thus MOVE R6 -> R5 has to come before MOVE R3 -> R6 when doing copy
+				
 				// if its PHI R1 R2 R3 -> remove this and 
 				// add MOVE R1->R3 at prevIndirect and MOVE R2->R3 at prevDirect
 				// has to be 1 higher because there's a BRA instruction at the end of the block
 				if(!inst.arg0.equals(inst.arg2)) {
-					// TODO: switch pointer of BGT and CMP
+					// TODO: switch pointer of BGT and CMP?
 					
 					// put it at the end but before branch and CMP instruction
 					for(int idx=bb.prevIndirect.instructions.size()-1; idx>=0; idx--) {
@@ -99,25 +107,21 @@ public class RegisterAllocator {
 								new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
 						break;
 					}
-//					if(bb.prevIndirect != null && bb.prevDirect != null
-//							&& bb.prevDirect.prevDirect != null
-//							&& bb.prevDirect.prevDirect.index == bb.prevIndirect.index) {
-//						System.out.println("Try to move "+new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2)
-//						+" into block with insts: "+bb.prevIndirect.instructions);
-//						bb.prevIndirect.instructions.add(bb.prevIndirect.instructions.size()-2, 
-//								new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
-//					} else {
-//						System.out.println("Try to move "+new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2)
-//						+" into block with insts: "+bb.prevIndirect.instructions);
-//						bb.prevIndirect.instructions.add(bb.prevIndirect.instructions.size()-1, 
-//								new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
-//					}
-					
 				}
 				numInsts++;
-				if(!inst.arg1.equals(inst.arg2))
-					bb.prevDirect.instructions.add(
-							new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+				if(!inst.arg1.equals(inst.arg2)) {
+					for(int idx=bb.prevDirect.instructions.size()-1; idx>=0; idx--) {
+						Instruction prevBlockInst = bb.prevDirect.instructions.get(idx);
+						if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP) continue;
+
+						bb.prevDirect.instructions.add(idx+1, 
+								new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+						break;
+						
+					}
+//					bb.prevDirect.instructions.add(
+//							new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+				}
 				numInsts++;
 //				inst.op = Operation.NOOP;
 //				inst.arg0 = null;
@@ -304,15 +308,19 @@ public class RegisterAllocator {
 		}
 		Integer x = selectNode(universe, edges, maxColors);
 		Set<Integer> xCluster = phis.getCluster(x);
-		Set<Integer> xNeighbors = new HashSet<Integer>();
 		
 		// we need to color x and xCluster the same color
 		// remove all nodes in xCluster and their edges as well
 		System.out.println("x: "+x);
 		System.out.println("xCluster: "+xCluster);
+		
+		// map from node -> its neighborss
+		Map<Integer, HashSet<Integer>> neighborSet = new HashMap<Integer, HashSet<Integer>>();
+		
+		// remove clusters from universe as well as their edges
 		for(Integer xct : xCluster) {
 			universe.remove(xct);
-			Set<Integer> neighbors = new HashSet<Integer>();
+			HashSet<Integer> neighbors = new HashSet<Integer>();
 			for(Integer i : universe) {
 				SimpleEdge e = new SimpleEdge(xct,i);
 				if(edges.contains(e)) {
@@ -320,61 +328,122 @@ public class RegisterAllocator {
 					edges.remove(e);
 				}
 			}
-			// we keep track of x's neighbor so no need to recompute
-			if(xct == x) {
-				xNeighbors.addAll(neighbors);
-				xNeighbors.removeAll(xCluster);
-			}
+			neighborSet.put(xct, neighbors);
 		}
 		System.out.println(universe);
-		Map<Integer, Integer> out = color(universe, edges, phis, maxColors);
+		Map<Integer, Integer> colors = color(universe, edges, phis, maxColors);
 		
-		// now put x back in and try to color x
-		universe.add(x);
-		int xColor = 1;
-		if(xNeighbors.isEmpty()) {
-			// no neighbor -> assign to reg1
-			out.put(x, xColor);
-		} else {
-			// assign different color from x's neighbor
-			List<Integer> neighborColors = new ArrayList<Integer>();
-			for(Integer nb : xNeighbors) {
-				neighborColors.add(out.get(nb));
-				edges.add(new SimpleEdge(x,nb));
+		int validColor = determineColor(colors, xCluster, neighborSet);
+		for(Integer elt : xCluster) {
+			universe.add(elt);
+			
+			// find elt's neighbor
+			Set<Integer> neighbors = neighborSet.get(elt);
+			
+			// put edges back
+			for(Integer nb : neighbors) {
+				edges.add(new SimpleEdge(elt,nb));
 			}
 			
-			// a little trick here: 
-			// sort neighbors' color and assign to color+1 
-			// if there is no color+1 in the sorted list
-			// otherwise its color is the highest color + 1
-			System.out.println(neighborColors);
-			Collections.sort(neighborColors);
-			xColor = neighborColors.get(neighborColors.size()-1)+1;
-			for(int i=0; i<neighborColors.size()-1; i++) {
-				if(neighborColors.get(i+1)-neighborColors.get(i) > 1) {
-					xColor = neighborColors.get(i)+1;
-					break;
-				}
-			}
-			out.put(x, xColor);
+			// color elt
+			colors.put(elt, validColor);
 		}
 		
-		// now assign all elements in xCluster to same color
-		// also put them and their edges back to universe and edges
-		for(Integer xct : xCluster) {
-			if(x == xct) continue; // skip x
-			universe.add(xct);
-			List<Integer> neighborColors = new ArrayList<Integer>();
-			// put xct's edges back and get its neighbors' colors
-			for(Integer nb : universe) {
-				SimpleEdge e = new SimpleEdge(xct,nb);
-				if(edges.contains(e)) {
-					neighborColors.add(out.get(nb));
-					edges.add(new SimpleEdge(x,nb));
-				}
+		
+//		TODO: delete when things work
+//		// now put x back in and try to color x
+//		universe.add(x);
+//		int xColor = 1;
+//		if(xNeighbors.isEmpty()) {
+//			// no neighbor -> assign to reg1
+//			out.put(x, xColor);
+//		} else {
+//			// assign different color from x's neighbor
+//			List<Integer> neighborColors = new ArrayList<Integer>();
+//			for(Integer nb : xNeighbors) {
+//				neighborColors.add(out.get(nb));
+//				edges.add(new SimpleEdge(x,nb));
+//			}
+//			
+//			// a little trick here: 
+//			// sort neighbors' color and assign to color+1 
+//			// if there is no color+1 in the sorted list
+//			// otherwise its color is the highest color + 1
+//			System.out.println(neighborColors);
+//			Collections.sort(neighborColors);
+//			xColor = neighborColors.get(neighborColors.size()-1)+1;
+//			for(int i=0; i<neighborColors.size()-1; i++) {
+//				if(neighborColors.get(i+1)-neighborColors.get(i) > 1) {
+//					xColor = neighborColors.get(i)+1;
+//					break;
+//				}
+//			}
+//			out.put(x, xColor);
+//		}
+//		
+//		// now assign all elements in xCluster to same color
+//		// also put them and their edges back to universe and edges
+//		for(Integer xct : xCluster) {
+//			if(x == xct) continue; // skip x
+//			universe.add(xct);
+//			List<Integer> neighborColors = new ArrayList<Integer>();
+//			// put xct's edges back and get its neighbors' colors
+//			for(Integer nb : universe) {
+//				SimpleEdge e = new SimpleEdge(xct,nb);
+//				if(edges.contains(e)) {
+//					neighborColors.add(out.get(nb));
+//					edges.add(new SimpleEdge(xct,nb));
+//				}
+//			}
+//			out.put(xct, xColor);
+//		}
+		return colors;
+	}
+	
+	/**
+	 * find a color for this cluster
+	 * need to find a color such that it's valid for all nodes in cluster
+	 * 
+	 * valid color for a node means its color is different from colors
+	 * of its neighbors
+	 * 
+	 * @param colors
+	 * @param xCluster
+	 * @param neighborSet
+	 * @return a valid color
+	 */
+	private static Integer determineColor(Map<Integer, Integer> colors,
+			Set<Integer> xCluster, Map<Integer, HashSet<Integer>> neighborSet) {
+		Set<Integer> invalidColors = new HashSet<Integer>();
+		
+		// get all colors from their neighbors and we shouldnt assign one from this list
+		for(Integer x : xCluster) {
+			HashSet<Integer> neighbors = neighborSet.get(x);
+			for(Integer nb : neighbors) {
+				invalidColors.add(colors.get(nb));
 			}
-			out.put(xct, xColor);
 		}
-		return out;
+		
+		// empty check
+		if(invalidColors.isEmpty()) return 1;
+		
+		List<Integer> invalid = new ArrayList<Integer>();
+		invalid.addAll(invalidColors);
+		Collections.sort(invalid);
+		
+		// a little trick here: 
+		// sort invalid colors and iterate through the list
+		// for each color c in list:
+		// if there is no c+1 in the sorted list, assign validColor to c+1
+		// otherwise, c = max(invalid)+1
+		int validColor = invalid.get(invalid.size()-1)+1;
+		for(int i=0; i<invalid.size()-1; i++) {
+			if(invalid.get(i+1)-invalid.get(i) > 1) {
+				validColor = invalid.get(i)+1;
+				break;
+			}
+		}
+		return validColor;
+		
 	}
 }
