@@ -1,9 +1,12 @@
 package edu.uci.ccai6.cs241.RA;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,59 +78,44 @@ public class RegisterAllocator {
 		return fixPhis(bbs, numInsts);
 	}
 	
-	// TODO: this is clearly wrong -> check with test10
-	// Do nothing now. YEAH! since phis are already fixed
+	/**
+	 * when we dont assign the same color for all ops in PHI,
+	 * insert copy to previous block
+	 * @param bbs
+	 * @param numInsts
+	 * @return
+	 */
 	private static List<Instruction> fixPhis(List<BasicBlock> bbs, int numInsts) {
 
 		List<Instruction> out = new ArrayList<Instruction>();
 		// now fix PHI's
 		for(BasicBlock bb : bbs) {
+			List<Instruction> prevDirectMoveInst = new ArrayList<Instruction>();
+			Set<RegisterArg> prevDirectDefReg = new HashSet<RegisterArg>();
+			List<Instruction> prevIndirectMoveInst = new ArrayList<Instruction>();
+			Set<RegisterArg> prevIndirectDefReg = new HashSet<RegisterArg>();
 			for(Instruction inst : bb.instructions) {
 				if(inst.op != Operation.PHI) continue;
 				
-				// TODO: the order of PHI MATTERS now when converting out of SSA
-				// i.e in while loop
-				// (152) PHI R3 R6 R6 
-				// (153) PHI R6 R5 R5 -> supposed to use R6 in previous loop
-				// (xxx) PHI R5 R6 R6 -> hopefully this case wouldnt happen -> deadlock here
-				// thus MOVE R6 -> R5 has to come before MOVE R3 -> R6 when doing copy
-				
-				// if its PHI R1 R2 R3 -> remove this and 
-				// add MOVE R1->R3 at prevIndirect and MOVE R2->R3 at prevDirect
-				// has to be 1 higher because there's a BRA instruction at the end of the block
 				if(!inst.arg0.equals(inst.arg2)) {
-					// TODO: switch pointer of BGT and CMP?
-					
-					// put it at the end but before branch and CMP instruction
-					for(int idx=bb.prevIndirect.instructions.size()-1; idx>=0; idx--) {
-						Instruction prevBlockInst = bb.prevIndirect.instructions.get(idx);
-						if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP) continue;
-
-						bb.prevIndirect.instructions.add(idx+1, 
-								new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
-						break;
-					}
+					prevIndirectDefReg.add((RegisterArg) inst.arg2);
+					prevIndirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
+					numInsts++;
 				}
-				numInsts++;
 				if(!inst.arg1.equals(inst.arg2)) {
-					for(int idx=bb.prevDirect.instructions.size()-1; idx>=0; idx--) {
-						Instruction prevBlockInst = bb.prevDirect.instructions.get(idx);
-						if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP) continue;
-
-						bb.prevDirect.instructions.add(idx+1, 
-								new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
-						break;
-						
-					}
-//					bb.prevDirect.instructions.add(
-//							new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+					prevDirectDefReg.add((RegisterArg) inst.arg2);
+					prevDirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+					numInsts++;
 				}
-				numInsts++;
-//				inst.op = Operation.NOOP;
-//				inst.arg0 = null;
-//				inst.arg1 = null;
-//				inst.arg2 = null;
+				
+				inst.op = Operation.NOOP;
+				inst.arg0 = null;
+				inst.arg1 = null;
+				inst.arg2 = null;
 			}
+			
+			insertMoves(prevDirectMoveInst, prevDirectDefReg, bb.prevDirect, true);
+			insertMoves(prevIndirectMoveInst, prevIndirectDefReg, bb.prevIndirect, false);
 		}
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
@@ -135,6 +123,67 @@ public class RegisterAllocator {
 			}
 		}
 		return out;
+	}
+	
+	/**
+	 * Motivation: PHI R1 R2 R2 -> have to insert MOVE R1->R2 into prev block
+	 * but the order of PHI MATTERS now when converting out of SSA
+		 i.e in while loop
+		 (152) PHI R3 R6 R6 
+		 (153) PHI R6 R5 R5 -> supposed to use R6 in previous loop
+		 (xxx) PHI R5 R6 R6 -> hopefully this case wouldnt happen -> deadlock here
+		 -> this case will enter infinite loop which is very very bad
+		 
+		 
+		 Above example:
+		 MOVE R6 -> R5 has to come before MOVE R3 -> R6 when doing copy
+	 * @param moveInsts
+	 * @param defReg
+	 * @param destBb
+	 */
+	private static void insertMoves(List<Instruction> moveInsts, 
+			Set<RegisterArg> defReg, BasicBlock destBb, boolean prevDirect) {
+		Deque<Instruction> moveStacks = new ArrayDeque<Instruction>();
+		while(!moveInsts.isEmpty()) {
+			Iterator<Instruction> moveItr = moveInsts.iterator();
+			while(moveItr.hasNext()) {
+	
+				Instruction move = moveItr.next();
+				if(move.op != Operation.MOVE) {
+					System.err.println(move+" is not move op.");
+					System.exit(-1);
+				}
+				// push non-interference moves into the bottoms
+				if(!defReg.contains(move.arg0)) {
+					moveStacks.push(move);
+					moveItr.remove();
+					// now no longer can be interfered
+					defReg.remove(move.arg1);
+				}
+			}
+		}
+		// insert the rest
+		while(!moveStacks.isEmpty()) {
+			insertMove(moveStacks.pop(), destBb);
+		}
+		
+	}
+	
+	/**
+	 * Insert a move instruction to the last location of dest block
+	 * by last means, last but before branch or CMP
+	 * @param move
+	 * @param dest
+	 */
+	private static void insertMove(Instruction move, BasicBlock dest) {
+		int idx;
+		for(idx=dest.instructions.size()-1; idx>=0; idx--) {
+			Instruction prevBlockInst = dest.instructions.get(idx);
+			if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP) continue;
+			break;
+		}
+		dest.instructions.add(idx+1, move);
+		return;
 	}
 	
 	/**
@@ -227,20 +276,12 @@ public class RegisterAllocator {
 				}
 			}
 		}
-		for(BasicBlock bb : bbs) {
-			for(Instruction inst : bb.instructions) {
-				System.out.println(inst);
-			}
-		}
-		phiClusters.printAll();
 		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, phiClusters, MAX_COLORS);
-		System.out.println(instructionColor);
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
 				inst = assign(inst, instructionColor);
 				out.add(inst);
-				System.out.println(inst);
 			}
 		}
 		return fixPhis(bbs, numInsts);
@@ -316,6 +357,7 @@ public class RegisterAllocator {
 		for(Integer xct : xCluster) {
 			universe.remove(xct);
 			for(Integer i : universe) {
+				if(xCluster.contains(i)) continue;
 				SimpleEdge e = new SimpleEdge(xct,i);
 				if(edges.contains(e)) {
 					clusterNeighbors.add(i);
@@ -337,55 +379,6 @@ public class RegisterAllocator {
 		for(Integer elt : xCluster) {
 			colors.put(elt, validColor);
 		}
-		
-		
-//		TODO: delete when things work
-//		// now put x back in and try to color x
-//		universe.add(x);
-//		int xColor = 1;
-//		if(xNeighbors.isEmpty()) {
-//			// no neighbor -> assign to reg1
-//			out.put(x, xColor);
-//		} else {
-//			// assign different color from x's neighbor
-//			List<Integer> neighborColors = new ArrayList<Integer>();
-//			for(Integer nb : xNeighbors) {
-//				neighborColors.add(out.get(nb));
-//				edges.add(new SimpleEdge(x,nb));
-//			}
-//			
-//			// a little trick here: 
-//			// sort neighbors' color and assign to color+1 
-//			// if there is no color+1 in the sorted list
-//			// otherwise its color is the highest color + 1
-//			System.out.println(neighborColors);
-//			Collections.sort(neighborColors);
-//			xColor = neighborColors.get(neighborColors.size()-1)+1;
-//			for(int i=0; i<neighborColors.size()-1; i++) {
-//				if(neighborColors.get(i+1)-neighborColors.get(i) > 1) {
-//					xColor = neighborColors.get(i)+1;
-//					break;
-//				}
-//			}
-//			out.put(x, xColor);
-//		}
-//		
-//		// now assign all elements in xCluster to same color
-//		// also put them and their edges back to universe and edges
-//		for(Integer xct : xCluster) {
-//			if(x == xct) continue; // skip x
-//			universe.add(xct);
-//			List<Integer> neighborColors = new ArrayList<Integer>();
-//			// put xct's edges back and get its neighbors' colors
-//			for(Integer nb : universe) {
-//				SimpleEdge e = new SimpleEdge(xct,nb);
-//				if(edges.contains(e)) {
-//					neighborColors.add(out.get(nb));
-//					edges.add(new SimpleEdge(xct,nb));
-//				}
-//			}
-//			out.put(xct, xColor);
-//		}
 		return colors;
 	}
 	
