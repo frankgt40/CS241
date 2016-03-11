@@ -26,7 +26,7 @@ public class Parser {
 	private PrintWriter __out;
 	public static final int GLB_REG = 30; // return reg
 	public static final String GLOBAL_VAR_REG = "R"+GLB_REG; 
-	public static final int CMP_REG = 27;
+	public static final int CMP_REG = 25;
 	public static final String CMP_VAR_REG = "R"+CMP_REG; 
 	public static final int RTR_REG = 28; // return reg
 	public static final String RTR_VAR_REG = "R"+RTR_REG; 
@@ -52,6 +52,7 @@ public class Parser {
 		      cnv.copyProp();
 //		      cnv.deadCodeElimination();
 		      cnv.killPtrOp();
+		      cnv.fillZeroUninitalizeVars();
 			for(int i=0; i<bbNum.size(); i++) {
 				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i)+" : "+cnv.instructions.get(i).funcName);
 			}
@@ -634,10 +635,11 @@ public class Parser {
 		}
 		next();
 		AssignDestination resRel = relation();
-		
+
+		long cmpPtr = __IR.getCurrPc()+1; // one instruction below CMP
 		// check relOp and convert/invert it to corresponding branch
 		String relOp = getBranchOp(resRel);
-		long cmpPtr = __IR.getCurrPc()+1; // one instruction below CMP
+		__IR.putCode(relOp+" "+CMP_VAR_REG);
 		if(!__currToken.getValue().equals("then")) {
 			reportError("where's then keyword??");
 		}
@@ -651,18 +653,22 @@ public class Parser {
 		// so call putCode(Code) before calling putCode(Code,Index) after calling IfStatement
 
 		if(__currToken.getValue().equals("else")) {
-			long elsePtr = __IR.getCurrPc()+1;
 			next();
+			long braPtr = __IR.getCurrPc()+1;
+			__IR.putCode("BRA"+" "); 
+			long elsePtr = __IR.getCurrPc()+1;
+			// doing this because if statSequence is while
+			// then it requires next pointer to be whatever the first thing in else
 			AssignDestination elseSS = statSequence();
 			
 			// now followPtr should point to either first Phi if existed or first follow inst
-			long followPtr = __IR.getCurrPc()+3; 
-			__IR.putCode("BRA"+" "+new AssignDestination(followPtr).getDestination(), elsePtr);
+			long followPtr = __IR.getCurrPc()+1; 
+			__IR.fixCode("BRA"+" "+new AssignDestination(followPtr).getDestination(), braPtr);
 
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.putCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
+			__IR.fixCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
 			if(ifSS != null) {
 				ifSS = ifSS.join(elseSS);
 				for(String pv : ifSS.getAssignedVars()) {
@@ -670,14 +676,16 @@ public class Parser {
 				}
 			}
 		} else {
-			long followPtr = __IR.getCurrPc()+2;
+			long followPtr = __IR.getCurrPc()+1;
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.putCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			__IR.fixCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
 			
-			for(String pv : ifSS.getAssignedVars()) {
-	          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+			if(ifSS != null) {
+				for(String pv : ifSS.getAssignedVars()) {
+		          __IR.putCode("PHI "+pv+" "+pv+" "+pv);
+				}
 			}
 		}
 		
@@ -728,7 +736,7 @@ public class Parser {
 		cmpPtr = cmpPtr+1+whileVars.size(); // update ptr of CMP since it might be pushed by PHI
 		__IR.putCode(branchOp+" "+CMP_VAR_REG+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr);
 
-		
+		__IR.putCode("NOOP"); // dummy NOOP to pass test011.txt
 		return whileSS;
 	}
 	protected String getCurrTokenVal() {
