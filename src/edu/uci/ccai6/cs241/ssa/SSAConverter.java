@@ -72,98 +72,68 @@ public class SSAConverter {
 
 		List<Integer> bbNum = new ArrayList<Integer>();
 		int curNum = 0;
+		boolean justSpawnAndNoUseYet = false;
 		for(Instruction inst : instructions) {
-			// create a new block and add inst when its a new function or 
-			// the address can be reached by some jumpings
-			if(inst.op == Operation.FUNC || jumpedAddrs.contains(inst.pointer)) {
-				curNum++;
+			// create a new block when its a branch
+			if(inst.op.isBranch()) {
 				bbNum.add(curNum);
-				continue;
-			}
-			
-			bbNum.add(curNum);
-			
-			// create a new block when its a cond branch
-			// note: if its a BRA, then the first if takes care of it
-			// since the next instruction is gonna be a jumped instruction
-			if(inst.op.isCondJump()) {
 				curNum++;
+				justSpawnAndNoUseYet = true;
+			} else if(inst.op == Operation.FUNC || jumpedAddrs.contains(inst.pointer)) {
+				// create a new block and add inst when its a new function or 
+				// the address can be reached by some jumpings
+				if(!justSpawnAndNoUseYet) curNum++;
+				bbNum.add(curNum);
+				justSpawnAndNoUseYet = false;
+			} else {
+				bbNum.add(curNum);
+				justSpawnAndNoUseYet = false;
 			}
+			
+			
 			
 		}
 		return bbNum;
 	}
 	
 	// TODO: now just doesnt work since we dont have output function
+	// TODO: doesnt work for while since vars in PHI are alive at the end of block
 	/**
 	 * 
 	 * @return life ranges of pointers
 	 */
-	public Map<Arg, Arg> deadCodeElimination() {
+	public Map<Arg, Arg> deadCodeElimination(List<BasicBlock> bbs) {
 	  // traverse backward
 	  Map<Arg, Arg> lastUsed = new HashMap<Arg, Arg>();
-	  for(int j=instructions.size()-1; j>=0; j--) {
-	      Instruction inst = instructions.get(j);
-	      
-	      // put used variable into lastUsed
-	      if(inst.arg0 != null && !(inst.arg0 instanceof ConstArg) && !lastUsed.containsKey(inst.arg0)) {
-	        lastUsed.put(inst.arg0, inst.pointer);
-	      }
-          if(inst.arg1 != null && !(inst.arg1 instanceof ConstArg) && !lastUsed.containsKey(inst.arg1)) {
-            lastUsed.put(inst.arg1, inst.pointer);
-          }
-          if(inst.arg2 != null && !(inst.arg2 instanceof ConstArg) && !lastUsed.containsKey(inst.arg2)) {
-            lastUsed.put(inst.arg2, inst.pointer);
-          }
-
-          
-          if(inst.skipOptimize()) continue;
-          // check if result of this instruction has been used
-        if(inst.op != Operation.PUSH && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
-          inst.op = Operation.NOOP;
-          inst.arg0 = null;
-          inst.arg1 = null;
-          inst.arg2 = null;
-          instructions.set(j, inst);
-        }
+	  for(BasicBlock bb : bbs) {
+		  for(int j=instructions.size()-1; j>=0; j--) {
+		      Instruction inst = instructions.get(j);
+		      
+		      // put used variable into lastUsed
+		      if(inst.arg0 != null && !(inst.arg0 instanceof ConstArg) && !lastUsed.containsKey(inst.arg0)) {
+		        lastUsed.put(inst.arg0, inst.pointer);
+		      }
+	          if(inst.arg1 != null && !(inst.arg1 instanceof ConstArg) && !lastUsed.containsKey(inst.arg1)) {
+	            lastUsed.put(inst.arg1, inst.pointer);
+	          }
+	          if(inst.arg2 != null && !(inst.arg2 instanceof ConstArg) && !lastUsed.containsKey(inst.arg2)) {
+	            lastUsed.put(inst.arg2, inst.pointer);
+	          }
+	
+	          
+	          if(inst.skipOptimize()) continue;
+	          // check if result of this instruction has been used
+	        if(inst.op != Operation.PUSH && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
+	          inst.op = Operation.NOOP;
+	          inst.arg0 = null;
+	          inst.arg1 = null;
+	          inst.arg2 = null;
+	          instructions.set(j, inst);
+	        }
+		  }
 	  }
 	  return lastUsed;
 	}
-//	
-//	public void allocateRegister() {
-//	    Map<Arg, Integer> regs = new HashMap<Arg, Integer>();
-//	    int counter = 1;
-//	    for(Instruction inst : instructions) {
-//	      if(inst.op == Operation.PHI) {
-//	        regs.put(inst.pointer, counter);
-//            regs.put(inst.arg0, counter);
-//            regs.put(inst.arg1, counter);
-//            counter++;
-//	      }
-//	    }
-//	    
-//	    for(int i=0; i<instructions.size(); i++) {
-//	      Instruction inst = instructions.get(i);
-//	      if(inst.op == Operation.READ) {
-//	        inst.arg0 = new Arg("R"+regs.get(inst.pointer));
-//	      } else if(inst.op.isBranch()) {
-//            continue;
-//          } else if(inst.op == Operation.PHI) {
-//            inst = new Instruction(inst.pointer.pointer+" "+Operation.KILL);
-//          } else {
-//            if(inst.arg0 != null && inst.arg0 instanceof PointerArg && regs.containsKey(inst.arg0)) {
-//              inst.arg0 = new Arg("R"+regs.get(inst.arg0));
-//            }
-//            if(inst.arg1 != null && inst.arg1 instanceof PointerArg && regs.containsKey(inst.arg1)) {
-//              inst.arg1 = new Arg("R"+regs.get(inst.arg1));
-//            }
-//            if(inst.arg2 != null && inst.arg2 instanceof PointerArg && regs.containsKey(inst.arg2)) {
-//              inst.arg2 = new Arg("R"+regs.get(inst.arg2));
-//            }
-//          }
-//          instructions.set(i, inst);
-//	    }
-//	}
 	
 	/**
 	 * generate all basic blocks
@@ -195,6 +165,7 @@ public class SSAConverter {
 		for(Instruction inst : instructions) {
 			
 			int curBb = assignedBlockNum.get(curNum);
+			System.out.println(curBb+" : "+inst);
 			BasicBlock curBlock = bbs.get(curBb);
 			curBlock.add(inst);
 			
@@ -256,7 +227,7 @@ public class SSAConverter {
       copyProp();
       cse();
       copyProp();
-      deadCodeElimination();
+//      deadCodeElimination();
       killPtrOp();
       return this.instructions;
 	}
@@ -345,12 +316,16 @@ public class SSAConverter {
 				// this one is easy since we always create a new var name
 				// for last arg at PHI 
                 String varName = ((VarArg) inst.arg2).name;
-				int varIdx = (vars.containsKey(varName) ? vars.get(varName) : 0);
+				int varIdx = (globalVars.containsKey(varName) ? globalVars.get(varName) : 0);
 				varIdx++;
 				globalVars.put(varName, varIdx);
 				curBb.updateVar(varName, varIdx);
                 inst.arg2 = new VarArg(varName+"@"+varIdx);
 			}
+		}
+		
+		for(BasicBlock bb : bbs) {
+			System.out.println(bb.index+" ssa vars: "+bb.ssaVars);
 		}
 		
 		// now we have to fix first two addresses in PHI
@@ -364,6 +339,7 @@ public class SSAConverter {
 				// fix arg0 -> from prevDirect and arg2 -> from prevIndirect
 				// TODO: is this correct for while?? I think so but need to check
 				// with lecture note
+				System.out.println(inst);
 			    String varName = ((VarArg) inst.arg0).name;
                 inst.arg0 = new VarArg(varName+"@"+curBb.prevIndirect.ssaVars.get(varName));
                 varName = ((VarArg) inst.arg1).name;
@@ -387,6 +363,16 @@ public class SSAConverter {
 				inst.arg2 = null;
 			}
 			instructions.set(i, inst);
+		}
+	}
+	
+	public void fillZeroUninitalizeVars() {
+		for(int i=0; i<instructions.size(); i++) {
+			Instruction inst = instructions.get(i);
+			if(inst.op == Operation.CALL) continue; // TODO: generalize this
+			if(inst.arg0 != null && inst.arg0 instanceof VarArg) inst.arg0 = new ConstArg(0);
+			if(inst.arg1 != null && inst.arg1 instanceof VarArg) inst.arg1 = new ConstArg(0);
+			if(inst.arg2 != null && inst.arg2 instanceof VarArg) inst.arg2 = new ConstArg(0);
 		}
 	}
 	
