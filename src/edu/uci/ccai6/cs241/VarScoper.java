@@ -8,7 +8,10 @@ public class VarScoper {
 	private static List<String> __scopes = new ArrayList<String>();
 	
 	private static Map<String, Integer> __globalVarOffset = new HashMap<String, Integer>();
-	private static int offset = 0;
+	private static Map<String, Integer> __localArrayOffset = new HashMap<String, Integer>();
+	private static Map<String, Integer> __arraySize = new HashMap<String, Integer>();
+	private static int __globalOffset = 0;
+	private static int __localOffset = 0;
 
 	private static boolean __inLevel2 = false;
 	private static String __currScope = "";
@@ -36,8 +39,23 @@ public class VarScoper {
 		} else {
 			__currScope = "main";
 			__level2 = new ArrayList<String>();
+			__localArrayOffset.clear();
+			__localOffset = 0;
 			__inLevel2 = false;
 		}
+	}
+	/**
+	 * used when you want to declare array
+	 * @param varName
+	 * @param size
+	 */
+	public static void declare(String varName, int size) {
+		declare(varName);
+		String fullName = getFullName(varName);
+		if(__arraySize.containsKey(fullName)) {
+			new Reporter(Reporter.ReportType.ERROR, "sth wrong!");
+		}
+		__arraySize.put(fullName, size);
 	}
 	public static void declare(String varName) {
 		if (__inLevel2) {
@@ -59,9 +77,46 @@ public class VarScoper {
 	}
 	private static void storeGlobalVar(String genName) {
 	  if(!__globalVarOffset.containsKey(genName)) {
-	    __globalVarOffset.put(genName, offset);
-        offset += 4;
+	    __globalVarOffset.put(genName, __globalOffset);
+	    __globalOffset += (__arraySize.containsKey(genName) ? __arraySize.get(genName) : 4);
 	  }
+	}
+	public static int storeLocalArray(String genName) {
+		int offset = -1;
+		// check if its an array
+		if(__localArrayOffset.containsKey(genName)) {
+			return __localArrayOffset.get(genName);
+		} else if(__arraySize.containsKey(genName) && !__localArrayOffset.containsKey(genName)) {
+			offset = __localOffset;
+			__localArrayOffset.put(genName, __localOffset);
+		    __localOffset += (__arraySize.containsKey(genName) ? __arraySize.get(genName) : 4);
+		}
+		return offset;
+	}
+	private static String getFullName(String varName) {
+		if (__inLevel2) {
+			if (__level2.contains(varName)) {
+				return __currScope + __CONNECTOR + varName;
+			} else if (__level1.contains(varName)) {
+			    String genName = "main" + __CONNECTOR + varName;
+			    
+			    // for optimization, not all vars in main have to be global variable
+				return genName;
+			} else {
+				new Reporter(Reporter.ReportType.ERROR, "Undefined variable:" + varName + "!");
+			} 
+		} else {
+			if (__level1.contains(varName)) {
+              String genName = "main" + __CONNECTOR + varName;
+              
+              // for optimization, not all vars in main have to be global variable
+              if(!__currScope.equals("main")) storeGlobalVar(genName);
+              return genName;
+			} else {
+				new Reporter(Reporter.ReportType.ERROR, "Undefined variable:" + varName + "!");
+			}
+		}
+		return null;
 	}
 	public static String genVarName(String varName) {
 		if (__inLevel2) {
