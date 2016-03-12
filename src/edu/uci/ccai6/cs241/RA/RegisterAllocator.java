@@ -308,8 +308,10 @@ public class RegisterAllocator {
 			 */
 			if(inst.op == Operation.CMP) {
 				inst.arg2 = new RegisterArg(Parser.CMP_REG);
+				colors.put(inst.pointer.pointer, Parser.CMP_REG);
 			} else if(inst.op == Operation.CALL) {
 				inst.arg2 = new RegisterArg(Parser.RTR_REG);
+				colors.put(inst.pointer.pointer, Parser.RTR_REG);
 			} else {
 			
 				if(colors.containsKey(ptr)) {
