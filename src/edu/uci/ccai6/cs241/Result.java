@@ -9,6 +9,7 @@ public class Result {
 	private String __fixedPart = "";
 	private Type __fixedType;
 	private String __rsl = "";
+	public int __size = 4;
 	public Result(String firstPart, Type fixedType) {
 		__firstPart = firstPart;
 		__fixedType = fixedType;

@@ -3,7 +3,6 @@ package edu.uci.ccai6.cs241;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -26,10 +25,12 @@ public class Parser {
 	private PrintWriter __out;
 	public static final int GLB_REG = 30; // return reg
 	public static final String GLOBAL_VAR_REG = "R"+GLB_REG; 
-	public static final int CMP_REG = 25;
+	public static final int CMP_REG = 26;
 	public static final String CMP_VAR_REG = "R"+CMP_REG; 
-	public static final int RTR_REG = 28; // return reg
+	public static final int RTR_REG = 27; // return reg
 	public static final String RTR_VAR_REG = "R"+RTR_REG; 
+	public static final int FP_REG = 28; // return reg
+	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
 	public static void main(String args[]) {
 		Parser pa = new Parser("testCases/final.txt");
@@ -47,16 +48,22 @@ public class Parser {
 		      int numBlocks = bbNum.get(bbNum.size()-1)+1;
 		      List<BasicBlock> bbs = cnv.generateBasicBlocks(bbNum, numBlocks);
 		      cnv.rename(bbs, bbNum);
-		      cnv.copyProp();
-		      cnv.cse();
-		      cnv.copyProp();
-//		      cnv.deadCodeElimination();
-		      cnv.killPtrOp();
-		      cnv.fillZeroUninitalizeVars();
+		      for(BasicBlock bb : bbs) {
+		    	  for(Instruction inst : bb.instructions) {
+		    		  System.out.println("rename: "+inst);
+		    	  }
+		      }
+		      cnv.copyProp(bbs);
+		      cnv.cse(bbs);
+		      cnv.copyProp(bbs);
+	//		      cnv.deadCodeElimination();
+		      cnv.killPtrOp(bbs);
+		      cnv.fillZeroUninitalizeVars(bbs);
+		      List<Instruction> ssaInsts = cnv.getInstructions(bbs);
 			for(int i=0; i<bbNum.size(); i++) {
-				System.out.println(bbNum.get(i)+" : "+cnv.instructions.get(i)+" : "+cnv.instructions.get(i).funcName);
+				System.out.println(bbNum.get(i)+" : "+ssaInsts.get(i)+" : "+ssaInsts.get(i).funcName);
 			}
-			List<Instruction> insts = RegisterAllocator.assign(cnv.generateBasicBlocks(bbNum, numBlocks));
+			List<Instruction> insts = RegisterAllocator.assign(bbs);
 			for(Instruction inst : insts) System.out.println(inst);
 		}
 	}
@@ -134,7 +141,7 @@ public class Parser {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
 			//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 			//String fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress()); 
-			VarScoper.declare(__currToken.getValue());
+			VarScoper.declare(__currToken.getValue(), rsl.__size);
 			String varName = VarScoper.genVarName(__currToken.getValue());
 			String fixed = rsl.fix(varName, __IR.getANewVarAddress());
 			//__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -177,11 +184,13 @@ public class Parser {
 		} else if (__currToken.getValue().equals("array")) {
 			__currToken = __lx.nextToken();
 			String firstPart = "";
+			int totalSize = 0;
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
 				__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.INSTANT) {
 					// Got the number
 					int number = Integer.parseInt(__currToken.getValue());
+					totalSize += number*4;
 					firstPart += "\t\tDW ";
 					for (int i = 0; i < number; i++) {
 						firstPart += "0x0000 ";
@@ -200,6 +209,7 @@ public class Parser {
 				__currToken = __lx.nextToken();
 			}
 			rsl = new Result(firstPart, Result.Type.ARRAY); //FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+			rsl.__size = totalSize;
 			return rsl;
 		}
 		return null;
@@ -537,27 +547,40 @@ public class Parser {
 
             __currToken = __lx.nextToken();
             //String nestNo = funName+".";
-            AssignDestination num = new AssignDestination(idName);
+            
+            // var is varName if its a local variable
+            //     is a pointer to var if its a global var
+            //     is a pointer to array[i][j][k] if its a (local or global) array
+            AssignDestination var = new AssignDestination(idName);
             
             
 			int offset;
             if( (offset = VarScoper.getGlobalVarOffset(idName)) != -1) {
               // get offset of global variable
-              num = __IR.putCode("SUBi "+GLOBAL_VAR_REG+" "+offset);
+              var = __IR.putCode("SUBi "+GLOBAL_VAR_REG+" "+offset);
             }
-
-            // TODO: global array is not working atm
+            
             String code = "";
 			boolean isArray = false;
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
+			    if(offset == -1 && !isArray) {
+			    	// fix var at first iteration..
+			    	int stackOffset = VarScoper.storeLocalArray(idName);
+			    	if(stackOffset == -1) {
+			    		reportError(idName+" not a local array");
+			    	}
+			    	var = __IR.putCode("SUBi "+FP_VAR_REG+" "+stackOffset);
+			    }
 			    isArray = true;
+			    var.setIsArray(true);
+			    
+			    
 				__currToken = __lx.nextToken();
-				num = expression();
-				num.setIsArray(true); // Set is the array
+				AssignDestination num = expression();
 				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW; 		
 				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				code = "ADDA " + idName + " " + num.getDestination(); //a[i]= a + i * 4;
-				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				code = "ADDA " + var.getDestination() + " " + num.getDestination(); //a[i]= a + i * 4;
+				var = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
 					// successfully finished this round
@@ -570,11 +593,11 @@ public class Parser {
 			// we LOAD if
 			// 1) is a right side in assignment AND
 			// 2) is in memory => either array or global variable
-            if(!isDest && (isArray || (offset != -1))) num = __IR.putCode("LOAD "+num.getDestination());
+            if(!isDest && (isArray || (offset != -1))) var = __IR.putCode("LOAD "+var.getDestination());
 			//__IR.print();
 			// return the idName who has the address of the array item
 //			num.setDestination(idName);
-			return num;
+			return var;
 		} else {
 			reportError("In designator, missing a variable!");
 		}
