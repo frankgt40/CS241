@@ -60,6 +60,7 @@ public class BasicBlock {
 	// contains latest variables reachable at this block
 	Map<String, Integer> ssaVars = new HashMap<String, Integer>();
 	public List<Instruction> instructions = new LinkedList<Instruction>();
+	Map<String, Integer> cseMapping = new HashMap<String, Integer>();
 	
 	public BasicBlock(int ind) {
 		index = ind;

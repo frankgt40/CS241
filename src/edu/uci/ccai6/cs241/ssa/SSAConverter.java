@@ -224,12 +224,12 @@ public class SSAConverter {
       List<BasicBlock> bbs = generateBasicBlocks(bbNum, numBlocks);
       rename(bbs, bbNum);
       // TODO: put these into proper places
-      copyProp();
-      cse();
-      copyProp();
+      copyProp(bbs);
+      cse(bbs);
+      copyProp(bbs);
 //      deadCodeElimination();
-      killPtrOp();
-      return this.instructions;
+      killPtrOp(bbs);
+      return getInstructions(bbs);
 	}
 	
 	/**
@@ -353,26 +353,31 @@ public class SSAConverter {
 	/**
 	 * Kill all PTR since they are duplicates
 	 */
-	public void killPtrOp() {
-		for(int i=0; i<instructions.size(); i++) {
-			Instruction inst = instructions.get(i);
-			if(inst.op == Operation.PTR) {
-				inst.op = Operation.NOOP;
-				inst.arg0 = null;
-				inst.arg1 = null;
-				inst.arg2 = null;
+	public void killPtrOp(List<BasicBlock> bbs) {
+		for(BasicBlock bb : bbs) {
+			for(int i=0; i<bb.instructions.size(); i++) {
+				Instruction inst = bb.instructions.get(i);
+				if(inst.op == Operation.PTR) {
+					inst.op = Operation.NOOP;
+					inst.arg0 = null;
+					inst.arg1 = null;
+					inst.arg2 = null;
+				}
+				bb.instructions.set(i, inst);
 			}
-			instructions.set(i, inst);
 		}
 	}
 	
-	public void fillZeroUninitalizeVars() {
-		for(int i=0; i<instructions.size(); i++) {
-			Instruction inst = instructions.get(i);
-			if(inst.op == Operation.CALL) continue; // TODO: generalize this
-			if(inst.arg0 != null && inst.arg0 instanceof VarArg) inst.arg0 = new ConstArg(0);
-			if(inst.arg1 != null && inst.arg1 instanceof VarArg) inst.arg1 = new ConstArg(0);
-			if(inst.arg2 != null && inst.arg2 instanceof VarArg) inst.arg2 = new ConstArg(0);
+	public void fillZeroUninitalizeVars(List<BasicBlock> bbs) {
+		for(BasicBlock bb : bbs) {
+			for(int i=0; i<bb.instructions.size(); i++) {
+				Instruction inst = bb.instructions.get(i);
+				if(inst.op == Operation.CALL) continue; // TODO: generalize this
+				if(inst.arg0 != null && inst.arg0 instanceof VarArg) inst.arg0 = new ConstArg(0);
+				if(inst.arg1 != null && inst.arg1 instanceof VarArg) inst.arg1 = new ConstArg(0);
+				if(inst.arg2 != null && inst.arg2 instanceof VarArg) inst.arg2 = new ConstArg(0);
+				bb.instructions.set(i, inst);
+			}
 		}
 	}
 	
@@ -382,70 +387,94 @@ public class SSAConverter {
 	 * @param bbs
 	 * @param bbInd
 	 */
-	public void cse() {
-		// do local cse first
-		Map<String, Integer> mapping = new HashMap<String, Integer>();
-		for(int i=0; i<instructions.size(); i++) {
-			Instruction inst = instructions.get(i);
-			if(inst.op == Operation.PTR || inst.skipOptimize()) continue;
-			String instSimpString = inst.toSimpleString();
-			if(mapping.containsKey(instSimpString)) {
-				Integer dupe = mapping.get(instSimpString);
-				String funcName = inst.funcName;
-				inst = new Instruction(inst.pointer.pointer+" "+Operation.PTR+" ("+dupe+")");
-				inst.funcName = funcName;
-				instructions.set(i, inst);
-			} else {
-				mapping.put(instSimpString, inst.pointer.pointer);
+	public void cse(List<BasicBlock> bbs) {
+		// first clear tmp mapping
+		for(BasicBlock bb : bbs) {
+			bb.cseMapping = new HashMap<String, Integer>();
+		}
+		for(BasicBlock bb : bbs) {
+			Map<String, Integer> mapping = bb.cseMapping;
+			for(int i=0; i<bb.instructions.size(); i++) {
+				Instruction inst = bb.instructions.get(i);
+				if(inst.op == Operation.PTR || inst.skipOptimize()) continue;
+				String instSimpString = inst.toSimpleString();
+				if(mapping.containsKey(instSimpString)) {
+					Integer dupe = mapping.get(instSimpString);
+					String funcName = inst.funcName;
+					inst = new Instruction(inst.pointer.pointer+" "+Operation.PTR+" ("+dupe+")");
+					inst.funcName = funcName;
+					bb.instructions.set(i, inst);
+				} else {
+					mapping.put(instSimpString, inst.pointer.pointer);
+				}
 			}
+			
+			// pass mapping to next blocks
+			if(bb.nextDirect != null) bb.nextDirect.cseMapping.putAll(mapping);
+			if(bb.nextIndirect != null) bb.nextIndirect.cseMapping.putAll(mapping);
+			
 		}
 	}
 	
-	public void copyProp() {
-		Map<Arg, Arg> mapping = new HashMap<Arg, Arg>();
-		int idx = 0;
-		// TODO: again complicated. generalize this if have time
-		for(Instruction inst : instructions) {
-			if(inst.op == Operation.MOVE) {
-				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.arg1, inst.arg0);
-				else mapping.put(inst.arg1, mapping.get(inst.arg0));
-				inst.op = Operation.PTR;
-				inst.arg1 = null;
-				inst.arg2 = null;
-				inst.numArgs = 1;
-			} else if(inst.op == Operation.PHI) {
-				if(!mapping.containsKey(inst.pointer))	mapping.put(inst.arg2, inst.pointer);
-				else mapping.put(inst.arg2, mapping.get(inst.pointer));
-				inst.arg2 = null;
-				inst.numArgs = 2;
-			} else if(inst.op == Operation.PTR) {
-				if(!mapping.containsKey(inst.arg0))	mapping.put(inst.pointer, inst.arg0);
-				else mapping.put(inst.pointer, mapping.get(inst.arg0));
-			} else if(inst.op == Operation.POP) {
-              if(!mapping.containsKey(inst.pointer)) mapping.put(inst.arg0, inst.pointer);
-              else mapping.put(inst.arg0, mapping.get(inst.pointer));
+	public List<Instruction> getInstructions(List<BasicBlock> bbs) {
+		List<Instruction> insts = new ArrayList<Instruction>();
+		for(BasicBlock bb : bbs) {
+			for(Instruction inst : bb.instructions) {
+				insts.add(inst);
 			}
-			instructions.set(idx, inst);
-			idx++;
 		}
-		
-		int index = 0;
-		for(Instruction inst : instructions) {
-		  
-		    if(inst.skipOptimize()) { 
-	            instructions.set(index, inst);
-	            index++;
-	            continue;
-		    }
-		  
-			// BRA (ptr) shouldnt change
-		    if(inst.arg0 != null && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
-		    // BGT (10) (ptr) ptr shouldnt change
-			if(inst.arg1 != null && !inst.op.isBranch()) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
-			if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
+		return insts;
+	}
+	
+	public void copyProp(List<BasicBlock> bbs) {
+		Map<Arg, Arg> mapping = new HashMap<Arg, Arg>();
+		for(BasicBlock bb: bbs) {
+			int idx = 0;
+			// TODO: again complicated. generalize this if have time
+			for(Instruction inst : bb.instructions) {
+				if(inst.op == Operation.MOVE) {
+					if(!mapping.containsKey(inst.arg0))	mapping.put(inst.arg1, inst.arg0);
+					else mapping.put(inst.arg1, mapping.get(inst.arg0));
+					inst.op = Operation.PTR;
+					inst.arg1 = null;
+					inst.arg2 = null;
+					inst.numArgs = 1;
+				} else if(inst.op == Operation.PHI) {
+					if(!mapping.containsKey(inst.pointer))	mapping.put(inst.arg2, inst.pointer);
+					else mapping.put(inst.arg2, mapping.get(inst.pointer));
+					inst.arg2 = null;
+					inst.numArgs = 2;
+				} else if(inst.op == Operation.PTR) {
+					if(!mapping.containsKey(inst.arg0))	mapping.put(inst.pointer, inst.arg0);
+					else mapping.put(inst.pointer, mapping.get(inst.arg0));
+				} else if(inst.op == Operation.POP) {
+	              if(!mapping.containsKey(inst.pointer)) mapping.put(inst.arg0, inst.pointer);
+	              else mapping.put(inst.arg0, mapping.get(inst.pointer));
+				}
+				bb.instructions.set(idx, inst);
+				idx++;
+			}
+		}
 
-			instructions.set(index, inst);
-			index++;
+		for(BasicBlock bb: bbs) {
+			int index = 0;
+			for(Instruction inst : bb.instructions) {
+			  
+			    if(inst.skipOptimize()) { 
+			    	bb.instructions.set(index, inst);
+		            index++;
+		            continue;
+			    }
+			  
+				// BRA (ptr) shouldnt change
+			    if(inst.arg0 != null && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
+			    // BGT (10) (ptr) ptr shouldnt change
+				if(inst.arg1 != null && !inst.op.isBranch()) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
+				if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
+	
+				bb.instructions.set(index, inst);
+				index++;
+			}
 		}
 	}
 	
