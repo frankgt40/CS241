@@ -1,0 +1,20 @@
+main
+var c;
+var d;
+
+function add(c, d);
+var a, b;
+{
+  let a <- 0;
+  let b <- 0;
+  return a + b + c + d;
+};
+
+{
+  call OutputNum(22);
+  let c <- 10;
+  let d <- 20;
+  let c <- call add(c, d);
+  
+  let d <- c;
+}.

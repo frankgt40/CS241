@@ -8,7 +8,6 @@ import java.util.Map;
 public class StackAbstract {
 	private List<String> __staticAbstract = new ArrayList<String>();
 	private Map<String, FrameAbstract> __stackAbstract = new HashMap<String, FrameAbstract>(); //<Function name --> its frame builder>
-	private Map<String, String> __fakeRToMem = new HashMap<String, String>(); // <fake register name --> memory address in frames>
 	public FrameAbstract getFrame(String funcName) {
 		if (!funcName.isEmpty())
 			return __stackAbstract.get(funcName);
