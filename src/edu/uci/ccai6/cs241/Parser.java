@@ -33,7 +33,7 @@ public class Parser {
 	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
 	public static void main(String args[]) {
-		Parser pa = new Parser("testCases/fun.txt");
+		Parser pa = new Parser("testCases/factorial.txt");
 		pa.setOutFile("output/fun.out.txt");
 		pa.computation();
 		if (__isWriteToFile) {
