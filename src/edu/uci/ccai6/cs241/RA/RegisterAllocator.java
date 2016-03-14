@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.uci.ccai6.cs241.Parser;
+import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
+import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
 import edu.uci.ccai6.cs241.ssa.PointerArg;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
@@ -280,25 +282,30 @@ public class RegisterAllocator {
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
-				inst = assign(inst, instructionColor);
+				inst = assign(inst, instructionColor, MAX_COLORS);
 				out.add(inst);
 			}
 		}
 		return fixPhis(bbs, numInsts);
 	}
 	
-	private static Instruction assign(Instruction inst, Map<Integer, Integer> colors) {
+	private static Arg getRegister(int color, int maxColors) {
+		if(color > maxColors) return new SpilledRegisterArg(color-maxColors);
+		return new RegisterArg(color);
+	}
+	
+	private static Instruction assign(Instruction inst, Map<Integer, Integer> colors, int maxColors) {
 		// first color arg0 - ignore BRA
 		if(inst.arg0 != null && inst.op != Operation.BRA 
 				&& inst.arg0 instanceof PointerArg) {
 			int ptr = ((PointerArg)inst.arg0).pointer;
-			inst.arg0 = new RegisterArg(colors.get(ptr));
+			inst.arg0 = getRegister(colors.get(ptr), maxColors);
 		}
 		// color arg1 - ignore cond branch
 		if(inst.arg1 != null && !inst.op.isBranch() 
 				&& inst.arg1 instanceof PointerArg) {
 			int ptr = ((PointerArg)inst.arg1).pointer;
-			inst.arg1 = new RegisterArg(colors.get(ptr));
+			inst.arg1 = getRegister(colors.get(ptr), maxColors);
 		}
 		// color arg2 only if op has an output
 		if(inst.op.hasOutput()) {
@@ -315,8 +322,8 @@ public class RegisterAllocator {
 			} else {
 			
 				if(colors.containsKey(ptr)) {
-					inst.arg2 = new RegisterArg(colors.get(ptr));
-				} else inst.arg2 = new RegisterArg(1000);
+					inst.arg2 = getRegister(colors.get(ptr), maxColors);
+				} else inst.arg2 = getRegister(1000+maxColors, maxColors);
 			}
 		}
 		return inst;
@@ -332,7 +339,25 @@ public class RegisterAllocator {
 	 * @return
 	 */
 	private static Integer selectNode(Set<Integer> universe, Set<SimpleEdge> edges, int maxColors) {
-		return universe.iterator().next();
+		int minNode = Integer.MAX_VALUE;
+		int minNeighbors = Integer.MAX_VALUE;
+		for(Integer x : universe) {
+			int numNeighbors = 0;
+			for(Integer i : universe) {
+				if(x == i) continue;
+				SimpleEdge e = new SimpleEdge(x,i);
+				if(edges.contains(e)) {
+					numNeighbors++;
+				}
+			}
+			if(numNeighbors < maxColors) return x;
+			if(minNeighbors > numNeighbors) {
+				minNode = x;
+				minNeighbors = numNeighbors;
+			}
+		}
+		return minNode;
+//		return universe.iterator().next();
 	}
 	
 	/**
