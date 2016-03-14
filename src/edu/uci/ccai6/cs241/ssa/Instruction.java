@@ -17,6 +17,8 @@ public class Instruction {
 		
 		CALL,
 		
+		MOV,
+		
 		NOOP,
 		PTR // means its value is the same as pointer's or constant
 		
@@ -37,7 +39,7 @@ public class Instruction {
 		}
 		
 		public boolean hasOutput() {
-		  return this != STORE && !this.isBranch() && this != PUSH
+		  return this != STORE && !this.isBranch() && this != PUSH && this != MOV
 		      && this != NOOP && this != PTR && this != FUNC && this != POP;
 		}
 	}

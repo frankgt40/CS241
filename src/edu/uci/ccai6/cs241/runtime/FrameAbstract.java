@@ -40,7 +40,7 @@ public class FrameAbstract {
 		} else {
 			rsl = new ArrayList<String>();
 			for (String parameter : __parameters) {
-				rsl.add("S_PUSH " + parameter);
+				rsl.add("PUSH " + parameter);
 			}
 		}
 		//
@@ -52,10 +52,10 @@ public class FrameAbstract {
 		List<String> rsl = new ArrayList<String>();
 		
 		for (String regs : Conf.__savedRegs) {
-			rsl.add("S_PUSH " + regs);
+			rsl.add("PUSH " + regs);
 		}
-		rsl.add("S_PUSH " + Conf.FRAME_P);
-		rsl.add("S_PUSH " + Conf.STACK_P);
+		rsl.add("PUSH " + Conf.FRAME_P);
+		rsl.add("PUSH " + Conf.STACK_P);
 		
 		
 		

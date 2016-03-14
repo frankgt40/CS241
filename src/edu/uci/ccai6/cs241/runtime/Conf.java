@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Conf {
-	public static final String RETURN_VAL_REG = "R28";
-	public static final String FRAME_P = "R29";
-	public static final String STACK_P = "R30";
+	public static final String RETURN_VAL_REG = "R27";
+	public static final String FRAME_P = "R28";
+	public static final String STATIC_P = "R30";
+	public static final String STACK_P = "R29";
 	public static final int BLOCK_LEN = 4; // increase or decrease memory address by this value
 	public static final int BYTE_LEN = 8;
 	

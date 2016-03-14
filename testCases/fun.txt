@@ -1,13 +1,21 @@
 main
 var c;
 var d;
+var e;
+var f;
+var g;
 
 function add(c, d);
 var a, b;
+array[100] iii;
 {
   let a <- 0;
   let b <- 0;
-  return a + b + c + d;
+  let e <- 0;
+  let f <- 0;
+  let g <- 0;
+  let iii[0] <- 0;
+  return a + b + c + d + e+f+g+iii[0];
 };
 
 {
@@ -17,4 +25,5 @@ var a, b;
   let c <- call add(c, d);
   
   let d <- c;
+  call OutputNum(d);
 }.
