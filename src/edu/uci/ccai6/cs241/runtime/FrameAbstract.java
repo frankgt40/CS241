@@ -3,25 +3,39 @@ package edu.uci.ccai6.cs241.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * 2.Locals
+ * 1.Saved status
+ * 0.Parameters
+ */
 public class FrameAbstract {
 	private List<String> __parameters = new ArrayList<String>();
-	private final String __returnValue = "R28";
-	private List<String> __savedRegisters = new ArrayList<String>();
 	private List<String> __locals = new ArrayList<String>();
+	private String __funcName = null;
 	
-	FrameAbstract() {
-		// Set the registers needed to be saved.
-		__savedRegisters.add("R1");
-		__savedRegisters.add("R2");
-		__savedRegisters.add("R3");
-		__savedRegisters.add("R4");
-		__savedRegisters.add("R5");
-		__savedRegisters.add("R6");
-		__savedRegisters.add("R7");
-		__savedRegisters.add("R8");
-		__savedRegisters.add("R9");
-		__savedRegisters.add("R10");
+	private int __parametersLen = 0;
+	private int __savedStatusLen = 0;
+	private int __localsLen = 0;
+	
+	FrameAbstract(String name) {
+		__funcName = name;
 		
+	}
+
+	public String get__funcName() {
+		return __funcName;
+	}
+	
+	public List<String> getCallerSequences() {
+		List<String> rsl = new ArrayList<String>();
+		//
+		return rsl;
+	}
+	
+	public List<String> getCalleeSequences() {
+		List<String> rsl = new ArrayList<String>();
+		//
+		return rsl;
 	}
 	
 }
