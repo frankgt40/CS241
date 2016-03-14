@@ -57,6 +57,12 @@ public class Lexer {
 				new Reporter(Reporter.ReportType.VERBOSE,fileName(), lineNum(), charPos(), "Ignored comments: " + lexeme);
 				continue;
 			}
+			if (ch == '#') {
+				while ((ch = __pBuffer.next()) != '\n')
+					lexeme += ch;
+				new Reporter(Reporter.ReportType.VERBOSE,fileName(), lineNum(), charPos(), "Ignored comments: " + lexeme);
+				continue;
+			}
 			
 			
 			// Then if Token is a legal symbol

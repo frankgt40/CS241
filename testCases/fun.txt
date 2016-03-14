@@ -8,6 +8,7 @@ var g;
 function add(c, d);
 var a, b;
 array[100] iii;
+array[10] ii;
 {
   let a <- 0;
   let b <- 0;
@@ -15,6 +16,7 @@ array[100] iii;
   let f <- 0;
   let g <- 0;
   let iii[0] <- 0;
+  let ii[0] <- 1;
   return a + b + c + d + e+f+g+iii[0];
 };
 
