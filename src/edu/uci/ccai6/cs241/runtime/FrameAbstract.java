@@ -48,7 +48,7 @@ public class FrameAbstract {
 	}
 	
 	// called after setFakeRegs(List<String> regs)
-	public List<String> getCalleeSequences() {
+	public static List<String> getCalleeSequences() {
 		List<String> rsl = new ArrayList<String>();
 		
 		for (String regs : Conf.__savedRegs) {

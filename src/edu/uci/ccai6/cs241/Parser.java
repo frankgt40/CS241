@@ -33,8 +33,8 @@ public class Parser {
 	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
 	public static void main(String args[]) {
-		Parser pa = new Parser("testCases/fun.txt");
-		pa.setOutFile("output/fun.out.txt");
+		Parser pa = new Parser("testCases/001.txt");
+		pa.setOutFile("output/001.dlx");
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();

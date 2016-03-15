@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.uci.ccai6.cs241.ssa.Instruction;
+
 public class StackAbstract {
 	private List<String> __staticAbstract = new ArrayList<String>();
 	private Map<String, FrameAbstract> __stackAbstract = new HashMap<String, FrameAbstract>(); //<Function name --> its frame builder>
@@ -17,4 +19,6 @@ public class StackAbstract {
 	public void addFrame(FrameAbstract frame) {
 		__stackAbstract.put(frame.get__funcName(), frame);
 	}
+	
+	
 }

@@ -4,6 +4,8 @@ package edu.uci.ccai6.cs241.runtime;
 // chs / mf 2001-08-07
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 // All variables and methods are realized as class variables/methods which
 // means that just one processor can be emulated at a time.
@@ -19,30 +21,18 @@ public class DLX {
 
     
 	public static void main(String argv[]) throws Exception {
-		/*
-		 * ADDI 1, 0, 3 R1 := R0 + 3 F1 16
-		 * 01000|00001|00000|0000,0000,0000,0011
-		 * WRD b(1) write the contents of R.b(1) to the output in decimal F2 51
-		 * 110011|00000|00001|00000000000|00000
-		 * RET c(0) jump to address in R.c(0), end program if c=0 F2 49
-		 * 110001|00000|00000|00000000000|00000
-		 */
-		String tmp = "";
-		int[] program = new int[3];
-		tmp = "010000|00001|00000|0000,0000,0000,0011";
-		tmp = tmp.replaceAll("\\|", "").replaceAll(",", "");
-		if (tmp.length() == 32) {
-//			System.out.println("Add one");
-			program[0] = Integer.parseInt(tmp,2);
-		}
-		tmp = "110011|00000|00001|00000000000|00000";
-		tmp = tmp.replaceAll("\\|", "").replaceAll(",", "");
-		if (tmp.length() == 32) {
-//			System.out.println("Add one");
-			program[1] = 0b11001100000000010000000000000000;
-		}
-		program[2] = 0b11000100000000000000000000000000;
+		String fileName = "output/DLXcode.dlx";
+		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		String line = "";
 		
+		List<Integer> code = new ArrayList<Integer>();
+		while ((line = reader.readLine()) != null) {
+			code.add(DLXInstruction.str2int(line));
+		}
+		int[] program = new int[code.size()];
+		for (int i = 0; i < code.size(); i++) {
+			program[i] = code.get(i).intValue();
+		}
 		load(program);
 		execute();
 	}
