@@ -1,0 +1,12 @@
+0 data:
+1 .text
+2 main:
+3 CALL InputNum
+4 MOVE (3) main_input
+5 ADDi main_input 1
+6 MOVE (5) main_input
+7 CALL OutputNewLine
+8 PUSH main_input
+9 CALL OutputNum
+10 CALL OutputNewLine
+11 end
