@@ -9,12 +9,12 @@ public class RuntimeEnv {
 	private static StackAbstract __stack = new StackAbstract();
 
 	
-	public static List<DLXInstruction> genCode(List<Instruction> instructions) {
-		List<DLXInstruction> rsl = null;
+	public static int[] genCode(List<Instruction> instructions) {
+		int[] rsl;
 		for (Instruction instruction : instructions) {
 			new DLXInstruction(instruction);
 		}
-		rsl = DLXInstruction.getInstructions();
+		rsl = DLXInstruction.getMachineCodes();
 		return rsl;
 	}
 

@@ -21,7 +21,7 @@ public class DLX {
 
     
 	public static void main(String argv[]) throws Exception {
-		String fileName = "output/DLXcode.dlx";
+		String fileName = "output/001.dlx";
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		String line = "";
 		
@@ -29,11 +29,15 @@ public class DLX {
 		while ((line = reader.readLine()) != null) {
 			code.add(DLXInstruction.str2int(line));
 		}
-		int[] program = new int[code.size()];
+		int[] program = new int[code.size()+1];
 		for (int i = 0; i < code.size(); i++) {
 			program[i] = code.get(i).intValue();
 		}
+		program[code.size()] = DLX.F2(DLX.RET, 0, 0, 0);
 		load(program);
+		
+		R[Conf.getRegNum(Conf.FRAME_P)] = program.length * Conf.BLOCK_LEN;
+		R[Conf.getRegNum(Conf.STACK_P)] = program.length * Conf.BLOCK_LEN;
 		execute();
 	}
 

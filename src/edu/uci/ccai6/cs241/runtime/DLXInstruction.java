@@ -4,13 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.uci.ccai6.cs241.ssa.Arg;
+import edu.uci.ccai6.cs241.ssa.ConstArg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
+import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 
 public class DLXInstruction extends DLX {
 	private static List<DLXInstruction> __instructions = new ArrayList<DLXInstruction>();
 	private static RuntimeEnv __system = new RuntimeEnv();
 	private int __val = 0xFFFF;
+
+	public static int[] getMachineCodes() {
+		int[] rsl = new int[__instructions.size()];
+		for (int i = 0; i < __instructions.size(); i++) {
+			rsl[i] = __instructions.get(i).getVal();
+		}
+		return rsl;
+	}
 
 	public static List<DLXInstruction> getInstructions() {
 		return __instructions;
@@ -26,16 +36,16 @@ public class DLXInstruction extends DLX {
 		return Integer.parseInt(reg);
 	}
 
-	public int getArg(Arg arg) {
+	public int getArg(Arg arg, String loadReg) {
 		String artStr = null;
 		int rsl = 0;
 		StackAbstract stack = __system.getStack();
 		if (arg instanceof RegisterArg) {
-			if (((RegisterArg) arg).isFake()) {
+			if (arg instanceof SpilledRegisterArg) {
 				artStr = stack.getMemInFrame(arg.toString());
-				Instruction tmp = new Instruction("LOAD " + Conf.LOAD_REG_1 + " " + artStr);
-				__instructions.add(new DLXInstruction(tmp));
-				rsl = getRegNum(Conf.LOAD_REG_1);
+				Instruction tmp = new Instruction("LOAD " + loadReg + " " + artStr);
+				new DLXInstruction(tmp);
+				rsl = getRegNum(loadReg);
 			} else {
 				rsl = ((RegisterArg) arg).getNum();
 			}
@@ -118,12 +128,34 @@ public class DLXInstruction extends DLX {
 			break;
 		case PUSH:
 			op = DLX.PSH;
-			isSet = true;
-			break;
+			isSet = false;
+			if (argI1 instanceof ConstArg) {
+				// is const
+				// MOV Load_REG_1 const
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.ZERO_REG + " " + argI1 + " " + Conf.LOAD_REG_1)); 
+				//
+				arg1 = Integer.parseInt(argI1.toString());
+				__val = DLX.F1(DLX.PSH, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.STACK_P), Conf.BLOCK_LEN);
+				__instructions.add(this);
+				return;
+			} else {
+				// in register
+				arg1 = getRegNum(argI1.toString());
+				__val = DLX.F1(DLX.PSH, arg1, getRegNum(Conf.STACK_P), -Conf.BLOCK_LEN);
+				__instructions.add(this);
+				return;
+			}
 		case POP:
 			op = DLX.POP;
-			isSet = true;
-			break;
+			isSet = false;
+			if (argI1 instanceof RegisterArg) {
+				__val = DLX.F1(DLX.POP, getRegNum(argI1.toString()), getRegNum(Conf.STACK_P), -Conf.BLOCK_LEN);
+				__instructions.add(this);
+				return;
+			} else {
+				wrong("POP: I need a register!");
+				return;
+			}
 		case MOV:
 			op = DLX.ADDI;
 			isSet = true;
@@ -132,13 +164,15 @@ public class DLXInstruction extends DLX {
 			break;
 		}
 		if (isSet) {
-			if (argI3 instanceof RegisterArg) {
+			if (argI2 instanceof RegisterArg) {
 				// Something is wrong
 				wrong("there should be a constant!");
 			}
-			arg1 = getArg(argI1);
-			arg2 = getArg(argI2);
-			__val = DLX.F1(op, arg1, arg2, arg3);
+			arg1 = getArg(argI1, Conf.LOAD_REG_1);
+			arg3 = getArg(argI3, Conf.LOAD_REG_2);
+			arg2 = Integer.parseInt(argI2.toString());
+			__val = DLX.F1(op, arg3, arg1, arg2);
+			__instructions.add(this);
 			return;
 		}
 
@@ -172,20 +206,28 @@ public class DLXInstruction extends DLX {
 				// Something is wrong
 				wrong("there should be a register!");
 			}
-			arg1 = getArg(argI1);
-			arg2 = getArg(argI2);
-			arg3 = arg1; // Can we do that? @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			arg1 = getArg(argI1, Conf.LOAD_REG_1);
+			arg2 = getArg(argI2, Conf.LOAD_REG_2);
+			arg3 = getArg(argI3, Conf.LOAD_REG_3);
 			__val = DLX.F2(op, arg1, arg2, arg3);
+			__instructions.add(this);
 			return;
 		}
 
 		// F3
 		switch (instruction.op) {
 		case CALL:
-			// Pre-defined functions
+			// Pre-defined functions: dealing with F2 type instructions
 			if (argI1.toString().equals("OutputNum")) {
-				
+				new DLXInstruction(new Instruction("1 POP " + Conf.LOAD_REG_1));
+				__val = DLX.F2(DLX.WRD, 0, getRegNum(Conf.LOAD_REG_1), 0);
+				__instructions.add(this);
+				return;
 			} else if (argI1.toString().equals("OutputNewLine")) {
+				// Dealing with F1 type of instruction
+				__val = DLX.F1(DLX.WRL, 0, 0, 0);
+				__instructions.add(this);
+				return;
 			} else if (argI1.toString().equals("InputNum")) {
 			}
 			op = DLX.JSR;
@@ -219,6 +261,9 @@ public class DLXInstruction extends DLX {
 					numberTmp += (bit == '0') ? "1" : "0";
 				}
 			}
+		} else if (len <= 31){
+			numberTmp = number;
+			return Integer.parseInt(numberTmp, 2);
 		} else {
 			if (number.toCharArray()[0] == '0') {
 				numberTmp = number;

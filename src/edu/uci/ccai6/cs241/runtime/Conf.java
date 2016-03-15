@@ -13,7 +13,9 @@ public class Conf {
 	public static final String STACK_REG_PRE = "SR";
 	public static final String LOAD_REG_1 = "R26";
 	public static final String LOAD_REG_2 = "R25";
+	public static final String LOAD_REG_3 = "R24";
 	public static final int GEN_REG_NUM = 8;
+	public static final String ZERO_REG = "R0";
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
@@ -29,5 +31,9 @@ public class Conf {
 		__savedRegs.add("R8");
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
+	}
+	public static int getRegNum(String reg) {
+		reg = reg.replaceFirst("R", "");
+		return Integer.parseInt(reg);
 	}
 }

@@ -10,6 +10,7 @@ import edu.uci.ccai6.cs241.Result.Type;
 import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
@@ -23,7 +24,7 @@ public class Parser {
 	private FunctionUtil __funUtil = new FunctionUtil("");
 	public static final String __SEP = "_";
 	private String __inFile;
-	private String __outFile;
+	private static String __outFile;
 	private PrintWriter __out;
 	public static final int GLB_REG = 30; // return reg
 	public static final String GLOBAL_VAR_REG = "R"+GLB_REG; 
@@ -34,15 +35,15 @@ public class Parser {
 	public static final int FP_REG = 28; // return reg
 	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws FileNotFoundException {
 		Parser pa = new Parser("testCases/001.txt");
 		pa.setOutFile("output/001.dlx");
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();
-			for (String codeLine : codeList) {
-				pa.getOut().println(codeLine);
-			}
+//			for (String codeLine : codeList) {
+//				pa.getOut().println(codeLine);
+//			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
 
@@ -82,6 +83,14 @@ public class Parser {
 			}
 			List<Instruction> insts = RegisterAllocator.assign(bbs);
 			for(Instruction inst : insts) System.out.println(inst);
+
+			int[] machineCode = RuntimeEnv.genCode(insts);
+			PrintWriter out =  new PrintWriter(__outFile);
+			for (int line : machineCode) {
+//				System.out.println(Integer.toBinaryString(line));
+				out.println(Integer.toBinaryString(line));
+			}
+			out.close();
 		}
 	}
 	public IRGenerator getIR() {
