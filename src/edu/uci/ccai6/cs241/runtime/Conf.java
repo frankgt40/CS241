@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Conf {
-	public static final String RETURN_VAL_REG = "R27";
+	public static final int RETURN_VAL_NUM = 27;
+	public static final String RETURN_VAL_REG = "R"+RETURN_VAL_NUM;
 	public static final String FRAME_P = "R28";
 	public static final String STATIC_P = "R30";
 	public static final String STACK_P = "R29";
@@ -13,6 +14,8 @@ public class Conf {
 	public static final String STACK_REG_PRE = "SR";
 	public static final String LOAD_REG_1 = "R26";
 	public static final String LOAD_REG_2 = "R25";
+	public static final int CMP_REG_NUM = 24;
+	public static final String CMP_REG = "R"+CMP_REG_NUM;
 	public static final int GEN_REG_NUM = 8;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
