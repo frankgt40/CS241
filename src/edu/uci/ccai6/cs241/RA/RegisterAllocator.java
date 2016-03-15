@@ -102,12 +102,12 @@ public class RegisterAllocator {
 				
 				if(!inst.arg0.equals(inst.arg2)) {
 					prevIndirectDefReg.add((RegisterArg) inst.arg2);
-					prevIndirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
+					prevIndirectMoveInst.add(new Instruction(numInsts+" MOV "+inst.arg0+" "+inst.arg2));
 					numInsts++;
 				}
 				if(!inst.arg1.equals(inst.arg2)) {
 					prevDirectDefReg.add((RegisterArg) inst.arg2);
-					prevDirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+					prevDirectMoveInst.add(new Instruction(numInsts+" MOV "+inst.arg1+" "+inst.arg2));
 					numInsts++;
 				}
 				
@@ -152,7 +152,7 @@ public class RegisterAllocator {
 			while(moveItr.hasNext()) {
 	
 				Instruction move = moveItr.next();
-				if(move.op != Operation.MOVE) {
+				if(move.op != Operation.MOV) {
 					System.err.println(move+" is not move op.");
 					System.exit(-1);
 				}
