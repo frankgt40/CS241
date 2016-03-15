@@ -26,7 +26,7 @@ public abstract class Arg {
 		} else if(str.charAt(0) == 'R'){
 		    return new RegisterArg(Integer.parseInt(str.substring(1)));
 		} else if(str.charAt(0) == 'S' && str.charAt(1) == 'R') {
-		    return new RegisterArg(Integer.parseInt(str.substring(2)), true);
+		    return new SpilledRegisterArg(Integer.parseInt(str.substring(2)));
 		} else {
 		    return new VarArg(str);
 		}
