@@ -102,37 +102,43 @@ public class SSAConverter {
 	 * 
 	 * @return life ranges of pointers
 	 */
-	public Map<Arg, Arg> deadCodeElimination(List<BasicBlock> bbs) {
+	public void deadCodeElimination(List<BasicBlock> bbs) {
+		for(BasicBlock bb : bbs) {
+			bb.lastUsed = new HashMap<PointerArg, PointerArg>();
+		}
+		
 	  // traverse backward
-	  Map<Arg, Arg> lastUsed = new HashMap<Arg, Arg>();
-	  for(BasicBlock bb : bbs) {
-		  for(int j=instructions.size()-1; j>=0; j--) {
-		      Instruction inst = instructions.get(j);
-		      
-		      // put used variable into lastUsed
-		      if(inst.arg0 != null && !(inst.arg0 instanceof ConstArg) && !lastUsed.containsKey(inst.arg0)) {
-		        lastUsed.put(inst.arg0, inst.pointer);
-		      }
-	          if(inst.arg1 != null && !(inst.arg1 instanceof ConstArg) && !lastUsed.containsKey(inst.arg1)) {
-	            lastUsed.put(inst.arg1, inst.pointer);
-	          }
-	          if(inst.arg2 != null && !(inst.arg2 instanceof ConstArg) && !lastUsed.containsKey(inst.arg2)) {
-	            lastUsed.put(inst.arg2, inst.pointer);
-	          }
-	
-	          
-	          if(inst.skipOptimize()) continue;
+	  for(int bbIndx = bbs.size()-1; bbIndx >= 0; bbIndx--) {
+		  BasicBlock bb = bbs.get(bbIndx);
+		  Map<PointerArg, PointerArg> lastUsed = bb.lastUsed;
+		  for(int j=bb.instructions.size()-1; j>=0; j--) {
+		      Instruction inst = bb.instructions.get(j);
+
 	          // check if result of this instruction has been used
-	        if(inst.op != Operation.PUSH && !inst.op.isBranch() && !lastUsed.containsKey(inst.pointer)) {
-	          inst.op = Operation.NOOP;
-	          inst.arg0 = null;
-	          inst.arg1 = null;
-	          inst.arg2 = null;
-	          instructions.set(j, inst);
-	        }
+	          if(inst.op.canBeNoop() && !lastUsed.containsKey(inst.pointer)) {
+	        	  // if its never going to be used, kill it
+	              System.out.println("DCE: "+inst);
+	              inst.op = Operation.NOOP;
+	              inst.arg0 = null;
+	              inst.arg1 = null;
+	              inst.arg2 = null;
+	              bb.instructions.set(j, inst);
+	          } else {
+	        	  // otherwise, store the usage in lastUsed
+			      if(inst.arg0 != null && inst.arg0 instanceof PointerArg && !lastUsed.containsKey(inst.arg0)) {
+			        lastUsed.put((PointerArg) inst.arg0, inst.pointer);
+			      }
+		          if(inst.arg1 != null && inst.arg1 instanceof PointerArg && !lastUsed.containsKey(inst.arg1)) {
+		            lastUsed.put((PointerArg) inst.arg1, inst.pointer);
+		          }
+		          if(inst.arg2 != null && inst.arg2 instanceof PointerArg && !lastUsed.containsKey(inst.arg2)) {
+		            lastUsed.put((PointerArg) inst.arg2, inst.pointer);
+		          }
+	          }
 		  }
+		  if(bb.prevDirect != null) bb.prevDirect.lastUsed.putAll(lastUsed);
+		  if(bb.prevIndirect != null) bb.prevIndirect.lastUsed.putAll(lastUsed);
 	  }
-	  return lastUsed;
 	}
 	
 	/**
