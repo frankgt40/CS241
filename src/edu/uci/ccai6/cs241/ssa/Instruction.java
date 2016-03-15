@@ -1,5 +1,7 @@
 package edu.uci.ccai6.cs241.ssa;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MoveAction;
+
 public class Instruction {
 	
 	public enum Operation {
@@ -41,6 +43,13 @@ public class Instruction {
 		public boolean hasOutput() {
 		  return this != STORE && !this.isBranch() && this != PUSH && this != MOV
 		      && this != NOOP && this != PTR && this != FUNC && this != POP;
+		}
+		
+		public boolean canBeNoop() {
+			return this != Operation.CMP && this != Operation.CALL && this != Operation.FUNC
+					&& this != Operation.LOAD && this != Operation.STORE
+					&& this != Operation.PUSH && this != Operation.POP
+					&& !this.isBranch() && this != Operation.MOV;
 		}
 	}
 
