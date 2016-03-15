@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import edu.uci.ccai6.cs241.Parser;
@@ -279,6 +280,7 @@ public class RegisterAllocator {
 			}
 		}
 		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, phiClusters, MAX_COLORS);
+		instructionColor = reassignInvalidColors(instructionColor, MAX_COLORS);
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
@@ -289,8 +291,29 @@ public class RegisterAllocator {
 		return fixPhis(bbs, numInsts);
 	}
 	
+	/**
+	 * need this method because if the color is in one of the reserved colors
+	 * this can reassign the new color
+	 * right now if color > maxColors, return color+100;
+	 * @param colors
+	 * @param maxColors
+	 * @return
+	 */
+	private static Map<Integer, Integer> reassignInvalidColors(Map<Integer, Integer> colors, int maxColors) {
+		Map<Integer, Integer> out = new HashMap<Integer, Integer>();
+		for(Entry<Integer, Integer> entry : colors.entrySet()) {
+			int color = entry.getValue();
+			int ptr = entry.getKey();
+			if(color > maxColors) {
+				color += 100;
+			}
+			out.put(ptr, color);
+		}
+		return out;
+	}
+	
 	private static Arg getRegister(int color, int maxColors) {
-		if(color > maxColors) return new SpilledRegisterArg(color-maxColors);
+		if(color > maxColors) return new SpilledRegisterArg(color);
 		return new RegisterArg(color);
 	}
 	
@@ -326,7 +349,7 @@ public class RegisterAllocator {
 					inst.arg2 = getRegister(colors.get(ptr), maxColors);
 				} else if(inst.arg2 instanceof RegisterArg) {
 					
-				} else inst.arg2 = getRegister(1000+maxColors, maxColors);
+				} else inst.arg2 = getRegister(1000, maxColors);
 			}
 		}
 		return inst;
