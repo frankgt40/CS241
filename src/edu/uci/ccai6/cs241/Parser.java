@@ -6,8 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import edu.uci.ccai6.cs241.Result.Type;
 import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
+import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
@@ -33,7 +35,7 @@ public class Parser {
 	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
 	public static void main(String args[]) {
-		Parser pa = new Parser("testCases/factorial.txt");
+		Parser pa = new Parser("testCases/test008.txt");
 		pa.setOutFile("output/fun.out.txt");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -54,9 +56,24 @@ public class Parser {
 		    	  }
 		      }
 		      cnv.copyProp(bbs);
+		      for(BasicBlock bb : bbs) {
+		    	  for(Instruction inst : bb.instructions) {
+		    		  System.out.println("cp1: "+inst);
+		    	  }
+		      }
 		      cnv.cse(bbs);
+		      for(BasicBlock bb : bbs) {
+		    	  for(Instruction inst : bb.instructions) {
+		    		  System.out.println("cse: "+inst);
+		    	  }
+		      }
 		      cnv.copyProp(bbs);
-	//		      cnv.deadCodeElimination();
+		      for(BasicBlock bb : bbs) {
+		    	  for(Instruction inst : bb.instructions) {
+		    		  System.out.println("cp: "+inst);
+		    	  }
+		      }
+			      cnv.deadCodeElimination(bbs);
 		      cnv.killPtrOp(bbs);
 		      cnv.fillZeroUninitalizeVars(bbs);
 		      List<Instruction> ssaInsts = cnv.getInstructions(bbs);
@@ -141,7 +158,12 @@ public class Parser {
 		if (__currToken.getType() == Token.TokenType.VARIABLE) {
 			//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 			//String fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress()); 
-			VarScoper.declare(__currToken.getValue(), rsl.__size);
+			if(rsl.getType() == Type.ARRAY) {
+				__IR.putCode("ADDi "+Conf.STACK_P+" "+rsl.__size+" "+Conf.STACK_P);
+				VarScoper.declare(__currToken.getValue(), rsl.__size);
+			} else {
+				VarScoper.declare(__currToken.getValue());
+			}
 			String varName = VarScoper.genVarName(__currToken.getValue());
 			String fixed = rsl.fix(varName, __IR.getANewVarAddress());
 			//__IR.putCode(fixed); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
