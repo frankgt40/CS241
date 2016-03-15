@@ -31,4 +31,7 @@ public class Result {
 	public String getFirstPart() {
 		return __firstPart;
 	}
+	public Type getType() {
+		return __fixedType;
+	}
 }
