@@ -8,6 +8,8 @@ public abstract class Arg {
         if(a2 instanceof VarArg) return ((VarArg)a2).clone();
         return null;
     }
+    
+    
 	
 	public static Arg create(String str) {
 		if(str.matches("^\\d+$")) {
@@ -24,7 +26,7 @@ public abstract class Arg {
 		} else if(str.charAt(0) == 'R'){
 		    return new RegisterArg(Integer.parseInt(str.substring(1)));
 		} else if(str.charAt(0) == 'S' && str.charAt(1) == 'R') {
-		    return new RegisterArg(Integer.parseInt(str.substring(2)));
+		    return new RegisterArg(Integer.parseInt(str.substring(2)), true);
 		} else {
 		    return new VarArg(str);
 		}

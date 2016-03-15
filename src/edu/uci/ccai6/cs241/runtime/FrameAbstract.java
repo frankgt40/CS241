@@ -13,7 +13,6 @@ import java.util.Map;
 public class FrameAbstract {
 	private List<String> __parameters = new ArrayList<String>();
 	private List<String> __locals = new ArrayList<String>();
-	private Map<String, String> __fakeRegToMem = new HashMap<String, String>(); // <fake register name --> memory address in frames>
 	private String __funcName = null;
 	
 	private int __parametersLen = 0;
@@ -25,6 +24,9 @@ public class FrameAbstract {
 		__savedStatusLen = Conf.__savedRegs.size();
 	}
 
+	public List<String> getLocals() {
+		return __locals;
+	}
 	public String get__funcName() {
 		return __funcName;
 	}

@@ -1,11 +1,11 @@
 #Simple parsing test
 main
-var input;
+#var input;
 {
-	let input <- call InputNum();
-	let input <- input + 1;
+	#let input <- call InputNum();
+	#let input <- input + 1;
 	call OutputNewLine();
-	call OutputNum(input);
+	call OutputNum(3);
 	call OutputNewLine()
 }
 .

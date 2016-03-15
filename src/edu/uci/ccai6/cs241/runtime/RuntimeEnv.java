@@ -6,14 +6,22 @@ import java.util.List;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 
 public class RuntimeEnv {
-	private StackAbstract __stack = new StackAbstract();
+	private static StackAbstract __stack = new StackAbstract();
 
 	
-	public List<DLXInstruction> genCode(List<Instruction> instructions) {
-		List<DLXInstruction> rsl = new ArrayList<DLXInstruction>();
+	public static List<DLXInstruction> genCode(List<Instruction> instructions) {
+		List<DLXInstruction> rsl = null;
 		for (Instruction instruction : instructions) {
-			rsl.add(new DLXInstruction(instruction));
+			new DLXInstruction(instruction);
 		}
-		return null;
+		rsl = DLXInstruction.getInstructions();
+		return rsl;
 	}
+
+
+	public static StackAbstract getStack() {
+		return __stack;
+	}
+
+	
 }
