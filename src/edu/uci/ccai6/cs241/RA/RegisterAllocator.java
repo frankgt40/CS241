@@ -321,8 +321,11 @@ public class RegisterAllocator {
 				colors.put(inst.pointer.pointer, Parser.RTR_REG);
 			} else {
 			
+				// TODO: correct order?
 				if(colors.containsKey(ptr)) {
 					inst.arg2 = getRegister(colors.get(ptr), maxColors);
+				} else if(inst.arg2 instanceof RegisterArg) {
+					
 				} else inst.arg2 = getRegister(1000+maxColors, maxColors);
 			}
 		}
