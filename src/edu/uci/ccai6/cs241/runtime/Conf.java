@@ -10,7 +10,10 @@ public class Conf {
 	public static final String STACK_P = "R29";
 	public static final int BLOCK_LEN = 4; // increase or decrease memory address by this value
 	public static final int BYTE_LEN = 8;
-	
+	public static final String STACK_REG_PRE = "SR";
+	public static final String LOAD_REG_1 = "R26";
+	public static final String LOAD_REG_2 = "R25";
+	public static final int GEN_REG_NUM = 8;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
