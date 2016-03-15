@@ -19,6 +19,8 @@ public class Instruction {
 		
 		CALL,
 		
+		RET,
+		
 		MOV,
 		
 		NOOP,
@@ -42,14 +44,15 @@ public class Instruction {
 		
 		public boolean hasOutput() {
 		  return this != STORE && !this.isBranch() && this != PUSH && this != MOV
-		      && this != NOOP && this != PTR && this != FUNC && this != POP;
+		      && this != NOOP && this != PTR && this != FUNC && this != POP
+		      && this != RET;
 		}
 		
 		public boolean canBeNoop() {
 			return this != Operation.CMP && this != Operation.CALL && this != Operation.FUNC
 					&& this != Operation.LOAD && this != Operation.STORE
 					&& this != Operation.PUSH && this != Operation.POP
-					&& !this.isBranch() && this != Operation.MOV;
+					&& !this.isBranch() && this != Operation.MOV && this != Operation.RET;
 		}
 	}
 
