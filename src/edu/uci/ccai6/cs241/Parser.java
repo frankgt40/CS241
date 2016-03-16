@@ -10,6 +10,7 @@ import edu.uci.ccai6.cs241.Result.Type;
 import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.DLXInstruction;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
@@ -26,14 +27,6 @@ public class Parser {
 	private String __inFile;
 	private static String __outFile;
 	private PrintWriter __out;
-	public static final int GLB_REG = 30; // return reg
-	public static final String GLOBAL_VAR_REG = "R"+GLB_REG; 
-	public static final int CMP_REG = 26;
-	public static final String CMP_VAR_REG = "R"+CMP_REG; 
-	public static final int RTR_REG = 27; // return reg
-	public static final String RTR_VAR_REG = "R"+RTR_REG; 
-	public static final int FP_REG = 28; // return reg
-	public static final String FP_VAR_REG = "R"+FP_REG; 
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Parser pa = new Parser("testCases/001.txt");
@@ -588,7 +581,7 @@ public class Parser {
 			int offset;
             if( (offset = VarScoper.getGlobalVarOffset(idName)) != -1) {
               // get offset of global variable
-              var = __IR.putCode("SUBi "+GLOBAL_VAR_REG+" "+offset);
+              var = __IR.putCode("SUBi "+Conf.STATIC_P+" "+offset);
             }
             
             String code = "";
@@ -600,7 +593,7 @@ public class Parser {
 			    	if(stackOffset == -1) {
 			    		reportError(idName+" not a local array");
 			    	}
-			    	var = __IR.putCode("SUBi "+FP_VAR_REG+" "+stackOffset);
+			    	var = __IR.putCode("SUBi "+Conf.FRAME_P+" "+stackOffset);
 			    }
 			    isArray = true;
 			    var.setIsArray(true);
@@ -693,7 +686,7 @@ public class Parser {
 		long cmpPtr = __IR.getCurrPc()+1; // one instruction below CMP
 		// check relOp and convert/invert it to corresponding branch
 		String relOp = getBranchOp(resRel);
-		__IR.putCode(relOp+" "+CMP_VAR_REG);
+		__IR.putCode(relOp+" "+Conf.CMP_REG);
 		if(!__currToken.getValue().equals("then")) {
 			reportError("where's then keyword??");
 		}
@@ -722,7 +715,7 @@ public class Parser {
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.fixCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
+			__IR.fixCode(relOp+" "+Conf.CMP_REG+" "+new AssignDestination(elsePtr).getDestination(), cmpPtr);
 			if(ifSS != null) {
 				ifSS = ifSS.join(elseSS);
 				for(String pv : ifSS.getAssignedVars()) {
@@ -734,7 +727,7 @@ public class Parser {
 			// put relOp at CMP+1
 			// 1st arg is result of relation
 			// 2nd is first instruction of merged block := currPc-sizeof(PHI)+1
-			__IR.fixCode(relOp+" "+CMP_VAR_REG+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
+			__IR.fixCode(relOp+" "+Conf.CMP_REG+" "+new AssignDestination(followPtr).getDestination(), cmpPtr);
 			
 			if(ifSS != null) {
 				for(String pv : ifSS.getAssignedVars()) {
@@ -788,7 +781,7 @@ public class Parser {
 		//
 		// TLDR: dont use putCode(String,Index) right after calling while statement
 		cmpPtr = cmpPtr+1+whileVars.size(); // update ptr of CMP since it might be pushed by PHI
-		__IR.putCode(branchOp+" "+CMP_VAR_REG+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr);
+		__IR.putCode(branchOp+" "+Conf.CMP_REG+" "+new AssignDestination(__IR.getCurrPc()+2).getDestination(), cmpPtr);
 
 		__IR.putCode("NOOP"); // dummy NOOP to pass test011.txt
 		return whileSS;
@@ -802,8 +795,9 @@ public class Parser {
 			next();
 			String code = "";
 			AssignDestination returnValue = expression();
-			code += "MOV " + returnValue.getDestination() + " " + RTR_VAR_REG;
+			code += "MOV " + returnValue.getDestination() + " " + Conf.RETURN_VAL_REG;
 			__IR.putCode(code);
+			__IR.putCode("RET");
 //			if (returnValue.isConstant()) {
 //				code += "MOV " + returnValue.getDestination() + register;
 //			} else if (returnValue.isArray()) {

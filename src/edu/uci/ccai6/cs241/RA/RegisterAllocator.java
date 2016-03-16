@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import edu.uci.ccai6.cs241.Parser;
+import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
@@ -102,12 +102,12 @@ public class RegisterAllocator {
 				
 				if(!inst.arg0.equals(inst.arg2)) {
 					prevIndirectDefReg.add((RegisterArg) inst.arg2);
-					prevIndirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg0+" "+inst.arg2));
+					prevIndirectMoveInst.add(new Instruction(numInsts+" MOV "+inst.arg0+" "+inst.arg2));
 					numInsts++;
 				}
 				if(!inst.arg1.equals(inst.arg2)) {
 					prevDirectDefReg.add((RegisterArg) inst.arg2);
-					prevDirectMoveInst.add(new Instruction(numInsts+" MOVE "+inst.arg1+" "+inst.arg2));
+					prevDirectMoveInst.add(new Instruction(numInsts+" MOV "+inst.arg1+" "+inst.arg2));
 					numInsts++;
 				}
 				
@@ -152,7 +152,7 @@ public class RegisterAllocator {
 			while(moveItr.hasNext()) {
 	
 				Instruction move = moveItr.next();
-				if(move.op != Operation.MOVE) {
+				if(move.op != Operation.MOV) {
 					System.err.println(move+" is not move op.");
 					System.exit(-1);
 				}
@@ -337,11 +337,11 @@ public class RegisterAllocator {
 			 * special assignment for CMP and CALL
 			 */
 			if(inst.op == Operation.CMP) {
-				inst.arg2 = new RegisterArg(Parser.CMP_REG);
-				colors.put(inst.pointer.pointer, Parser.CMP_REG);
+				inst.arg2 = new RegisterArg(Conf.CMP_REG_NUM);
+				colors.put(inst.pointer.pointer, Conf.CMP_REG_NUM);
 			} else if(inst.op == Operation.CALL) {
-				inst.arg2 = new RegisterArg(Parser.RTR_REG);
-				colors.put(inst.pointer.pointer, Parser.RTR_REG);
+				inst.arg2 = new RegisterArg(Conf.RETURN_VAL_NUM);
+				colors.put(inst.pointer.pointer, Conf.RETURN_VAL_NUM);
 			} else {
 			
 				// TODO: correct order?

@@ -1,0 +1,215 @@
+0 data:
+1 setnextbit:
+5 POP setnextbit_bits
+4 POP setnextbit_next
+3 POP setnextbit_akt
+2 POP setnextbit_last
+6 SUBi R30 0
+7 MULi setnextbit_last 4
+8 ADDA (6) (7)
+9 MULi setnextbit_akt 4
+10 ADDA (8) (9)
+11 MULi setnextbit_next 4
+12 ADDA (10) (11)
+13 DIVi setnextbit_bits 2
+14 MULi (13) 2
+15 SUB setnextbit_bits (14)
+16 STORE (15) (12)
+17 DIVi setnextbit_bits 2
+18 MOV (17) R27
+19 initrulebin:
+20 SUBi R30 24
+21 LOAD (20)
+22 MOVE (21) initrulebin_bits
+23 PUSH 0
+24 PUSH 0
+25 PUSH 0
+26 PUSH initrulebin_bits
+27 CALL setnextbit
+28 MOVE (27) initrulebin_bits
+29 PUSH 0
+30 PUSH 0
+31 PUSH 1
+32 PUSH initrulebin_bits
+33 CALL setnextbit
+34 MOVE (33) initrulebin_bits
+35 PUSH 0
+36 PUSH 1
+37 PUSH 0
+38 PUSH initrulebin_bits
+39 CALL setnextbit
+40 MOVE (39) initrulebin_bits
+41 PUSH 0
+42 PUSH 1
+43 PUSH 1
+44 PUSH initrulebin_bits
+45 CALL setnextbit
+46 MOVE (45) initrulebin_bits
+47 PUSH 1
+48 PUSH 0
+49 PUSH 0
+50 PUSH initrulebin_bits
+51 CALL setnextbit
+52 MOVE (51) initrulebin_bits
+53 PUSH 1
+54 PUSH 0
+55 PUSH 1
+56 PUSH initrulebin_bits
+57 CALL setnextbit
+58 MOVE (57) initrulebin_bits
+59 PUSH 1
+60 PUSH 1
+61 PUSH 0
+62 PUSH initrulebin_bits
+63 CALL setnextbit
+64 MOVE (63) initrulebin_bits
+65 PUSH 1
+66 PUSH 1
+67 PUSH 1
+68 PUSH initrulebin_bits
+69 CALL setnextbit
+70 MOVE (69) initrulebin_bits
+71 cleardata:
+72 MOVE 0 cleardata_i
+84 PHI cleardata_i cleardata_i cleardata_i
+73 SUBi R30 28
+74 LOAD (73)
+75 ADDi (74) 2
+76 CMP cleardata_i (75)
+85 BGE R26 (86)
+77 SUBi R30 32
+78 MULi cleardata_i 4
+79 ADDA (77) (78)
+80 STORE 0 (79)
+81 ADDi cleardata_i 1
+82 MOVE (81) cleardata_i
+83 BRA (84)
+86 NOOP
+87 output:
+88 MOVE 1 output_i
+115 PHI output_i output_i output_i
+89 SUBi R30 28
+90 LOAD (89)
+91 CMP output_i (90)
+116 BGT R26 (117)
+92 SUBi R30 32
+93 MULi output_i 4
+94 ADDA (92) (93)
+95 LOAD (94)
+96 CMP (95) 0
+97 BNE R26 (101)
+98 PUSH 1
+99 CALL OutputNum
+100 BRA (112)
+101 SUBi R30 32
+102 MULi output_i 4
+103 ADDA (101) (102)
+104 LOAD (103)
+105 CMP (104) 1
+106 BNE R26 (110)
+107 PUSH 8
+108 CALL OutputNum
+109 BRA (112)
+110 PUSH 0
+111 CALL OutputNum
+112 ADDi output_i 1
+113 MOVE (112) output_i
+114 BRA (115)
+117 NOOP
+118 CALL OutputNewLine
+119 calcnext:
+120 SUBi R30 32
+121 MULi 0 4
+122 ADDA (120) (121)
+123 SUBi R30 32
+124 MULi 1 4
+125 ADDA (123) (124)
+126 LOAD (125)
+127 STORE (126) (122)
+128 SUBi R30 32
+129 SUBi R30 28
+130 LOAD (129)
+131 ADDi (130) 1
+132 MULi (131) 4
+133 ADDA (128) (132)
+134 SUBi R30 32
+135 SUBi R30 28
+136 LOAD (135)
+137 MULi (136) 4
+138 ADDA (134) (137)
+139 LOAD (138)
+140 STORE (139) (133)
+141 SUBi R30 32
+142 MULi 0 4
+143 ADDA (141) (142)
+144 LOAD (143)
+145 MOVE (144) calcnext_last
+146 SUBi R30 32
+147 MULi 1 4
+148 ADDA (146) (147)
+149 LOAD (148)
+150 MOVE (149) calcnext_akt
+151 MOVE 1 calcnext_i
+181 PHI calcnext_next calcnext_next calcnext_next
+180 PHI calcnext_i calcnext_i calcnext_i
+179 PHI calcnext_akt calcnext_akt calcnext_akt
+178 PHI calcnext_last calcnext_last calcnext_last
+152 SUBi R30 28
+153 LOAD (152)
+154 CMP calcnext_i (153)
+182 BGT R26 (183)
+155 SUBi R30 32
+156 ADDi calcnext_i 1
+157 MULi (156) 4
+158 ADDA (155) (157)
+159 LOAD (158)
+160 MOVE (159) calcnext_next
+161 SUBi R30 32
+162 MULi calcnext_i 4
+163 ADDA (161) (162)
+164 SUBi R30 0
+165 MULi calcnext_last 4
+166 ADDA (164) (165)
+167 MULi calcnext_akt 4
+168 ADDA (166) (167)
+169 MULi calcnext_next 4
+170 ADDA (168) (169)
+171 LOAD (170)
+172 STORE (171) (163)
+173 MOVE calcnext_akt calcnext_last
+174 MOVE calcnext_next calcnext_akt
+175 ADDi calcnext_i 1
+176 MOVE (175) calcnext_i
+177 BRA (181)
+183 NOOP
+184 run:
+185 MOVE 0 run_i
+194 PHI run_i run_i run_i
+186 SUBi R30 360
+187 LOAD (186)
+188 CMP run_i (187)
+195 BGE R26 (196)
+189 CALL output
+190 CALL calcnext
+191 ADDi run_i 1
+192 MOVE (191) run_i
+193 BRA (194)
+196 NOOP
+197 .text
+198 main:
+199 PUSH 22
+200 CALL OutputNum
+201 SUBi R30 28
+202 STORE 80 (201)
+203 SUBi R30 360
+204 STORE 60 (203)
+205 CALL cleardata
+206 SUBi R30 32
+207 MULi 40 4
+208 ADDA (206) (207)
+209 STORE 1 (208)
+210 SUBi R30 24
+211 STORE 45 (210)
+212 CALL initrulebin
+213 CALL run
+214 end
