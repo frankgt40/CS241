@@ -186,7 +186,7 @@ public class DLX {
 					}
 					break;
 				case BGE:
-					if (R[a] >= 0) nextPC = PC + c;
+					if (R[a] >= 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -394,7 +394,7 @@ public class DLX {
 		}
 	}
 	
-	static String disassemble(int instructionWord) {
+	public static String disassemble(int instructionWord) {
 		
 		disassem(instructionWord);
 		String line = mnemo[op] + "  ";

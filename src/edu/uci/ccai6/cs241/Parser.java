@@ -10,6 +10,7 @@ import edu.uci.ccai6.cs241.Result.Type;
 import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.DLX;
 import edu.uci.ccai6.cs241.runtime.DLXInstruction;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -31,14 +32,14 @@ public class Parser {
 	private PrintWriter __out;
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		Parser pa = new Parser("testCases/001.txt");
-		pa.setOutFile("output/001.dlx");
+		Parser pa = new Parser("testCases/test010.txt");
+		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
 			List<String> codeList = pa.getIR().getIRBuffer();
-//			for (String codeLine : codeList) {
-//				pa.getOut().println(codeLine);
-//			}
+			for (String codeLine : codeList) {
+				pa.getOut().println(codeLine);
+			}
 			pa.getOut().close();
 			SSAConverter cnv = new SSAConverter(codeList);
 
@@ -69,7 +70,7 @@ public class Parser {
 		    		  System.out.println("cp: "+inst);
 		    	  }
 		      }
-			      cnv.deadCodeElimination(bbs);
+//			      cnv.deadCodeElimination(bbs);
 		      cnv.killPtrOp(bbs);
 		      cnv.fillZeroUninitalizeVars(bbs);
 		      List<Instruction> ssaInsts = cnv.getInstructions(bbs);
@@ -79,13 +80,27 @@ public class Parser {
 			List<Instruction> insts = RegisterAllocator.assign(bbs);
 			for(Instruction inst : insts) System.out.println(inst);
 
-			int[] machineCode = RuntimeEnv.genCode(insts);
-			PrintWriter out =  new PrintWriter(__outFile);
-			for (int line : machineCode) {
-//				System.out.println(Integer.toBinaryString(line));
-				out.println(Integer.toBinaryString(line));
+			DLXInstruction.preRun(insts);
+			for (String key : DLXInstruction.getMap1().keySet()) {
+				System.out.println(key + " -> " + DLXInstruction.getMap1().get(key));
 			}
-			out.close();
+			RuntimeEnv.genCode(insts);
+			
+			for (String key : DLXInstruction.getMap2().keySet()) {
+				System.out.println(key + " -> " + DLXInstruction.getMap2().get(key));
+			}
+			System.out.println(DLXInstruction.getLateComputePos());
+			DLXInstruction.postCompute();
+			int[] machineCode = DLXInstruction.getMachineCode();
+			PrintWriter out1 =  new PrintWriter("output/001.dlx");
+			PrintWriter out2 =  new PrintWriter("output/001.read");
+			for (int line : machineCode) {
+				out1.println(Integer.toBinaryString(line));
+				out2.print(DLX.disassemble(line));
+			}
+
+			out1.close();
+			out2.close();
 		}
 	}
 	public IRGenerator getIR() {

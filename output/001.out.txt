@@ -1,8 +1,39 @@
-0 data:
-1 .text
-2 main:
-3 CALL OutputNewLine
-4 PUSH 3
-5 CALL OutputNum
-6 CALL OutputNewLine
-7 end
+ADD  0 0 0
+ADD  0 0 0
+ADD  0 0 0
+ADD  0 0 0
+ADD  0 0 0
+ADD  0 0 0
+ADDI  3 0 1
+ADDI  4 0 3
+ADD  0 0 0
+ADD  0 0 0
+ADDI  25 0 2
+CMP  24 3 25
+BGE  24 112
+ADDI  26 0 1
+PSH  26 29 4
+POP  26 29 -4
+WRD  26
+ADDI  2 3 1
+ADD  0 0 0
+ADD  0 0 0
+ADD  0 0 0
+PSH  2 29 4
+POP  26 29 -4
+WRD  26
+ADD  3 0 2
+ADD  4 0 1
+JSR  36
+ADD  0 0 0
+PSH  3 29 4
+POP  26 29 -4
+WRD  26
+ADDI  26 0 2
+PSH  26 29 4
+POP  26 29 -4
+WRD  26
+PSH  4 29 4
+POP  26 29 -4
+WRD  26
+ADD  0 0 0
