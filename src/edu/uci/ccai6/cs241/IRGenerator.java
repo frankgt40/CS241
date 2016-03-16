@@ -23,6 +23,9 @@ public class IRGenerator {
 		
 		__scopeNames.add(new Integer(__scope).toString());
 	}
+	public String getLastCode() {
+		return __IRBuffer.get(__IRBuffer.size()-1);
+	}
 	public void fixCode(String code, long index) {
 		code = Long.toString(index)+" "+code;
 		__IRBuffer.set((int) index, code);

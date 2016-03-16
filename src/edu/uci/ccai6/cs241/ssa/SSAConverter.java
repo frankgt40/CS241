@@ -466,7 +466,8 @@ public class SSAConverter {
 			int index = 0;
 			for(Instruction inst : bb.instructions) {
 			  
-			    if(inst.skipOptimize()) { 
+				// TODO: lazy way to fix this ... havent thought about the best way
+			    if(inst.op != Operation.MOV && inst.skipOptimize()) { 
 			    	bb.instructions.set(index, inst);
 		            index++;
 		            continue;

@@ -12,9 +12,11 @@ import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.runtime.DLXInstruction;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
+import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
+import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
 
 public class Parser {
 	public static boolean __isVerbose = true; // Can be configured later!
@@ -385,9 +387,23 @@ public class Parser {
 					code = "STORE " + from + " " + to;
 					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				} else {
-					// the destination is a variable, then we can move
-					code = "MOVE " + from + " " + to;
-					__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+					// a hack here as well
+					// if we do let var <- call func(), we need to use ADDi
+					// such that SSA doesnt remove this instruction
+					// TODO: can there be a case that the previous instruction is CALL
+					// but its not in the form let var <- call sth()?
+					if(new Instruction(__IR.getLastCode()).op == Operation.CALL) {
+						code = "ADDi " + from + " 0";
+						dst = __IR.putCode(code);
+						code = "MOVE " + dst + " " + to;
+						dst = __IR.putCode(code);
+					} else {
+						// the destination is a variable, then we can move
+						code = "MOVE " + from + " " + to;
+						__IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+					}
 				}
 				//__currToken = __lx.nextToken();
 			} else {
@@ -554,8 +570,8 @@ public class Parser {
 		      // this is correct but bad for error detection
 		    }
 		    next(); // )
-		 
-			return __IR.putCode("CALL "+funcName);
+		    return __IR.putCode("CALL "+funcName);
+			//return new AssignDestination(Conf.RETURN_VAL_NUM, true);
 		} else {
 			reportError("In funcCall, missing the \'call\' keyword!");
 			return null;
