@@ -1,16 +1,17 @@
 #Simple parsing test
 main
-#var input;
+var input;
 {
-	#let input <- call InputNum();
-	#let input <- input + 1;
+	let input <- call InputNum();
+	let input <- 9 / input;
+	let input <- 5 - input;
 	call OutputNewLine();
-	call OutputNum(3);
 	call OutputNewLine();
 	call OutputNum(5);
 	call OutputNewLine();
 	call OutputNum(7);
 	call OutputNewLine();
 	call OutputNum(9);
+	call OutputNum(input);
 }
 .

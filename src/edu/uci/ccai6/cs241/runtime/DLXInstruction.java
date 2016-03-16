@@ -55,7 +55,9 @@ public class DLXInstruction extends DLX {
 		}
 		return rsl;
 	}
-
+	private int noopInst() {
+		return DLX.F2(0, 0, 0, 0);
+	}
 	DLXInstruction(Instruction instruction) {
 		boolean isSet = false;
 		int op = 0, arg1 = 0, arg2 = 0, arg3 = 0;
@@ -68,61 +70,154 @@ public class DLXInstruction extends DLX {
 		switch (instruction.op) {
 		case ADDi:
 			op = DLX.ADDI;
-			isSet = true;
-			break;
+			isSet = false;
+			if (argI1 instanceof ConstArg) {
+				if (argI2 instanceof RegisterArg) {
+					// Special case!
+					arg2 = getRegNum(argI2.toString());
+					new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+					// Then arg1 and arg2 are both registers
+					// We use F2 type
+					__val = DLX.F2(DLX.ADD, getRegNum(argI3.toString()), getRegNum(Conf.LOAD_REG_1), arg2);
+					__instructions.add(this);
+					return;
+				}
+				arg1 = Integer.parseInt(argI1.toString());
+			} else {
+				arg1 = getRegNum(argI1.toString());
+			}
+			if (argI2 instanceof ConstArg) {
+				arg2 = Integer.parseInt(argI2.toString());
+			} else {
+				arg2 = getRegNum(argI2.toString());
+			}
+			arg3 = getRegNum(argI3.toString());
+			__val = DLX.F1(op, arg3, arg1, arg2);
+			__instructions.add(this);
+			return;
 		case MULi:
 			op = DLX.MULI;
-			isSet = true;
-			break;
+			isSet = false;
+			if (argI1 instanceof ConstArg) {
+				if (argI2 instanceof RegisterArg) {
+					// Special case!
+					arg2 = getRegNum(argI2.toString());
+					new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+					// Then arg1 and arg2 are both registers
+					// We use F2 type
+					__val = DLX.F2(DLX.MUL, getRegNum(argI3.toString()), getRegNum(Conf.LOAD_REG_1), arg2);
+					__instructions.add(this);
+					return;
+				}
+				arg1 = Integer.parseInt(argI1.toString());
+			} else {
+				arg1 = getRegNum(argI1.toString());
+			}
+			if (argI2 instanceof ConstArg) {
+				arg2 = Integer.parseInt(argI2.toString());
+			} else {
+				arg2 = getRegNum(argI2.toString());
+			}
+			arg3 = getRegNum(argI3.toString());
+			__val = DLX.F1(op, arg3, arg1, arg2);
+			__instructions.add(this);
+			return;
 		case DIVi:
 			op = DLX.DIVI;
-			isSet = true;
-			break;
+			isSet = false;
+			isSet = false;
+			if (argI1 instanceof ConstArg) {
+				if (argI2 instanceof RegisterArg) {
+					arg2 = getRegNum(argI2.toString());
+					// Special case!
+					new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+					// Then arg1 and arg2 are both registers
+					// We use F2 type
+					__val = DLX.F2(DLX.DIV, getRegNum(argI3.toString()), getRegNum(Conf.LOAD_REG_1), arg2);
+					__instructions.add(this);
+					return;
+				}
+				arg1 = Integer.parseInt(argI1.toString());
+			} else {
+				arg1 = getRegNum(argI1.toString());
+			}
+			if (argI2 instanceof ConstArg) {
+				arg2 = Integer.parseInt(argI2.toString());
+			} else {
+				arg2 = getRegNum(argI2.toString());
+			}
+			arg3 = getRegNum(argI3.toString());
+			__val = DLX.F1(op, arg3, arg1, arg2);
+			__instructions.add(this);
+			return;
 		case SUBi:
 			op = DLX.SUBI;
-			isSet = true;
-			break;
-		case LOAD:
+			isSet = false;
+			if (argI1 instanceof ConstArg) {
+				if (argI2 instanceof RegisterArg) {
+					// Special case!
+					arg2 = getRegNum(argI2.toString());
+					new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+					// Then arg1 and arg2 are both registers
+					// We use F2 type
+					__val = DLX.F2(DLX.SUB, getRegNum(argI3.toString()), getRegNum(Conf.LOAD_REG_1), arg2);
+					__instructions.add(this);
+					return;
+				}
+				arg1 = Integer.parseInt(argI1.toString());
+			} else {
+				arg1 = getRegNum(argI1.toString());
+			}
+			if (argI2 instanceof ConstArg) {
+				arg2 = Integer.parseInt(argI2.toString());
+			} else {
+				arg2 = getRegNum(argI2.toString());
+			}
+			arg3 = getRegNum(argI3.toString());
+			__val = DLX.F1(op, arg3, arg1, arg2);
+			__instructions.add(this);
+			return;
+		case LOAD: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.LDW;
 			isSet = true;
 			break;
-		case STORE:
+		case STORE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.STW;
 			isSet = true;
 			break;
-		case BGE:
+		case BGE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BGE;
 			isSet = true;
 			break;
-		case BGT:
+		case BGT: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BGT;
 			isSet = true;
 			break;
-		case BLE:
+		case BLE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BLE;
 			isSet = true;
 			break;
-		case BLT:
+		case BLT: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BLT;
 			isSet = true;
 			break;
-		case BNE:
+		case BNE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BNE;
 			isSet = true;
 			break;
-		case BEQ:
+		case BEQ: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BEQ;
 			isSet = true;
 			break;
-		case BRA:
+		case BRA: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.BSR; // Not so sure!
 			isSet = true;
 			break;
-		case ADDA:
+		case ADDA: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.ADDI; // Not sure at all!
 			isSet = true;
 			break;
-		case MOVE:
+		case MOVE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
 			op = DLX.ADDI;
 			isSet = true;
 			break;
@@ -138,12 +233,14 @@ public class DLXInstruction extends DLX {
 				__val = DLX.F1(DLX.PSH, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.STACK_P), Conf.BLOCK_LEN);
 				__instructions.add(this);
 				return;
-			} else {
+			} else if (argI1 instanceof RegisterArg){
 				// in register
 				arg1 = getRegNum(argI1.toString());
-				__val = DLX.F1(DLX.PSH, arg1, getRegNum(Conf.STACK_P), -Conf.BLOCK_LEN);
+				__val = DLX.F1(DLX.PSH, arg1, getRegNum(Conf.STACK_P), Conf.BLOCK_LEN);
 				__instructions.add(this);
 				return;
+			} else {
+				wrong("PUSH: wrong!");
 			}
 		case POP:
 			op = DLX.POP;
@@ -158,7 +255,25 @@ public class DLXInstruction extends DLX {
 			}
 		case MOV:
 			op = DLX.ADDI;
-			isSet = true;
+			isSet = false;
+
+			if (argI2 instanceof RegisterArg) {
+				arg2 = getRegNum(argI2.toString());
+			} else if (argI2 instanceof SpilledRegisterArg) {
+				// Have to store it into memory
+				new DLXInstruction(new Instruction("1 STORE " + argI2.toString())); //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
+			} else {
+				wrong("MOV: target can only be register");
+			}
+			if (argI1 instanceof ConstArg) {
+				// MOV 3 Reg
+				// USE ADDi
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.ZERO_REG + " " + argI1 + " " + argI2.toString()));
+			} else {
+				// MOV REG REG
+				// USE ADD
+				new DLXInstruction(new Instruction("1 ADD " + Conf.ZERO_REG + " " + argI1 + " " + argI2.toString()));
+			}
 			break;
 		default:
 			break;
@@ -209,7 +324,7 @@ public class DLXInstruction extends DLX {
 			arg1 = getArg(argI1, Conf.LOAD_REG_1);
 			arg2 = getArg(argI2, Conf.LOAD_REG_2);
 			arg3 = getArg(argI3, Conf.LOAD_REG_3);
-			__val = DLX.F2(op, arg1, arg2, arg3);
+			__val = DLX.F2(op, arg3, arg1, arg2);
 			__instructions.add(this);
 			return;
 		}
@@ -229,6 +344,9 @@ public class DLXInstruction extends DLX {
 				__instructions.add(this);
 				return;
 			} else if (argI1.toString().equals("InputNum")) {
+				__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
+				__instructions.add(this);
+				return;
 			}
 			op = DLX.JSR;
 			break;
@@ -237,6 +355,9 @@ public class DLXInstruction extends DLX {
 		case FUNC:
 		case PHI:
 		case NOOP:
+			__val = noopInst();
+			__instructions.add(this);
+			return;
 		case PTR:
 		default:// means its value is the same as pointer's or constant
 			break;
