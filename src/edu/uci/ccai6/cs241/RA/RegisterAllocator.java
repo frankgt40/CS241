@@ -305,6 +305,7 @@ public class RegisterAllocator {
 			int color = entry.getValue();
 			int ptr = entry.getKey();
 			if(color > maxColors) {
+				// use 100 as a base for fake register
 				color += 100;
 			}
 			out.put(ptr, color);
@@ -312,8 +313,16 @@ public class RegisterAllocator {
 		return out;
 	}
 	
-	private static Arg getRegister(int color, int maxColors) {
-		if(color > maxColors) return new SpilledRegisterArg(color);
+	/**
+	 * assume color is alrdy pre-assigned : 2 cases
+	 * 1) colors = {1-MAX_COLORS(8)}
+	 * 2) colors > 100 then its in fake registers
+	 * @param color
+	 * @return
+	 */
+	private static Arg getRegister(int color) {
+		// 31 is the hard cap
+		if(color > 31) return new SpilledRegisterArg(color);
 		return new RegisterArg(color);
 	}
 	
@@ -322,13 +331,13 @@ public class RegisterAllocator {
 		if(inst.arg0 != null && inst.op != Operation.BRA 
 				&& inst.arg0 instanceof PointerArg) {
 			int ptr = ((PointerArg)inst.arg0).pointer;
-			inst.arg0 = getRegister(colors.get(ptr), maxColors);
+			inst.arg0 = getRegister(colors.get(ptr));
 		}
 		// color arg1 - ignore cond branch
 		if(inst.arg1 != null && !inst.op.isBranch() 
 				&& inst.arg1 instanceof PointerArg) {
 			int ptr = ((PointerArg)inst.arg1).pointer;
-			inst.arg1 = getRegister(colors.get(ptr), maxColors);
+			inst.arg1 = getRegister(colors.get(ptr));
 		}
 		// color arg2 only if op has an output
 		if(inst.op.hasOutput()) {
@@ -346,10 +355,10 @@ public class RegisterAllocator {
 			
 				// TODO: correct order?
 				if(colors.containsKey(ptr)) {
-					inst.arg2 = getRegister(colors.get(ptr), maxColors);
+					inst.arg2 = getRegister(colors.get(ptr));
 				} else if(inst.arg2 instanceof RegisterArg) {
 					
-				} else inst.arg2 = getRegister(1000, maxColors);
+				} else inst.arg2 = getRegister(1000);
 			}
 		}
 		return inst;
