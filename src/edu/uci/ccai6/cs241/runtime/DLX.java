@@ -186,7 +186,10 @@ public class DLX {
 					}
 					break;
 				case BGE:
+					System.out.println("C: "+c);
 					if (R[a] >= 0) nextPC = c/4;
+					System.out.println("C: "+c);
+					System.out.println("NextPC: "+nextPC);
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");

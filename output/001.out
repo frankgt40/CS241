@@ -4,34 +4,36 @@
 3 MOVE 1 main_a
 4 MOVE 2 main_b
 5 MOVE 3 main_c
-26 PHI main_c main_c main_c
-25 PHI main_b main_b main_b
-24 PHI main_a main_a main_a
+28 PHI main_c main_c main_c
+27 PHI main_b main_b main_b
+26 PHI main_a main_a main_a
 6 CMP main_a main_b
-27 BGE R24 (28)
+29 BGE R24 (30)
 7 ADDi main_a 2
 8 MOVE (7) main_a
 9 ADDi main_c 1
 10 MOVE (9) main_c
-20 PHI main_b main_b main_b
+21 PHI main_b main_b main_b
 11 CMP main_b main_c
-21 BGE R24 (22)
+22 BGE R24 (23)
 12 PUSH main_b
 13 CALL OutputNum
 14 PUSH main_c
 15 CALL OutputNum
-16 CALL OutputNewLine
-17 ADDi main_b 1
-18 MOVE (17) main_b
-19 BRA (20)
-22 NOOP
-23 BRA (26)
-28 NOOP
-29 CALL OutputNewLine
-30 PUSH main_a
-31 CALL OutputNum
-32 PUSH main_b
+16 PUSH 123
+17 CALL OutputNum
+18 ADDi main_b 1
+19 MOVE (18) main_b
+20 BRA (21)
+23 NOOP
+24 CALL OutputNewLine
+25 BRA (28)
+30 NOOP
+31 CALL OutputNewLine
+32 PUSH main_a
 33 CALL OutputNum
-34 PUSH main_c
+34 PUSH main_b
 35 CALL OutputNum
-36 end
+36 PUSH main_c
+37 CALL OutputNum
+38 end

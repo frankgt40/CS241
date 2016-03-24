@@ -13,9 +13,10 @@ var a, b, c;
 		while b < c do
 		    call OutputNum(b);
 		    call OutputNum(c);
-		    call OutputNewLine();
+		    call OutputNum(123);
 			let b <- b + 1
-		od
+		od;
+		    call OutputNewLine();
 	od;
 		   call OutputNewLine();
 	call OutputNum(a);
