@@ -2,22 +2,22 @@
 main
 var a, b, c;
 {
-	let a <- 1;
+//	let a <- 1;
 	let b <- 2;
 	let c <- 3;
-	while a < b do
+//	while a < b do
 //		call OutputNum(1);
-		let a <- a + 2;
+		//let a <- a + 2;
 		let c <- c + 1;
 //		call OutputNum(a);
 		while b < c do
-		    call OutputNum(b);
+		    //call OutputNum(b);
 		    call OutputNum(c);
 		    call OutputNum(123);
 			let b <- b + 1
 		od;
 		    call OutputNewLine();
-	od;
+//	od;
 		   call OutputNewLine();
 	call OutputNum(a);
 	call OutputNum(b);

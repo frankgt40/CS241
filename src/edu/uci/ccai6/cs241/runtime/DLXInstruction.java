@@ -127,7 +127,7 @@ public class DLXInstruction extends DLX {
 			String tmp = __lateComputePos.get(key);
 			tmp = __map1.get(tmp);
 			int alpha = __map2.get(tmp);
-			code += (alpha-1)*Conf.BLOCK_LEN;
+			code += (alpha)*Conf.BLOCK_LEN;
 			__instructions.get(key - 1).setVal(code);
 		}
 	}

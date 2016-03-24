@@ -1,39 +1,27 @@
 0 data:
 1 .text
 2 main:
-3 MOVE 1 main_a
-4 MOVE 2 main_b
-5 MOVE 3 main_c
-28 PHI main_c main_c main_c
-27 PHI main_b main_b main_b
-26 PHI main_a main_a main_a
-6 CMP main_a main_b
-29 BGE R24 (30)
-7 ADDi main_a 2
-8 MOVE (7) main_a
-9 ADDi main_c 1
-10 MOVE (9) main_c
-21 PHI main_b main_b main_b
-11 CMP main_b main_c
-22 BGE R24 (23)
-12 PUSH main_b
-13 CALL OutputNum
-14 PUSH main_c
-15 CALL OutputNum
-16 PUSH 123
-17 CALL OutputNum
-18 ADDi main_b 1
-19 MOVE (18) main_b
-20 BRA (21)
-23 NOOP
-24 CALL OutputNewLine
-25 BRA (28)
-30 NOOP
-31 CALL OutputNewLine
-32 PUSH main_a
-33 CALL OutputNum
-34 PUSH main_b
-35 CALL OutputNum
-36 PUSH main_c
-37 CALL OutputNum
-38 end
+3 MOVE 2 main_b
+4 MOVE 3 main_c
+5 ADDi main_c 1
+6 MOVE (5) main_c
+15 PHI main_b main_b main_b
+7 CMP main_b main_c
+16 BGE R24 (17)
+8 PUSH main_c
+9 CALL OutputNum
+10 PUSH 123
+11 CALL OutputNum
+12 ADDi main_b 1
+13 MOVE (12) main_b
+14 BRA (15)
+17 NOOP
+18 CALL OutputNewLine
+19 CALL OutputNewLine
+20 PUSH main_a
+21 CALL OutputNum
+22 PUSH main_b
+23 CALL OutputNum
+24 PUSH main_c
+25 CALL OutputNum
+26 end
