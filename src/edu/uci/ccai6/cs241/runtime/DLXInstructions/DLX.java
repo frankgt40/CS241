@@ -36,6 +36,7 @@ public class DLX {
 			program[i] = code.get(i).intValue();
 		}
 		program[code.size()] = DLX.F2(DLX.RET, 0, 0, 0);
+		System.out.println("Program size: " +code.size());
 		load(program);
 		
 		R[Conf.getRegNum(Conf.FRAME_P)] = program.length * Conf.BLOCK_LEN;
@@ -62,8 +63,9 @@ public class DLX {
 		execloop:
 		while (true) {
 			R[0] = 0;
+			System.out.println("PC: "+PC);
 			disassem(M[PC]); // initializes op, a, b, c
-
+			
 			int nextPC = PC + 1;
 			if (format==2) {
 				origc = c; // used for RET
@@ -258,6 +260,7 @@ public class DLX {
 
 		}
 		catch (java.lang.ArrayIndexOutOfBoundsException e ) {
+			e.printStackTrace();
 		  System.out.println( "failed at " + PC*4 + ",   "  + disassemble( M[PC] ) );
 		}
 
