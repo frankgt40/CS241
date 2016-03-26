@@ -3,6 +3,7 @@ package edu.uci.ccai6.cs241.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLXInstruction;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 
 public class RuntimeEnv {

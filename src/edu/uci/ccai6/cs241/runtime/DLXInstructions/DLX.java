@@ -1,4 +1,4 @@
-package edu.uci.ccai6.cs241.runtime;
+package edu.uci.ccai6.cs241.runtime.DLXInstructions;
 
 // The DLX Virtual Machine
 // chs / mf 2001-08-07
@@ -6,6 +6,8 @@ package edu.uci.ccai6.cs241.runtime;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.uci.ccai6.cs241.runtime.Conf;
 
 // All variables and methods are realized as class variables/methods which
 // means that just one processor can be emulated at a time.

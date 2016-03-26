@@ -5,6 +5,7 @@ var a, b, c;
 	let c <- 3;
 	let c <- c + 1;
 	while b < c do
+	 call OutputNum(b);
 	 call OutputNum(c);
 	 call OutputNum(123);
 	 let b <- b + 1

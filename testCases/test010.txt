@@ -1,23 +1,29 @@
 // Basic while statement test
 main
-var a, b, c;
+var a, b, c,d;
 {
-//	let a <- 1;
+	let a <- 1;
 	let b <- 2;
 	let c <- 3;
-//	while a < b do
-//		call OutputNum(1);
-		//let a <- a + 2;
+	let d <- 0;
+	while d == 1 do
+	if a < b then
+		let d <- 0;
+		call OutputNum(1);
+		let a <- a + 2;
 		let c <- c + 1;
-//		call OutputNum(a);
+		call OutputNum(a);
 		while b < c do
-		    //call OutputNum(b);
+		    call OutputNum(b);
 		    call OutputNum(c);
 		    call OutputNum(123);
 			let b <- b + 1
 		od;
 		    call OutputNewLine();
-//	od;
+	else
+		let d <- 1;
+	fi
+	od;
 		   call OutputNewLine();
 	call OutputNum(a);
 	call OutputNum(b);
