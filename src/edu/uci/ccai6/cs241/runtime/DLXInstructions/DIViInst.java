@@ -23,10 +23,12 @@ public class DIViInst extends DLXInstruction {
 			arg1 = Integer.parseInt(argI1.toString());
 			if (argI2 instanceof ConstArg) {
 				// Two operants are both const
-				arg2 = Integer.parseInt(argI2.toString());
-				arg1 = arg1 / arg2; //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+				arg1 = getRegNum(Conf.LOAD_REG_1);
+				new DLXInstruction(new Instruction("1 MOV " + argI2.toString() + " " + Conf.LOAD_REG_2));
+				arg2 = getRegNum(Conf.LOAD_REG_2);
 				// ADDi argI3 R0 arg1
-				__val = DLX.F1(op, arg3, getRegNum(Conf.ZERO_REG), arg1);
+				__val = DLX.F1(DLX.DIV, arg3, arg1, arg2);
 				bellowValAssig(instruction);
 				return;
 			} else if (argI2 instanceof RegisterArg) {
