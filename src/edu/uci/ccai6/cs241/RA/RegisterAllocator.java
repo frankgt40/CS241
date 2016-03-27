@@ -358,7 +358,13 @@ public class RegisterAllocator {
 					inst.arg2 = getRegister(colors.get(ptr));
 				} else if(inst.arg2 instanceof RegisterArg) {
 					
-				} else inst.arg2 = getRegister(1000);
+				} else {
+					inst.op = Operation.NOOP;
+					inst.arg0 = null;
+					inst.arg1 = null;
+					inst.arg2 = null;
+					//inst.arg2 = getRegister(1000);
+				}
 			}
 		}
 		return inst;
