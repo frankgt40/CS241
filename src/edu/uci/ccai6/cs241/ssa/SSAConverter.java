@@ -402,7 +402,8 @@ public class SSAConverter {
 			Map<String, Integer> mapping = bb.cseMapping;
 			for(int i=0; i<bb.instructions.size(); i++) {
 				Instruction inst = bb.instructions.get(i);
-				if(inst.op == Operation.PTR || inst.skipOptimize()) continue;
+				// very lazy way to do this TODO:
+				if(inst.op == Operation.PTR || inst.op == Operation.PUSH || inst.skipOptimize()) continue;
 				String instSimpString = inst.toSimpleString();
 				if(mapping.containsKey(instSimpString)) {
 					Integer dupe = mapping.get(instSimpString);
