@@ -36,7 +36,7 @@ public class DLX {
 			program[i] = code.get(i).intValue();
 		}
 		program[code.size()] = DLX.F2(DLX.RET, 0, 0, 0);
-		System.out.println("Program size: " +code.size());
+//		System.out.println("Program size: " +code.size());
 		load(program);
 		
 		R[Conf.getRegNum(Conf.FRAME_P)] = program.length * Conf.BLOCK_LEN;
@@ -63,7 +63,7 @@ public class DLX {
 		execloop:
 		while (true) {
 			R[0] = 0;
-			System.out.println("PC: "+PC);
+//			System.out.println("PC: "+PC);
 			disassem(M[PC]); // initializes op, a, b, c
 			
 			int nextPC = PC + 1;
@@ -166,7 +166,8 @@ public class DLX {
 					M[R[b] / 4] = R[a];
 					break;
 				case BEQ:
-					if (R[a] == 0) nextPC = PC + c;
+//					if (R[a] == 0) nextPC = PC + c;
+					if (R[a] == 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -174,7 +175,8 @@ public class DLX {
 					}
 					break;
 				case BNE:
-					if (R[a] != 0) nextPC = PC + c;
+//					if (R[a] != 0) nextPC = PC + c;
+					if (R[a] != 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -182,7 +184,8 @@ public class DLX {
 					}
 					break;
 				case BLT:
-					if (R[a] < 0) nextPC = PC + c;
+//					if (R[a] < 0) nextPC = PC + c;
+					if (R[a] < 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -201,7 +204,8 @@ public class DLX {
 					}
 					break;
 				case BLE:
-					if (R[a] <= 0) nextPC = PC + c;
+//					if (R[a] <= 0) nextPC = PC + c;
+					if (R[a] <= 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -209,7 +213,8 @@ public class DLX {
 					}
 					break;
 				case BGT:
-					if (R[a] > 0) nextPC = PC + c;
+//					if (R[a] > 0) nextPC = PC + c;
+					if (R[a] > 0) nextPC = c/4;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");

@@ -32,7 +32,7 @@ public class Parser {
 	private PrintWriter __out;
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		Parser pa = new Parser("testCases/haha.txt");
+		Parser pa = new Parser("testCases/test010.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
