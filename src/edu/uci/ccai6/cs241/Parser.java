@@ -11,6 +11,7 @@ import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
+import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLX;
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLXInstruction;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -32,7 +33,7 @@ public class Parser {
 	private PrintWriter __out;
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		Parser pa = new Parser("testCases/test010.txt");
+		Parser pa = new Parser("testCases/haha.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -101,6 +102,9 @@ public class Parser {
 
 			out1.close();
 			out2.close();
+			
+			System.out.println("Stack: ");
+			StackAbstract.print();
 		}
 	}
 	public IRGenerator getIR() {

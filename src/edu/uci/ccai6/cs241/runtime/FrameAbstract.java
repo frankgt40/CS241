@@ -12,21 +12,22 @@ import java.util.Map;
  */
 public class FrameAbstract {
 	private List<String> __parameters = new ArrayList<String>();
-	private List<String> __locals = new ArrayList<String>();
+//	private List<String> __locals = new ArrayList<String>();
+	public  Map<String, Integer> __fakeRegToMem = new HashMap<String, Integer>(); // <fake register name --> memory address in frames>
 	private String __funcName = null;
 	
 	private int __parametersLen = 0;
 	private int __savedStatusLen = 0;
 	private int __localsLen = 0;
 	
-	FrameAbstract(String name) {
+	public FrameAbstract(String name) {
 		__funcName = name;
 		__savedStatusLen = Conf.__savedRegs.size();
 	}
 
-	public List<String> getLocals() {
-		return __locals;
-	}
+//	public List<String> getLocals() {
+//		return __locals;
+//	}
 	public String get__funcName() {
 		return __funcName;
 	}

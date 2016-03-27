@@ -1,10 +1,66 @@
-// Basic while statement test
+#Simple parsing test
 main
-var d;
+var input;
+
+function factIter(n);
+var i, f, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16;
 {
-	let d <- 0;
-	while d == 1 do
-	let d <- 0
+	let i <- 1;
+	let i1 <- 1;
+	let i2 <- 1;
+	let i3 <- 1;
+	let i4 <- 1;
+	let i5 <- 1;
+	let i6 <- 1;
+	let i7 <- 1;
+	let i8 <- 1;
+	let i9 <- 1;
+	let i10 <- 1;
+	let i11 <- 1;
+	let i12 <- 1;
+	let i13 <- 1;
+	let i14 <- 1;
+	let i15 <- 1;
+	let i16 <- 1;
+	let f <- 1;
+	while i <= n do
+		let f <- f * i;
+		let i <- i + 1
 	od;
-	call OutputNum(d);
-}.
+	
+	call OutputNum(i);
+	call OutputNum(i1);
+	call OutputNum(i2);
+	call OutputNum(i3);
+	call OutputNum(i4);
+	call OutputNum(i5);
+	call OutputNum(i6);
+	call OutputNum(i7);
+	call OutputNum(i8);
+	call OutputNum(i9);
+	call OutputNum(i10);
+	call OutputNum(i11);
+	call OutputNum(i12);
+	call OutputNum(i13);
+	call OutputNum(i14);
+	call OutputNum(i15);
+	call OutputNum(i16);
+	return f
+};
+
+function factRec(n);
+{
+	if n <= 1 then
+		return 1
+	fi;
+	return call factRec(n - 1) * n
+};
+
+{
+	let input <- call InputNum();
+	call OutputNum(call factIter(input));
+	call OutputNewLine();
+	call OutputNum(call factRec(input));
+	call OutputNewLine()
+}
+.

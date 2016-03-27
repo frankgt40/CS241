@@ -23,7 +23,7 @@ public class CALLInst extends DLXInstruction {
 		} else if (argI1.toString().equals("InputNum")) {
 			__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
 		} else {
-			wrong("CALLInst: something is wrong!");
+//			wrong("CALLInst: something is wrong!");
 		}
 		bellowValAssig(instruction);
 		return;

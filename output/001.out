@@ -1,43 +1,95 @@
 0 data:
-1 .text
-2 main:
-3 MOVE 1 main_a
-4 MOVE 2 main_b
-5 MOVE 3 main_c
-32 PHI main_c main_c main_c
-31 PHI main_b main_b main_b
-30 PHI main_a main_a main_a
-6 CMP main_a main_b
-33 BGE R24 (34)
-7 PUSH 1
-8 CALL OutputNum
-9 ADDi main_a 2
-10 MOVE (9) main_a
-11 ADDi main_c 1
-12 MOVE (11) main_c
-13 PUSH main_a
-14 CALL OutputNum
-25 PHI main_b main_b main_b
-15 CMP main_b main_c
-26 BGE R24 (27)
-16 PUSH main_b
-17 CALL OutputNum
-18 PUSH main_c
-19 CALL OutputNum
-20 PUSH 123
-21 CALL OutputNum
-22 ADDi main_b 1
-23 MOVE (22) main_b
-24 BRA (25)
-27 NOOP
-28 CALL OutputNewLine
-29 BRA (32)
-34 NOOP
-35 CALL OutputNewLine
-36 PUSH main_a
-37 CALL OutputNum
-38 PUSH main_b
-39 CALL OutputNum
-40 PUSH main_c
-41 CALL OutputNum
-42 end
+1 factIter:
+2 POP factIter_n
+3 MOVE 1 factIter_i
+4 MOVE 1 factIter_i1
+5 MOVE 1 factIter_i2
+6 MOVE 1 factIter_i3
+7 MOVE 1 factIter_i4
+8 MOVE 1 factIter_i5
+9 MOVE 1 factIter_i6
+10 MOVE 1 factIter_i7
+11 MOVE 1 factIter_i8
+12 MOVE 1 factIter_i9
+13 MOVE 1 factIter_i10
+14 MOVE 1 factIter_i11
+15 MOVE 1 factIter_i12
+16 MOVE 1 factIter_i13
+17 MOVE 1 factIter_i14
+18 MOVE 1 factIter_i15
+19 MOVE 1 factIter_i16
+20 MOVE 1 factIter_f
+28 PHI factIter_f factIter_f factIter_f
+27 PHI factIter_i factIter_i factIter_i
+21 CMP factIter_i factIter_n
+29 BGT R24 (30)
+22 MUL factIter_f factIter_i
+23 MOVE (22) factIter_f
+24 ADDi factIter_i 1
+25 MOVE (24) factIter_i
+26 BRA (28)
+30 NOOP
+31 PUSH factIter_i
+32 CALL OutputNum
+33 PUSH factIter_i1
+34 CALL OutputNum
+35 PUSH factIter_i2
+36 CALL OutputNum
+37 PUSH factIter_i3
+38 CALL OutputNum
+39 PUSH factIter_i4
+40 CALL OutputNum
+41 PUSH factIter_i5
+42 CALL OutputNum
+43 PUSH factIter_i6
+44 CALL OutputNum
+45 PUSH factIter_i7
+46 CALL OutputNum
+47 PUSH factIter_i8
+48 CALL OutputNum
+49 PUSH factIter_i9
+50 CALL OutputNum
+51 PUSH factIter_i10
+52 CALL OutputNum
+53 PUSH factIter_i11
+54 CALL OutputNum
+55 PUSH factIter_i12
+56 CALL OutputNum
+57 PUSH factIter_i13
+58 CALL OutputNum
+59 PUSH factIter_i14
+60 CALL OutputNum
+61 PUSH factIter_i15
+62 CALL OutputNum
+63 PUSH factIter_i16
+64 CALL OutputNum
+65 MOV factIter_f R27
+66 RET
+67 factRec:
+68 POP factRec_n
+69 CMP factRec_n 1
+70 BGT R24 (73)
+71 MOV 1 R27
+72 RET
+73 SUBi factRec_n 1
+74 PUSH (73)
+75 CALL factRec
+76 MUL (75) factRec_n
+77 MOV (76) R27
+78 RET
+79 .text
+80 main:
+81 CALL InputNum
+82 ADDi (81) 0
+83 MOVE (82) main_input
+84 PUSH main_input
+85 CALL factIter
+86 PUSH (85)
+87 CALL OutputNum
+88 CALL OutputNewLine
+89 PUSH main_input
+90 CALL factRec
+91 PUSH (90)
+92 CALL OutputNum
+93 CALL OutputNewLine
+94 end

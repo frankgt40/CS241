@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.FrameAbstract;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -93,20 +94,20 @@ public class DLXInstruction extends DLX {
 	public int getArg(Arg arg, String loadReg) {
 		String artStr = null;
 		int rsl = 0;
-		StackAbstract stack = __system.getStack();
-		if (arg instanceof RegisterArg) {
-			if (arg instanceof SpilledRegisterArg) {
-				artStr = stack.getMemInFrame(arg.toString());
-				Instruction tmp = new Instruction("LOAD " + loadReg + " " + artStr);
-				new DLXInstruction(tmp);
-				rsl = getRegNum(loadReg);
-			} else {
-				rsl = ((RegisterArg) arg).getNum();
-			}
-		} else {
-			// Something is wrong
-			wrong("there should be a register!");
-		}
+//		StackAbstract stack = __system.getStack();
+//		if (arg instanceof RegisterArg) {
+//			if (arg instanceof SpilledRegisterArg) {
+////				artStr = stack.getMemInFrame(arg.toString());
+//				Instruction tmp = new Instruction("LOAD " + loadReg + " " + artStr);
+//				new DLXInstruction(tmp);
+//				rsl = getRegNum(loadReg);
+//			} else {
+//				rsl = ((RegisterArg) arg).getNum();
+//			}
+//		} else {
+//			// Something is wrong
+//			wrong("there should be a register!");
+//		}
 		return rsl;
 	}
 	protected int noopInst() {
@@ -148,6 +149,35 @@ public class DLXInstruction extends DLX {
 		
 	}
 	public DLXInstruction(Instruction instruction) {
+		// First, treat those fake registers
+		Arg arg1 = instruction.arg0;
+		Arg arg2 = instruction.arg1;
+		Arg arg3 = instruction.arg2;
+		
+		Arg[] args = {arg1, arg2, arg3};
+		for (Arg arg : args) {
+			if (arg instanceof SpilledRegisterArg) {
+				FrameAbstract currFrame = StackAbstract.getCurrFrame();
+				if (currFrame.__fakeRegToMem.containsKey(arg.toString())) {
+					// Already has this fake register
+				} else {
+					Integer lastPlace = 0, currPlace = 0;
+					
+					// Find the last index
+					for (String name : currFrame.__fakeRegToMem.keySet()) {
+						currPlace = currFrame.__fakeRegToMem.get(name);
+						if (currPlace > lastPlace) {
+							lastPlace = currPlace;
+						}
+					}
+					
+					lastPlace = lastPlace + Conf.BLOCK_LEN;
+					currFrame.__fakeRegToMem.put(arg.toString(), lastPlace);
+				}
+			}
+		}
+		
+		
 		// F1
 		switch (instruction.op) {
 		case ADDi:
@@ -226,6 +256,8 @@ public class DLXInstruction extends DLX {
 			return;
 		// Others
 		case FUNC:
+			new FUNCInst(instruction);
+			return;
 		case PHI:
 		case NOOP:
 			new NOOPInst(instruction);
