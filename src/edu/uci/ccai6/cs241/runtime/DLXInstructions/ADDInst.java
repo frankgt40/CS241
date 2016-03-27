@@ -19,13 +19,17 @@ public class ADDInst extends DLXInstruction{
 			arg3 = getRegNum(argI3.toString());
 		}
 		if (!(argI1 instanceof RegisterArg)) {
-			wrong("AddInst: argI1 can only be register");
+			// quick fix when argI1 is constant
+			new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+			arg1 = getRegNum(Conf.LOAD_REG_1);
 		} else {
 			arg1 = getRegNum(argI1.toString());
 		}
 		
 		if (!(argI2 instanceof RegisterArg)) {
-			wrong("AddInst: argI2 can only be register");
+			// quick fix when argI2 is constant
+			new DLXInstruction(new Instruction("1 MOV " + argI2.toString() + " " + Conf.LOAD_REG_2));
+			arg2 = getRegNum(Conf.LOAD_REG_2);
 		} else {
 			arg2 = getRegNum(argI2.toString());
 		}
