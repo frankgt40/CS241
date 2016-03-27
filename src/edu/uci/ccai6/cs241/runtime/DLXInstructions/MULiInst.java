@@ -26,7 +26,9 @@ public class MULiInst extends DLXInstruction {
 				arg2 = Integer.parseInt(argI2.toString());
 				arg1 = arg1 * arg2; //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				// ADDi argI3 R0 arg1
-				__val = DLX.F1(op, arg3, getRegNum(Conf.ZERO_REG), arg1);
+				new DLXInstruction(new Instruction("1 MOV 1 " + Conf.LOAD_REG_1));
+				arg2 = getRegNum(Conf.LOAD_REG_1);
+				__val = DLX.F1(op, arg3, arg2, arg1);
 				bellowValAssig(instruction);
 				return;
 			} else if (argI2 instanceof RegisterArg) {
