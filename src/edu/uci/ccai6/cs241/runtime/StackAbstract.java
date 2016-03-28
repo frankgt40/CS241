@@ -30,6 +30,16 @@ public class StackAbstract {
 			}
 		}
 	}
+	public static boolean setCurrFrame(String funcName) {
+		if (__stackAbstract.containsKey(funcName)) {
+			__currFrame = funcName;
+			return true;
+		}
+		return false;
+	}
+	public FrameAbstract getFrameByName(String frameName) {
+		return __stackAbstract.get(frameName);
+	}
 //	public static Map<String, String> getRegToMem() {
 //		return __fakeRegToMem;
 //	}

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.runtime.FrameAbstract;
+import edu.uci.ccai6.cs241.runtime.Local;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -154,30 +155,18 @@ public class DLXInstruction extends DLX {
 		Arg arg2 = instruction.arg1;
 		Arg arg3 = instruction.arg2;
 		
-		Arg[] args = {arg1, arg2, arg3};
-		for (Arg arg : args) {
+		// If the src args have fake ones, load it here
+		Arg[] srcArgs = {arg1, arg2};
+		for (Arg arg : srcArgs) {
 			if (arg instanceof SpilledRegisterArg) {
 				FrameAbstract currFrame = StackAbstract.getCurrFrame();
-				if (currFrame.__fakeRegToMem.containsKey(arg.toString())) {
-					// Already has this fake register
-				} else {
-					Integer lastPlace = 0, currPlace = 0;
-					
-					// Find the last index
-					for (String name : currFrame.__fakeRegToMem.keySet()) {
-						currPlace = currFrame.__fakeRegToMem.get(name);
-						if (currPlace > lastPlace) {
-							lastPlace = currPlace;
-						}
-					}
-					
-					lastPlace = lastPlace + Conf.BLOCK_LEN;
-					currFrame.__fakeRegToMem.put(arg.toString(), lastPlace);
-				}
+				Local local = currFrame.addLocal(arg);
+				new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
 			}
 		}
 		
-		
+
+		// If the dst arg (arg3) is fake, then store it in each case!!!!
 		// F1
 		switch (instruction.op) {
 		case ADDi:
@@ -266,6 +255,7 @@ public class DLXInstruction extends DLX {
 		default:// means its value is the same as pointer's or constant
 			return;
 		}
+		
 
 	}
 

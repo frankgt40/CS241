@@ -20,8 +20,13 @@ public class FUNCInst extends DLXInstruction {
 //			StackAbstract.addFrame(frame);
 		} else {
 			// Other frames
-			frame = new FrameAbstract(funName);
-			StackAbstract.addFrame(frame);
+			
+			if (StackAbstract.getFrame(funName)!=null){
+				StackAbstract.setCurrFrame(funName);
+			} else {
+				frame = new FrameAbstract(funName);
+				StackAbstract.addFrame(frame);
+			}
 		}
 	}
 }

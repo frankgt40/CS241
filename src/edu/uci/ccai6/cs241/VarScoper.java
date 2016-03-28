@@ -1,6 +1,9 @@
 package edu.uci.ccai6.cs241;
 import java.util.*;
 import edu.uci.ccai6.cs241.*;
+import edu.uci.ccai6.cs241.runtime.FrameAbstract;
+import edu.uci.ccai6.cs241.runtime.Local;
+import edu.uci.ccai6.cs241.runtime.LocalType;
 
 public class VarScoper {
 	private static List<String> __level1 = new ArrayList<String>();
@@ -45,11 +48,26 @@ public class VarScoper {
 		}
 	}
 	/**
+	 * declare arrays, record it in a frame, and use it later
+	 */
+	public static void declareArray(String name, int size) {
+		String currFuncName = VarScoper.__currScope;
+		FrameAbstract frame = new FrameAbstract(currFuncName);
+		Local thisArray = new Local();
+		thisArray.__len = size;
+		thisArray.__name = name;
+		thisArray.__type = LocalType.ARRAY;
+		int offset = frame.findCurrOffset() + size;
+		frame.__fakeRegToMem.put(name, thisArray);
+		frame.setCurrOffset(offset);
+	}
+	/**
 	 * used when you want to declare array
 	 * @param varName
 	 * @param size
 	 */
 	public static void declare(String varName, int size) {
+		declareArray(varName, size);
 		declare(varName);
 		String fullName = getFullName(varName);
 		if(__arraySize.containsKey(fullName)) {

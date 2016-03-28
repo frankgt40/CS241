@@ -1,95 +1,96 @@
 0 data:
-1 factIter:
-2 POP factIter_n
-3 MOVE 1 factIter_i
-4 MOVE 1 factIter_i1
-5 MOVE 1 factIter_i2
-6 MOVE 1 factIter_i3
-7 MOVE 1 factIter_i4
-8 MOVE 1 factIter_i5
-9 MOVE 1 factIter_i6
-10 MOVE 1 factIter_i7
-11 MOVE 1 factIter_i8
-12 MOVE 1 factIter_i9
-13 MOVE 1 factIter_i10
-14 MOVE 1 factIter_i11
-15 MOVE 1 factIter_i12
-16 MOVE 1 factIter_i13
-17 MOVE 1 factIter_i14
-18 MOVE 1 factIter_i15
-19 MOVE 1 factIter_i16
-20 MOVE 1 factIter_f
-28 PHI factIter_f factIter_f factIter_f
-27 PHI factIter_i factIter_i factIter_i
-21 CMP factIter_i factIter_n
-29 BGT R24 (30)
-22 MUL factIter_f factIter_i
-23 MOVE (22) factIter_f
-24 ADDi factIter_i 1
-25 MOVE (24) factIter_i
-26 BRA (28)
-30 NOOP
-31 PUSH factIter_i
-32 CALL OutputNum
-33 PUSH factIter_i1
-34 CALL OutputNum
-35 PUSH factIter_i2
-36 CALL OutputNum
-37 PUSH factIter_i3
-38 CALL OutputNum
-39 PUSH factIter_i4
-40 CALL OutputNum
-41 PUSH factIter_i5
-42 CALL OutputNum
-43 PUSH factIter_i6
-44 CALL OutputNum
-45 PUSH factIter_i7
-46 CALL OutputNum
-47 PUSH factIter_i8
-48 CALL OutputNum
-49 PUSH factIter_i9
-50 CALL OutputNum
-51 PUSH factIter_i10
-52 CALL OutputNum
-53 PUSH factIter_i11
-54 CALL OutputNum
-55 PUSH factIter_i12
-56 CALL OutputNum
-57 PUSH factIter_i13
-58 CALL OutputNum
-59 PUSH factIter_i14
-60 CALL OutputNum
-61 PUSH factIter_i15
-62 CALL OutputNum
-63 PUSH factIter_i16
-64 CALL OutputNum
-65 MOV factIter_f R27
-66 RET
-67 factRec:
-68 POP factRec_n
-69 CMP factRec_n 1
-70 BGT R24 (73)
-71 MOV 1 R27
-72 RET
-73 SUBi factRec_n 1
-74 PUSH (73)
-75 CALL factRec
-76 MUL (75) factRec_n
-77 MOV (76) R27
-78 RET
-79 .text
-80 main:
-81 CALL InputNum
-82 ADDi (81) 0
-83 MOVE (82) main_input
-84 PUSH main_input
-85 CALL factIter
-86 PUSH (85)
-87 CALL OutputNum
-88 CALL OutputNewLine
-89 PUSH main_input
-90 CALL factRec
-91 PUSH (90)
-92 CALL OutputNum
-93 CALL OutputNewLine
-94 end
+1 .text
+2 main:
+3 MOVE 1 main_a
+4 MOVE 2 main_b
+5 MOVE 3 main_c
+6 MOVE 4 main_d
+7 MOVE 5 main_e
+8 MOVE 6 main_f
+9 MOVE 7 main_g
+10 MOVE 8 main_h
+84 PHI main_h main_h main_h
+83 PHI main_g main_g main_g
+82 PHI main_f main_f main_f
+81 PHI main_e main_e main_e
+80 PHI main_d main_d main_d
+79 PHI main_a main_a main_a
+11 DIVi main_b 4
+12 ADDi (11) 5
+13 CMP (12) 8
+85 BGE R24 (86)
+14 MULi main_a 7
+15 ADDi (14) 9
+16 MOVE (15) main_a
+17 CMP main_c main_d
+18 BGE R24 (32)
+19 SUBi main_g 5
+20 MUL (19) main_h
+21 MOVE (20) main_g
+26 PHI main_h main_h main_h
+22 CMP main_g main_h
+27 BLE R24 (28)
+23 ADDi main_h 1
+24 MOVE (23) main_h
+25 BRA (26)
+28 NOOP
+29 ADD main_g main_h
+30 MOVE (29) main_g
+31 BRA (73)
+32 CMP main_c main_d
+33 BLT R24 (52)
+34 MUL main_f main_f
+35 MULi (34) 7
+36 SUBi (35) 2
+37 MOVE (36) main_e
+46 PHI main_e main_e main_e
+45 PHI main_d main_d main_d
+38 SUBi main_d 7
+39 CMP (38) main_e
+47 BEQ R24 (48)
+40 SUBi main_d 1
+41 MOVE (40) main_d
+42 ADDi main_e 1
+43 MOVE (42) main_e
+44 BRA (46)
+48 NOOP
+49 MUL main_f main_e
+50 MOVE (49) main_f
+51 BRA (67)
+52 MOVE 725 main_g
+61 PHI main_e main_e main_e
+60 PHI main_d main_d main_d
+53 SUBi main_d 8
+54 CMP (53) main_e
+62 BEQ R24 (63)
+55 SUBi main_d 1
+56 MOVE (55) main_d
+57 ADDi main_e 1
+58 MOVE (57) main_e
+59 BRA (61)
+63 NOOP
+64 MUL main_g main_f
+65 DIVi (64) 4
+66 MOVE (65) main_f
+67 PHI main_d main_d main_d
+68 PHI main_e main_e main_e
+69 PHI main_f main_f main_f
+70 PHI main_g main_g main_g
+71 ADD main_g main_h
+72 MOVE (71) main_g
+73 PHI main_d main_d main_d
+74 PHI main_e main_e main_e
+75 PHI main_f main_f main_f
+76 PHI main_g main_g main_g
+77 PHI main_h main_h main_h
+78 BRA (84)
+86 NOOP
+87 MUL main_a main_d
+88 MOVE (87) main_c
+89 ADD main_g main_h
+90 SUBi (89) 7
+91 MOVE (90) main_h
+92 MUL main_b main_c
+93 ADD main_f (92)
+94 MOVE (93) main_e
+95 end

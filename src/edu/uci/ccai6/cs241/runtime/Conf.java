@@ -19,6 +19,7 @@ public class Conf {
 	public static final String CMP_REG = "R"+CMP_REG_NUM;
 	public static final int GEN_REG_NUM = 8;
 	public static final String ZERO_REG = "R0";
+	public static final int STACK_GROW_DELTA = BLOCK_LEN;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
@@ -34,6 +35,8 @@ public class Conf {
 		__savedRegs.add("R8");
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
+		__savedRegs.add(Conf.FRAME_P);
+		__savedRegs.add(Conf.STACK_P);
 	}
 	public static int getRegNum(String reg) {
 		reg = reg.replaceFirst("R", "");

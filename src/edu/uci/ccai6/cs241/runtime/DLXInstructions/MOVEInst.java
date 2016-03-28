@@ -14,12 +14,13 @@ public class MOVEInst extends DLXInstruction {
 		Arg argI2 = instruction.arg1;
 		Arg argI3 = instruction.arg2;
 
-		if (argI2 instanceof RegisterArg) {
-			arg2 = getRegNum(argI2.toString());
-		} else if (argI2 instanceof SpilledRegisterArg) {
+		if (argI2 instanceof SpilledRegisterArg) {
 			// Have to store it into memory
 			new DLXInstruction(new Instruction("1 STORE " + argI2.toString())); //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
-		} else {
+			
+		} else if (argI2 instanceof RegisterArg) {
+			arg2 = getRegNum(argI2.toString());
+		}  else {
 			wrong("MOV: target can only be register");
 		}
 		if (argI1 instanceof ConstArg) {
