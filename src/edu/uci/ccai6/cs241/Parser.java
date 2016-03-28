@@ -163,7 +163,7 @@ public class Parser {
 					if (__currToken.getType() == Token.TokenType.DOT) {
 						VarScoper.exit();
 						__IR.putCode("end");
-						__IR.putCode("RET " + Conf.END_REG);
+//						__IR.putCode("RET " + Conf.END_REG);
 				        __IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						//System.exit(0);

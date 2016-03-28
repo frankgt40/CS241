@@ -1,7 +1,7 @@
 0 data:
 1 add:
-2 LOAD 0 add_a
-3 LOAD 4 add_b
+2 POP 0 add_a
+3 POP 4 add_b
 4 MOVE 1 add_i
 5 MOVE 1 add_f
 6 ADD add_i add_f
@@ -37,4 +37,3 @@
 36 PUSH main_input
 37 CALL OutputNum
 38 end
-39 RET 0
