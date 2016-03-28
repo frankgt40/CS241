@@ -320,7 +320,7 @@ public class Parser {
 				frame.addParameter(tokenValue, param);
 		        long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
 //			    __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
-		        __IR.putCode("LOAD "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
+		        __IR.putCode("POP "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
 				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
@@ -339,7 +339,7 @@ public class Parser {
 						frame.addParameter(tokenValue, param1);
 						  // popping backwards 
 //					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
-						__IR.putCode("LOAD "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
+						__IR.putCode("POP "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
