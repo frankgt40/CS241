@@ -35,6 +35,13 @@ public class VarScoper {
 		}
 		
 	}
+	public static String getCurrScope() {
+		if (__currScope.equals("")) {
+			System.err.println("getCurrScope(): sth wrong!");
+			return "";
+		}
+		return __currScope;
+	}
 	public static void exit() {
 		if (__currScope.equals("main")) {
 			__level2 = null;

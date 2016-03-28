@@ -21,6 +21,8 @@ public class Conf {
 	public static final String ZERO_REG = "R0";
 	public static final int STACK_GROW_DELTA = BLOCK_LEN;
 	public static final String STORE_TARGET = LOAD_REG_3;
+	public static final String RETURN_ADDRESS_REG = "R31";
+	public static final String END_REG = "0";
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 

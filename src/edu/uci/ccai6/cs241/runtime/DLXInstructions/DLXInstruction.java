@@ -154,10 +154,14 @@ public class DLXInstruction extends DLX {
 		Arg arg1 = instruction.arg0;
 		Arg arg2 = instruction.arg1;
 		Arg arg3 = instruction.arg2;
+		FrameAbstract currFrame = StackAbstract.getCurrFrame();
 		
 		// If the src args have fake ones, load it here
 		if (arg1 instanceof SpilledRegisterArg) {
-			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			if (!currFrame.__fakeRegToMem.containsKey(arg1.toString())) {
+				// If current frame has not recorded this variable in memory
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+			}
 			Local local = currFrame.addOrGetLocal(arg1);
 			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
 			
@@ -166,7 +170,10 @@ public class DLXInstruction extends DLX {
 			
 		}
 		if (arg2 instanceof SpilledRegisterArg) {
-			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			if (!currFrame.__fakeRegToMem.containsKey(arg2.toString())) {
+				// If current frame has not recorded this variable in memory
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+			}
 			Local local = currFrame.addOrGetLocal(arg2);
 			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
 			
@@ -176,6 +183,10 @@ public class DLXInstruction extends DLX {
 		
 		// If arg3 is fake, have to assign it with a resgister and store it later
 		if (arg3 instanceof SpilledRegisterArg) {
+			if (!currFrame.__fakeRegToMem.containsKey(arg3.toString())) {
+				// If current frame has not recorded this variable in memory
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+			}
 			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.STORE_TARGET));
 			instruction.setArg(3, argNew);
 		}
@@ -271,7 +282,6 @@ public class DLXInstruction extends DLX {
 		
 		// If the dst arg (arg3) is fake, then store it!!!!
 		if (arg3 instanceof SpilledRegisterArg) {
-			FrameAbstract currFrame = StackAbstract.getCurrFrame();
 			Local local = currFrame.addOrGetLocal(arg3);
 			// STORE VAL TARGET_ADDRESS
 			new DLXInstruction(new Instruction("1 STORE " + Conf.STORE_TARGET+ " " + local.__offset));

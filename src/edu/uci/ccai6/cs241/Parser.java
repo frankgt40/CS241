@@ -10,6 +10,9 @@ import edu.uci.ccai6.cs241.Result.Type;
 import edu.uci.ccai6.cs241.Token.TokenType;
 import edu.uci.ccai6.cs241.RA.RegisterAllocator;
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.FrameAbstract;
+import edu.uci.ccai6.cs241.runtime.Local;
+import edu.uci.ccai6.cs241.runtime.LocalType;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLX;
@@ -31,9 +34,10 @@ public class Parser {
 	private String __inFile;
 	private static String __outFile;
 	private PrintWriter __out;
+	private boolean __returned = false;
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		Parser pa = new Parser("testCases/test024.txt");
+		Parser pa = new Parser("testCases/001.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -159,6 +163,7 @@ public class Parser {
 					if (__currToken.getType() == Token.TokenType.DOT) {
 						VarScoper.exit();
 						__IR.putCode("end");
+						__IR.putCode("RET " + Conf.END_REG);
 				        __IR.print();
 						new Reporter(Reporter.ReportType.VERBOSE,__lx.fileName(), __lx.lineNum(), __lx.charPos(), "You have successfully compile this file!");
 						//System.exit(0);
@@ -270,6 +275,14 @@ public class Parser {
 				VarScoper.enter(functionName);
 				__IR.putCode(functionName + ":");
 				__funUtil.setFunName(functionName);
+				
+				if (StackAbstract.hasFrame(functionName)) {
+					reportError("In function declaration, function redefined! ");
+				} else {
+					FrameAbstract frame = new FrameAbstract(functionName);
+					StackAbstract.addFrame(frame);
+					StackAbstract.setCurrFrame(functionName);
+				}
 				formalParam();
 				if (__currToken.getType() == Token.TokenType.SEMICOLON) {
 					__currToken = __lx.nextToken();
@@ -289,6 +302,7 @@ public class Parser {
 		}
 	}
 	protected void formalParam() {
+		FrameAbstract frame = StackAbstract.getCurrFrame();
 		__currToken = __lx.nextToken();
 		if (__currToken.getType() == Token.TokenType.L_PARENTHESIS) {
 			// Then there is a formalParam
@@ -298,9 +312,15 @@ public class Parser {
 				String tokenValue = __currToken.getValue();
 				VarScoper.declare(tokenValue);
 				__funUtil.newVarName(tokenValue);
-
-		          long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
-			      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+				Local param = new Local();
+				param.__len = Conf.BLOCK_LEN;
+				param.__name = tokenValue;
+				param.__type = LocalType.VAR;
+				param.__offset =frame.getCurrParameterOffset();
+				frame.addParameter(tokenValue, param);
+		        long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
+//			    __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
+		        __IR.putCode("LOAD "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
 				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
@@ -311,8 +331,15 @@ public class Parser {
 						tokenValue = __currToken.getValue();
 						VarScoper.declare(tokenValue);
 						__funUtil.newVarName(tokenValue);
-						  // popping backwards
-					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
+						Local param1 = new Local();
+						param1.__len = Conf.BLOCK_LEN;
+						param1.__name = tokenValue;
+						param1.__type = LocalType.VAR;
+						param1.__offset =frame.getCurrParameterOffset();
+						frame.addParameter(tokenValue, param1);
+						  // popping backwards 
+//					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
+						__IR.putCode("LOAD "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
@@ -330,6 +357,7 @@ public class Parser {
 		}
 	}
 	protected void funcBody() {
+		__returned = false;
 		while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
 			// There are some varDecl
 			varDecl();
@@ -346,6 +374,9 @@ public class Parser {
 			}
 		} else {
 			reportError("Missing a \'{\'! In function function body.");
+		}
+		if (!__returned) {
+			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
 		}
 	}
 	protected AssignDestination statSequence() {
@@ -584,6 +615,30 @@ public class Parser {
 		    next(); // (
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
 		      AssignDestination param_in = expression();
+
+//		      if (!StackAbstract.hasFrame(funcName)) {
+//		    	  StackAbstract.addFrame(new FrameAbstract(funcName));
+//		      }
+//		      FrameAbstract currFrame = StackAbstract.getCurrFrame();
+//		      Local parameter = new Local();
+//		      if (currFrame.__parameters.containsKey(parameter.__name)) {
+//		    	  
+//		      }
+//		      parameter.__name = param_in.getDestination();
+//				switch (param_in.getType()) {
+//				case ARRAY:
+////					parameter.__len = currFrame.__fakeRegToMem.get(param_in.getDestination()).__len;
+////					parameter.
+//					reportError("In funcCall(), you cannot pass an Array as a parameter!"); 
+//					break;
+//				case VARIABLE:
+//					parameter.__len = Conf.STACK_GROW_DELTA;
+//					parameter.__type = LocalType.VAR;
+//					parameter.__offset = currFrame.getCurrOffset();
+//					break;
+//				default:
+//					break;
+//				}
 		      __IR.putCode("PUSH "+param_in);
 		      if(__currToken.getType() == TokenType.COMMA) next();
 		      // this is correct but bad for error detection
@@ -832,7 +887,8 @@ public class Parser {
 			AssignDestination returnValue = expression();
 			code += "MOV " + returnValue.getDestination() + " " + Conf.RETURN_VAL_REG;
 			__IR.putCode(code);
-			__IR.putCode("RET");
+			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+			__returned = true;
 //			if (returnValue.isConstant()) {
 //				code += "MOV " + returnValue.getDestination() + register;
 //			} else if (returnValue.isArray()) {

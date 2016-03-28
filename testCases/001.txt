@@ -1,10 +1,22 @@
 #Simple parsing test
 main
 var input;
+
+function add(a, b);
+var i, f;
+{
+	let i <- 1;
+	let f <- 1;
+	
+	let i <- i + f + a + b;
+	return i;
+};
+
 {
 	let input <- call InputNum();
 	let input <- 9 / input;
 	let input <- 5 - input;
+	let input <- call add(1, 2);
 	call OutputNewLine();
 	call OutputNewLine();
 	call OutputNum(5);

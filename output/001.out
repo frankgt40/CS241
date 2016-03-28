@@ -1,96 +1,40 @@
 0 data:
-1 .text
-2 main:
-3 MOVE 1 main_a
-4 MOVE 2 main_b
-5 MOVE 3 main_c
-6 MOVE 4 main_d
-7 MOVE 5 main_e
-8 MOVE 6 main_f
-9 MOVE 7 main_g
-10 MOVE 8 main_h
-84 PHI main_h main_h main_h
-83 PHI main_g main_g main_g
-82 PHI main_f main_f main_f
-81 PHI main_e main_e main_e
-80 PHI main_d main_d main_d
-79 PHI main_a main_a main_a
-11 DIVi main_b 4
-12 ADDi (11) 5
-13 CMP (12) 8
-85 BGE R24 (86)
-14 MULi main_a 7
-15 ADDi (14) 9
-16 MOVE (15) main_a
-17 CMP main_c main_d
-18 BGE R24 (32)
-19 SUBi main_g 5
-20 MUL (19) main_h
-21 MOVE (20) main_g
-26 PHI main_h main_h main_h
-22 CMP main_g main_h
-27 BLE R24 (28)
-23 ADDi main_h 1
-24 MOVE (23) main_h
-25 BRA (26)
-28 NOOP
-29 ADD main_g main_h
-30 MOVE (29) main_g
-31 BRA (73)
-32 CMP main_c main_d
-33 BLT R24 (52)
-34 MUL main_f main_f
-35 MULi (34) 7
-36 SUBi (35) 2
-37 MOVE (36) main_e
-46 PHI main_e main_e main_e
-45 PHI main_d main_d main_d
-38 SUBi main_d 7
-39 CMP (38) main_e
-47 BEQ R24 (48)
-40 SUBi main_d 1
-41 MOVE (40) main_d
-42 ADDi main_e 1
-43 MOVE (42) main_e
-44 BRA (46)
-48 NOOP
-49 MUL main_f main_e
-50 MOVE (49) main_f
-51 BRA (67)
-52 MOVE 725 main_g
-61 PHI main_e main_e main_e
-60 PHI main_d main_d main_d
-53 SUBi main_d 8
-54 CMP (53) main_e
-62 BEQ R24 (63)
-55 SUBi main_d 1
-56 MOVE (55) main_d
-57 ADDi main_e 1
-58 MOVE (57) main_e
-59 BRA (61)
-63 NOOP
-64 MUL main_g main_f
-65 DIVi (64) 4
-66 MOVE (65) main_f
-67 PHI main_d main_d main_d
-68 PHI main_e main_e main_e
-69 PHI main_f main_f main_f
-70 PHI main_g main_g main_g
-71 ADD main_g main_h
-72 MOVE (71) main_g
-73 PHI main_d main_d main_d
-74 PHI main_e main_e main_e
-75 PHI main_f main_f main_f
-76 PHI main_g main_g main_g
-77 PHI main_h main_h main_h
-78 BRA (84)
-86 NOOP
-87 MUL main_a main_d
-88 MOVE (87) main_c
-89 ADD main_g main_h
-90 SUBi (89) 7
-91 MOVE (90) main_h
-92 MUL main_b main_c
-93 ADD main_f (92)
-94 MOVE (93) main_e
-95 end
+1 add:
+2 LOAD 0 add_a
+3 LOAD 4 add_b
+4 MOVE 1 add_i
+5 MOVE 1 add_f
+6 ADD add_i add_f
+7 ADD (6) add_a
+8 ADD (7) add_b
+9 MOVE (8) add_i
+10 MOV add_i R27
+11 RET R31
+12 .text
+13 main:
+14 CALL InputNum
+15 ADDi (14) 0
+16 MOVE (15) main_input
+17 DIVi 9 main_input
+18 MOVE (17) main_input
+19 SUBi 5 main_input
+20 MOVE (19) main_input
+21 PUSH 1
+22 PUSH 2
+23 CALL add
+24 ADDi (23) 0
+25 MOVE (24) main_input
+26 CALL OutputNewLine
+27 CALL OutputNewLine
+28 PUSH 5
+29 CALL OutputNum
+30 CALL OutputNewLine
+31 PUSH 7
+32 CALL OutputNum
+33 CALL OutputNewLine
+34 PUSH 9
+35 CALL OutputNum
+36 PUSH main_input
+37 CALL OutputNum
+38 end
+39 RET 0

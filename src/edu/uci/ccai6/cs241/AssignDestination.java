@@ -20,6 +20,9 @@ public class AssignDestination {
 	// 2) all variables "used" in while relation -> create phi at the beginning
 	private Set<String> __assignedVars = new HashSet<String>();
 	
+	public Type getType() {
+		return type;
+	}
 	public AssignDestination(String str) {
 		__destination = str;
 		__assignedVars.add(str);

@@ -17,16 +17,25 @@ public class StackAbstract {
 		else
 			return null;
 	}
+	public static boolean hasFrame(String name) {
+		return __stackAbstract.containsKey(name);
+	}
 	public static void addFrame(FrameAbstract frame) {
-		__stackAbstract.put(frame.get__funcName(), frame);
-		__currFrame = frame.get__funcName();
+		if (!__stackAbstract.containsKey(frame.get__funcName())) {
+			__stackAbstract.put(frame.get__funcName(), frame);
+			__currFrame = frame.get__funcName();
+		}
 	}
 	public static void print() {
 		for (String name : __stackAbstract.keySet()) {
 			System.out.println(name);
 			FrameAbstract frame = __stackAbstract.get(name);
+
+			for (String var : frame.__parameters.keySet()) {
+				System.out.println("\tParam: " + var + ", offset: " + frame.__parameters.get(var).__offset);
+			}
 			for (String var : frame.__fakeRegToMem.keySet()) {
-				System.out.println("\tVar: " + var + ", offset: " + frame.__fakeRegToMem.get(var));
+				System.out.println("\tVar: " + var + ", offset: " + frame.__fakeRegToMem.get(var).__offset);
 			}
 		}
 	}

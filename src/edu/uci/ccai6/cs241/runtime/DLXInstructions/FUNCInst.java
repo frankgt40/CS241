@@ -13,11 +13,12 @@ public class FUNCInst extends DLXInstruction {
 		String funName = instruction.funcName;
 		if (funName.equals("data")) {
 			// Ignore it!
-//		} else if (funName.equals("main")) {
-//			// Remeber! Put every vars in global static area
-//			// When call main, needs to set up stack and frame pointers
-//			frame = new FrameAbstract(funName);
-//			StackAbstract.addFrame(frame);
+		} else if (funName.equals("main")) {
+			// Remeber! Put every vars in global static area
+			// When call main, needs to set up stack and frame pointers
+			frame = new FrameAbstract(funName);
+			StackAbstract.addFrame(frame);
+			
 		} else {
 			// Other frames
 			
