@@ -5,6 +5,7 @@ import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.ConstArg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
+import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 
 public class CMPInst extends DLXInstruction {
 	public CMPInst(Instruction instruction) {
@@ -13,19 +14,26 @@ public class CMPInst extends DLXInstruction {
 		Arg argI2 = instruction.arg1;
 		Arg argI3 = instruction.arg2;
 
-		if (argI1 instanceof ConstArg) {
+		if (argI1 instanceof SpilledRegisterArg) {
+			arg1 = getRegNum(Conf.LOAD_REG_1);
+		}else if (argI1 instanceof ConstArg) {
 			new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
 			arg1 = getRegNum(Conf.LOAD_REG_1);
 		} else {
 			arg1 = getRegNum(argI1.toString());
 		}
-		if (argI2 instanceof ConstArg) {
+		if (argI2 instanceof SpilledRegisterArg) {
+			arg2 = getRegNum(Conf.LOAD_REG_2);
+		}else if (argI2 instanceof ConstArg) {
 			new DLXInstruction(new Instruction("1 MOV " + argI2.toString() + " " + Conf.LOAD_REG_2));
 			arg2 = getRegNum(Conf.LOAD_REG_2);
 		} else {
 			arg2 = getRegNum(argI2.toString());
 		}
-		if (!(argI3 instanceof RegisterArg)) {
+		
+		if (argI3 instanceof SpilledRegisterArg) {
+			arg3 = getRegNum(Conf.STORE_TARGET);
+		}else if (!(argI3 instanceof RegisterArg)) {
 			wrong("CMP: argI3 should be a register");
 		}
 		arg3 = getRegNum(argI3.toString());

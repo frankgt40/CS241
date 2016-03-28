@@ -62,6 +62,22 @@ public class Instruction {
 	public String funcName;
 	int numArgs;
 	
+	public void setArg(int index, Arg value) {
+		switch(index) {
+		case 1:
+			arg0 = value;
+			break;
+		case 2: 
+			arg1 = value;
+			break;
+		case 3:
+			arg2 = value;
+			break;
+		default:
+			System.err.println("setArg: sth wrong!");
+			break;
+		}
+	}
 	public Instruction(Instruction two) {
 		pointer = two.pointer;
 		op = two.op;

@@ -13,7 +13,8 @@ public class RegisterArg extends Arg {
 	
 	public RegisterArg(int n) {
 		num = n;
-		if (n > Conf.GEN_REG_NUM) {
+		if (n > Conf.GEN_REG_NUM && n != Conf.getRegNum(Conf.LOAD_REG_1) && n != Conf.getRegNum(Conf.LOAD_REG_2)
+				&& n != Conf.getRegNum(Conf.LOAD_REG_3)) {
 			__isFake = true;
 		}
 	}

@@ -5,6 +5,7 @@ import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.ConstArg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
+import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 
 public class ADDiInst extends DLXInstruction{
 
@@ -14,7 +15,9 @@ public class ADDiInst extends DLXInstruction{
 		Arg argI2 = instruction.arg1;
 		Arg argI3 = instruction.arg2;
 		
-		if (!(argI3 instanceof RegisterArg)) {
+		if (argI3 instanceof SpilledRegisterArg) {
+			arg3 = getRegNum(Conf.STORE_TARGET);
+		} else if (!(argI3 instanceof RegisterArg)) {
 			wrong("AddiInst: target can only be register");
 		} else {
 			arg3 = getRegNum(argI3.toString());

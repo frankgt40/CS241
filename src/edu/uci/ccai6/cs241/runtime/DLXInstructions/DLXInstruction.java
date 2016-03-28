@@ -156,107 +156,126 @@ public class DLXInstruction extends DLX {
 		Arg arg3 = instruction.arg2;
 		
 		// If the src args have fake ones, load it here
-		Arg[] srcArgs = {arg1, arg2};
-		for (Arg arg : srcArgs) {
-			if (arg instanceof SpilledRegisterArg) {
-				FrameAbstract currFrame = StackAbstract.getCurrFrame();
-				Local local = currFrame.addLocal(arg);
-				new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
-			}
+		if (arg1 instanceof SpilledRegisterArg) {
+			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			Local local = currFrame.addOrGetLocal(arg1);
+			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
+			
+			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_1));
+			instruction.setArg(1, argNew);
+			
+		}
+		if (arg2 instanceof SpilledRegisterArg) {
+			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			Local local = currFrame.addOrGetLocal(arg2);
+			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
+			
+			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_2));
+			instruction.setArg(2, argNew);
 		}
 		
-
-		// If the dst arg (arg3) is fake, then store it in each case!!!!
+		// If arg3 is fake, have to assign it with a resgister and store it later
+		if (arg3 instanceof SpilledRegisterArg) {
+			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.STORE_TARGET));
+			instruction.setArg(3, argNew);
+		}
+		
 		// F1
 		switch (instruction.op) {
 		case ADDi:
 			new ADDiInst(instruction);
-			return;
+			break;
 		case MULi:
 			new MULiInst(instruction);
-			return;
+			break;
 		case DIVi:
 			new DIViInst(instruction);
-			return;
+			break;
 		case SUBi:
 			new SUBiInst(instruction);
-			return;
-		case LOAD: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
-			op = DLX.LDW;
 			break;
-		case STORE: //NOT-FINISHED!!!!@@@@@@@@@@@@@@@@@@@@@@@
-			op = DLX.STW;
+		case LOAD:
+			new LOADInst(instruction);
+			break;
+		case STORE: 
+			new STOREInst(instruction);
 			break;
 		case BGE: 
 			new BGEInst(instruction);
-			return;
+			break;
 		case BGT: 
 			new BGTInst(instruction);
-			return;
+			break;
 		case BLE: 
 			new BLEInst(instruction);
-			return;
+			break;
 		case BLT: 
 			new BLTInst(instruction);
-			return;
+			break;
 		case BNE:
 			new BNEInst(instruction);
-			return;
+			break;
 		case BEQ: 
 			new BEQInst(instruction);
-			return;
+			break;
 		case BRA:
 			new BRAInst(instruction);
-			return;
+			break;
 		case ADDA:
 			new ADDAInst(instruction);
-			return;
+			break;
 		case MOVE: 
 			new MOVEInst(instruction);
-			return;
+			break;
 		case PUSH:
 			new PUSHInst(instruction);
-			return;
+			break;
 		case POP:
 			new POPInst(instruction);
-			return;
+			break;
 		case MOV:
 			new MOVEInst(instruction);
-			return;
+			break;
 		// F2
 		case ADD:
 			new ADDInst(instruction);
-			return;
+			break;
 		case MUL:
 			new MULInst(instruction);
-			return;
+			break;
 		case SUB:
 			new SUBInst(instruction);
-			return;
+			break;
 		case DIV:
 			new DIVInst(instruction);
-			return;
+			break;
 		case CMP:
 			new CMPInst(instruction);
-			return;
+			break;
 		// F3{
 		case CALL:
 			new CALLInst(instruction);
-			return;
+			break;
 		// Others
 		case FUNC:
 			new FUNCInst(instruction);
-			return;
+			break;
 		case PHI:
 		case NOOP:
 			new NOOPInst(instruction);
-			return;
+			break;
 		case PTR:
 		default:// means its value is the same as pointer's or constant
-			return;
+			break;
 		}
 		
-
+		// If the dst arg (arg3) is fake, then store it!!!!
+		if (arg3 instanceof SpilledRegisterArg) {
+			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			Local local = currFrame.addOrGetLocal(arg3);
+			// STORE VAL TARGET_ADDRESS
+			new DLXInstruction(new Instruction("1 STORE " + Conf.STORE_TARGET+ " " + local.__offset));
+		}
 	}
 
 	public int getVal() {

@@ -20,6 +20,7 @@ public class Conf {
 	public static final int GEN_REG_NUM = 8;
 	public static final String ZERO_REG = "R0";
 	public static final int STACK_GROW_DELTA = BLOCK_LEN;
+	public static final String STORE_TARGET = LOAD_REG_3;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 

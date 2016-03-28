@@ -33,7 +33,7 @@ public class FrameAbstract {
 	public int findCurrOffset() {
 		return __currLocation;
 	}
-	public Local addLocal(Arg arg) {
+	public Local addOrGetLocal(Arg arg) {
 		if (arg instanceof SpilledRegisterArg) {
 			String key = arg.toString();
 			if (__fakeRegToMem.containsKey(key)) {
