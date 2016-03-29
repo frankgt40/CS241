@@ -137,7 +137,7 @@ public class DLXInstruction extends DLX {
 		__instructions.get(0).setVal(DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.STACK_P), Conf.getRegNum(Conf.ZERO_REG), (__instructions.size()+1)*Conf.BLOCK_LEN));
 		__instructions.get(1).setVal(DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.FRAME_P), Conf.getRegNum(Conf.ZERO_REG), (__instructions.size()+1)*Conf.BLOCK_LEN));
 		__instructions.get(2).setVal(DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.RETURN_ADDRESS_REG), Conf.getRegNum(Conf.ZERO_REG) ,StackAbstract.getFrame("main").get__startAddress()));
-		__instructions.get(3).setVal(DLX.F3(DLX.JSR, Conf.getRegNum(Conf.RETURN_ADDRESS_REG)));
+		__instructions.get(3).setVal(DLX.F3(DLX.JSR, StackAbstract.getFrame("main").get__startAddress()));
 		for (Integer key : __lateComputePos.keySet()) {
 			int code = __instructions.get(key-1).getVal();
 			String tmp = __lateComputePos.get(key);

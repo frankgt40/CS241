@@ -39,7 +39,7 @@ public class FrameAbstract {
 		return __startAddress;
 	}
 	public void set__startAddress(int __startAddress) {
-		this.__startAddress = __startAddress*Conf.BLOCK_LEN;
+		this.__startAddress = (__startAddress-1)*Conf.BLOCK_LEN;
 	}
 	public FrameAbstract(String name) {
 		__funcName = name;

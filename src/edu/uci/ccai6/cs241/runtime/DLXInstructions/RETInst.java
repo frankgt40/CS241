@@ -12,7 +12,7 @@ public class RETInst extends DLXInstruction {
 		
 
 		// Restore the R31 (return address)
-		new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
+//		new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
 		
 		__val = DLX.F2(DLX.RET, 0, 0, getRegNum(Conf.RETURN_ADDRESS_REG));
 		

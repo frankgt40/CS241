@@ -17,6 +17,7 @@ public class CALLInst extends DLXInstruction {
 		if (funcName.equals("OutputNum")) {
 			new DLXInstruction(new Instruction("1 POP " + Conf.LOAD_REG_1));
 			__val = DLX.F2(DLX.WRD, 0, getRegNum(Conf.LOAD_REG_1), 0);
+			bellowValAssig(instruction);
 		} else if (funcName.equals("OutputNewLine")) {
 			// Dealing with F1 type of instruction
 			__val = DLX.F1(DLX.WRL, 0, 0, 0);
@@ -24,27 +25,28 @@ public class CALLInst extends DLXInstruction {
 			return;
 		} else if (funcName.equals("InputNum")) {
 			__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
+			bellowValAssig(instruction);
 		 //else if (StackAbstract.getFrame(funcName).){
 //			wrong("CALLInst: something is wrong!");
 	//	}
 		//System.out.println("End of CALLInst");
 		} else {
 			// Store R31 (return address)
-			new DLXInstruction(new Instruction("1 PUSH " + Conf.RETURN_ADDRESS_REG));
+//			new DLXInstruction(new Instruction("1 PUSH " + Conf.RETURN_ADDRESS_REG));
 			
 			StackAbstract.setCurrFrame(funcName);
 			
 			FrameAbstract targetFrame = StackAbstract.getCurrFrame();
 			int targetAddress = targetFrame.get__startAddress();
-			new DLXInstruction(new Instruction("1 ADDi " + targetAddress + " " + Conf.LOAD_REG_1 + " " + Conf.LOAD_REG_1));
-			__val = DLX.F2(DLX.JSR, 0, 0, getRegNum(Conf.LOAD_REG_1));
-			
+			//new DLXInstruction(new Instruction("1 ADDi " + targetAddress + " " + Conf.LOAD_REG_1 + " " + Conf.LOAD_REG_1));
+			__val = DLX.F3(DLX.JSR,  targetAddress);
+
+			bellowValAssig(instruction);
 
 			// Restore the R31 (return address)
-			new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
+//			new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
 			
 		}
-		bellowValAssig(instruction);
 		return;
 	}
 }

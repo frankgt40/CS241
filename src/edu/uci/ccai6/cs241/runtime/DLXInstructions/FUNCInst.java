@@ -37,9 +37,9 @@ public class FUNCInst extends DLXInstruction {
 				StackAbstract.addFrame(frame);
 			}
 			FrameAbstract currFrame = StackAbstract.getCurrFrame();
-			int address = DLXInstruction.__instructions.size();
+			int address = DLXInstruction.__instructions.size()+1;
 			currFrame.set__startAddress(address);
 		}
-		bellowValAssig(instruction);
+//		bellowValAssig(instruction);
 	}
 }
