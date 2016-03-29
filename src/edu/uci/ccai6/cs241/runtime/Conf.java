@@ -3,7 +3,9 @@ package edu.uci.ccai6.cs241.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Conf {
+import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLX;
+
+public class Conf extends DLX{
 	public static final int RETURN_VAL_NUM = 27;
 	public static final String RETURN_VAL_REG = "R"+RETURN_VAL_NUM;
 	public static final String FRAME_P = "R28";
@@ -23,6 +25,7 @@ public class Conf {
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
+	public static final boolean IS_DEBUG = true;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
@@ -39,7 +42,7 @@ public class Conf {
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
 		__savedRegs.add(Conf.FRAME_P);
-		__savedRegs.add(Conf.RETURN_ADDRESS_REG);
+		__savedRegs.add(Conf.STACK_P);
 	}
 	public static int getRegNum(String reg) {
 		reg = reg.replaceFirst("R", "");
@@ -69,6 +72,17 @@ public class Conf {
 		}
 		
 
+		
+		return rsl;
+	}
+	
+	public static int[] getHook() {
+		int[] rsl = {
+			DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.RETURN_ADDRESS_REG), Conf.getRegNum(Conf.ZERO_REG) ,StackAbstract.getFrame("main").get__startAddress()),
+			DLX.F2(DLX.RET, 0, 0, Conf.getRegNum(Conf.RETURN_ADDRESS_REG))
+		};
+//		rsl.add("MOV " + StackAbstract.getFrame("main").get__startAddress() + " " + Conf.RETURN_ADDRESS_REG);
+//		rsl.add("RET " + Conf.RETURN_ADDRESS_REG);
 		
 		return rsl;
 	}

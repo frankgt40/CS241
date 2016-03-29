@@ -1,5 +1,9 @@
 package edu.uci.ccai6.cs241.runtime.DLXInstructions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.runtime.FrameAbstract;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -21,6 +25,16 @@ public class FUNCInst extends DLXInstruction {
 			FrameAbstract currFrame = StackAbstract.getCurrFrame();
 			int address = DLXInstruction.__instructions.size()-1;
 			currFrame.set__startAddress(address);
+			
+			List<DLXInstruction> preList  = new ArrayList<DLXInstruction>();
+			List<DLXInstruction> postList = DLXInstruction.getInstructions();
+			for (int val : Conf.getHook()) {
+				DLXInstruction i = new DLXInstruction();
+				i.__val = val;
+				preList.add(i);
+			}
+			preList.addAll(postList);
+			DLXInstruction.__instructions = preList;
 		} else {
 			// Other frames
 			

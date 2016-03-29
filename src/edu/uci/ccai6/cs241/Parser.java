@@ -38,7 +38,7 @@ public class Parser {
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/test024.txt");
+		Parser pa = new Parser("testCases/001.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -381,11 +381,12 @@ public class Parser {
 			reportError("Missing a \'{\'! In function function body.");
 		}
 		
-		// Restore the saved status, sadly we have to do it here....
-		for (String instruction : Conf.getStatusRestoreSequences()){
-			__IR.putCode(instruction);
-		}
+		
 		if (!__returned) {
+			// Restore the saved status, sadly we have to do it here....
+			for (String instruction : Conf.getStatusRestoreSequences()){
+				__IR.putCode(instruction);
+			}
 			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
 		}
 	}
@@ -892,22 +893,35 @@ public class Parser {
 	protected void returnStatement() {
 		// Suppose we use register R28 to store the return value
 		if (getCurrTokenVal().equals("return")) {
+			// Restore the saved status, sadly we have to do it here....
+			for (String instruction : Conf.getStatusRestoreSequences()){
+				__IR.putCode(instruction);
+			}
 			next();
 			String code = "";
-			AssignDestination returnValue = expression();
-			code += "MOV " + returnValue.getDestination() + " " + Conf.RETURN_VAL_REG;
-			__IR.putCode(code);
-			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
-			__returned = true;
-//			if (returnValue.isConstant()) {
-//				code += "MOV " + returnValue.getDestination() + register;
-//			} else if (returnValue.isArray()) {
-//				returnValue.
-//			} else if (returnValue.isPointer()) {
-//				
-//			} else {
-//				
-//			}
+			if (__currToken.getType() != TokenType.SEMICOLON) {
+				FrameAbstract currFrame = StackAbstract.getCurrFrame();
+				currFrame.set__hasReturnValue(true);
+				AssignDestination returnValue = expression();
+				code += "MOV " + returnValue.getDestination() + " " + Conf.RETURN_VAL_REG;
+				__IR.putCode(code);
+				__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+				__returned = true;
+				// if (returnValue.isConstant()) {
+				// code += "MOV " + returnValue.getDestination() + register;
+				// } else if (returnValue.isArray()) {
+				// returnValue.
+				// } else if (returnValue.isPointer()) {
+				//
+				// } else {
+				//
+				// }
+			} else {
+				FrameAbstract currFrame = StackAbstract.getCurrFrame();
+				currFrame.set__hasReturnValue(false);
+				__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+				__returned = true;
+			}
 		} else {
 			new Reporter(Reporter.ReportType.ERROR, "No return keyword!");
 		}

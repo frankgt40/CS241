@@ -25,12 +25,21 @@ public class FrameAbstract {
 	private int __currLocation = 0;
 	private int __currParamLocation = 0;
 	private int __startAddress = -1;
+	private boolean __hasReturnValue = false;
 	
+	
+	
+	public boolean hasReturnValue() {
+		return __hasReturnValue;
+	}
+	public void set__hasReturnValue(boolean __hasReturnValue) {
+		this.__hasReturnValue = __hasReturnValue;
+	}
 	public int get__startAddress() {
 		return __startAddress;
 	}
 	public void set__startAddress(int __startAddress) {
-		this.__startAddress = __startAddress;
+		this.__startAddress = __startAddress*Conf.BLOCK_LEN;
 	}
 	public FrameAbstract(String name) {
 		__funcName = name;

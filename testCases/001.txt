@@ -12,11 +12,20 @@ var i, f;
 	return i;
 };
 
+function sub(a, b);
+{
+	let a <- a - b;
+	return a;
+};
+
 {
 	let input <- call InputNum();
 	let input <- 9 / input;
 	let input <- 5 - input;
 	let input <- call add(1, 2);
+	call OutputNum(input);
+	let input <- call sub(4,2);
+	call OutputNum(input);
 	call OutputNewLine();
 	call OutputNewLine();
 	call OutputNum(5);

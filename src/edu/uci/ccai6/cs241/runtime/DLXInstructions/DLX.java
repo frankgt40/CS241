@@ -23,6 +23,7 @@ public class DLX {
 
     
 	public static void main(String argv[]) throws Exception {
+		Conf.initialize();
 		String fileName = "output/001.dlx";
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		String line = "";
@@ -66,6 +67,14 @@ public class DLX {
 //			System.out.println("PC: "+PC);
 			disassem(M[PC]); // initializes op, a, b, c
 			
+			if (Conf.IS_DEBUG) {
+				System.out.println();
+				System.out.print("Instruction£º "+DLX.disassemble(M[PC]));
+				System.out.println("All the registers we used: ");
+				for (String reg : Conf.__savedRegs) {
+					System.out.println("["+reg+"]: "+R[Conf.getRegNum(reg)]);
+				}
+			}
 			int nextPC = PC + 1;
 			if (format==2) {
 				origc = c; // used for RET
@@ -292,7 +301,7 @@ public class DLX {
 	static final int ASH = 13;
 	static final int CHK = 14;
 
-	static final int ADDI = 16;
+	protected static final int ADDI = 16;
 	static final int SUBI = 17;
 	static final int MULI = 18;
 	static final int DIVI = 19;
@@ -321,7 +330,7 @@ public class DLX {
 	static final int BGT = 45;
 	static final int BSR = 46;
 	static final int JSR = 48;
-	static final int RET = 49;
+	protected static final int RET = 49;
 
 	static final int RDI = 50;
 	static final int WRD = 51;
@@ -575,7 +584,7 @@ public class DLX {
 		}
 	}
 	
-	static int F1(int op, int a, int b, int c) {
+	protected static int F1(int op, int a, int b, int c) {
 		if (c < 0) c ^= 0xFFFF0000;
 		if ((a & ~0x1F | b & ~0x1F | c & ~0xFFFF) != 0) {
 			System.out.println("Illegal Operand(s) for F1 Format.");
@@ -584,7 +593,7 @@ public class DLX {
 		return op << 26 | a << 21 | b << 16 | c;
 	}
 	
-	static int F2(int op, int a, int b, int c) {
+	protected static int F2(int op, int a, int b, int c) {
 		if ((a & ~0x1F | b & ~0x1F | c & ~0x1F) != 0) {
 			System.out.println("Illegal Operand(s) for F2 Format.");
 			bug(1);
@@ -592,7 +601,7 @@ public class DLX {
 		return op << 26 | a << 21 | b << 16 | c;
 	}
 	
-	static int F3(int op, int c) {
+	protected static int F3(int op, int c) {
 		if ((c < 0) || (c > MemSize)) {
 			System.out.println("Operand for F3 Format is referencing " + 
 			                   "non-existent memory location.");

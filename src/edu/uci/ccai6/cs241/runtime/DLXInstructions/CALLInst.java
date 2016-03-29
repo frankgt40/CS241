@@ -1,6 +1,7 @@
 package edu.uci.ccai6.cs241.runtime.DLXInstructions;
 
 import edu.uci.ccai6.cs241.runtime.Conf;
+import edu.uci.ccai6.cs241.runtime.FrameAbstract;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
@@ -23,10 +24,26 @@ public class CALLInst extends DLXInstruction {
 			return;
 		} else if (funcName.equals("InputNum")) {
 			__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
-		} //else if (StackAbstract.getFrame(funcName).){
+		 //else if (StackAbstract.getFrame(funcName).){
 //			wrong("CALLInst: something is wrong!");
 	//	}
-		System.out.println("End of CALLInst");
+		//System.out.println("End of CALLInst");
+		} else {
+			// Store R31 (return address)
+			new DLXInstruction(new Instruction("1 PUSH " + Conf.RETURN_ADDRESS_REG));
+			
+			StackAbstract.setCurrFrame(funcName);
+			
+			FrameAbstract targetFrame = StackAbstract.getCurrFrame();
+			int targetAddress = targetFrame.get__startAddress();
+			new DLXInstruction(new Instruction("1 ADDi " + targetAddress + " " + Conf.LOAD_REG_1 + " " + Conf.LOAD_REG_1));
+			__val = DLX.F2(DLX.JSR, 0, 0, getRegNum(Conf.LOAD_REG_1));
+			
+
+			// Restore the R31 (return address)
+			new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
+			
+		}
 		bellowValAssig(instruction);
 		return;
 	}

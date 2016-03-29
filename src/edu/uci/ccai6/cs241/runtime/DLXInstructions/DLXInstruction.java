@@ -25,6 +25,11 @@ public class DLXInstruction extends DLX {
 	protected static RuntimeEnv __system = new RuntimeEnv();
 	protected int __val = 0xFFFF;
 
+//	public static void runHook() {
+//		for (String instruction : Conf.getHook()) {
+//			new DLXInstruction(new Instruction(instruction));
+//		}
+//	}
 	public static Map<String, String> getMap1() {
 		return __map1;
 	}
@@ -293,10 +298,13 @@ public class DLXInstruction extends DLX {
 		case FUNC:
 			new FUNCInst(instruction);
 			break;
-		case PHI:
 		case NOOP:
 			new NOOPInst(instruction);
 			break;
+		case RET:
+			new RETInst(instruction);
+			break;
+		case PHI:
 		case PTR:
 		default:// means its value is the same as pointer's or constant
 			break;
