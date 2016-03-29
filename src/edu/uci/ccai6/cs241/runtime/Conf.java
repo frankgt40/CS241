@@ -78,8 +78,12 @@ public class Conf extends DLX{
 	
 	public static int[] getHook() {
 		int[] rsl = {
-			DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.RETURN_ADDRESS_REG), Conf.getRegNum(Conf.ZERO_REG) ,StackAbstract.getFrame("main").get__startAddress()),
-			DLX.F2(DLX.RET, 0, 0, Conf.getRegNum(Conf.RETURN_ADDRESS_REG))
+				0, // For Stack pointer
+				0, // For frame pointer
+				0, // ADDI R31 R0 main_function_address
+				0, // JSR R31
+//			DLX.F1(DLX.ADDI, Conf.getRegNum(Conf.RETURN_ADDRESS_REG), Conf.getRegNum(Conf.ZERO_REG) ,StackAbstract.getFrame("main").get__startAddress()),
+//			DLX.F3(DLX.JSR, Conf.getRegNum(Conf.RETURN_ADDRESS_REG))
 		};
 //		rsl.add("MOV " + StackAbstract.getFrame("main").get__startAddress() + " " + Conf.RETURN_ADDRESS_REG);
 //		rsl.add("RET " + Conf.RETURN_ADDRESS_REG);

@@ -11,6 +11,13 @@ public class RuntimeEnv {
 
 	
 	public static int[] genCode(List<Instruction> instructions) {
+		Conf.initialize();
+		for (int val : Conf.getHook()) {
+			DLXInstruction i = new DLXInstruction();
+			i.setVal(val);
+			DLXInstruction.getInstructions().add(i);
+		}
+		
 		int[] rsl;
 		for (Instruction instruction : instructions) {
 			new DLXInstruction(instruction);

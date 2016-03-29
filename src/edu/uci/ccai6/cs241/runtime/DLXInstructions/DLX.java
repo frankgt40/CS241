@@ -69,11 +69,12 @@ public class DLX {
 			
 			if (Conf.IS_DEBUG) {
 				System.out.println();
-				System.out.print("Instruction£º "+DLX.disassemble(M[PC]));
+				System.out.print("[PC: "+PC+"]Instruction: "+DLX.disassemble(M[PC]));
 				System.out.println("All the registers we used: ");
 				for (String reg : Conf.__savedRegs) {
 					System.out.println("["+reg+"]: "+R[Conf.getRegNum(reg)]);
 				}
+				System.out.println("["+Conf.RETURN_ADDRESS_REG+"]: "+R[Conf.getRegNum(Conf.RETURN_ADDRESS_REG)]);
 			}
 			int nextPC = PC + 1;
 			if (format==2) {
@@ -329,7 +330,7 @@ public class DLX {
 	static final int BLE = 44;
 	static final int BGT = 45;
 	static final int BSR = 46;
-	static final int JSR = 48;
+	protected static final int JSR = 48;
 	protected static final int RET = 49;
 
 	static final int RDI = 50;

@@ -15,6 +15,12 @@ public class RETInst extends DLXInstruction {
 		new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
 		
 		__val = DLX.F2(DLX.RET, 0, 0, getRegNum(Conf.RETURN_ADDRESS_REG));
+		
+		
+//		// Dirty method! For getting the main function's body's first statement's address
+//		FrameAbstract currFrame = StackAbstract.getFrame("main");
+//		int address = DLXInstruction.__instructions.size();
+//		currFrame.set__startAddress(address*Conf.BLOCK_LEN);
 		bellowValAssig(instruction);
 	}
 }
