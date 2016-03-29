@@ -28,9 +28,8 @@ public class StackAbstract {
 	}
 	public static void print() {
 		for (String name : __stackAbstract.keySet()) {
-			System.out.println(name);
 			FrameAbstract frame = __stackAbstract.get(name);
-
+			System.out.println("Frame: " + name + ". Start address: " + frame.get__startAddress());
 			for (String var : frame.__parameters.keySet()) {
 				System.out.println("\tParam: " + var + ", offset: " + frame.__parameters.get(var).__offset);
 			}

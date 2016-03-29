@@ -8,6 +8,7 @@ import java.util.Map;
 import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.runtime.FrameAbstract;
 import edu.uci.ccai6.cs241.runtime.Local;
+import edu.uci.ccai6.cs241.runtime.LocalType;
 import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
@@ -161,6 +162,13 @@ public class DLXInstruction extends DLX {
 			if (!currFrame.__fakeRegToMem.containsKey(arg1.toString())) {
 				// If current frame has not recorded this variable in memory
 				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				Local local = new Local();
+				local.__len = Conf.BLOCK_LEN;
+				local.__name = arg2.toString();
+				local.__offset = currFrame.getCurrOffset();
+				local.__type = LocalType.VAR;
+				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
+				currFrame.__fakeRegToMem.put(arg2.toString(), local);
 			}
 			Local local = currFrame.addOrGetLocal(arg1);
 			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
@@ -173,6 +181,13 @@ public class DLXInstruction extends DLX {
 			if (!currFrame.__fakeRegToMem.containsKey(arg2.toString())) {
 				// If current frame has not recorded this variable in memory
 				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				Local local = new Local();
+				local.__len = Conf.BLOCK_LEN;
+				local.__name = arg2.toString();
+				local.__offset = currFrame.getCurrOffset();
+				local.__type = LocalType.VAR;
+				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
+				currFrame.__fakeRegToMem.put(arg2.toString(), local);
 			}
 			Local local = currFrame.addOrGetLocal(arg2);
 			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
@@ -186,6 +201,13 @@ public class DLXInstruction extends DLX {
 			if (!currFrame.__fakeRegToMem.containsKey(arg3.toString())) {
 				// If current frame has not recorded this variable in memory
 				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				Local local = new Local();
+				local.__len = Conf.BLOCK_LEN;
+				local.__name = arg2.toString();
+				local.__offset = currFrame.getCurrOffset();
+				local.__type = LocalType.VAR;
+				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
+				currFrame.__fakeRegToMem.put(arg2.toString(), local);
 			}
 			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.STORE_TARGET));
 			instruction.setArg(3, argNew);

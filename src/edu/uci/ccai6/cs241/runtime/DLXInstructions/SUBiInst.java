@@ -36,7 +36,7 @@ public class SUBiInst extends DLXInstruction {
 				bellowValAssig(instruction);
 				return;
 			} else {
-				wrong("AddiInst: argI2 can only be either resgister or const");
+				wrong("SUBiInst: argI2 can only be either resgister or const");
 			}
 		} else if (argI1 instanceof RegisterArg) {
 			arg1 = getRegNum(argI1.toString());
@@ -51,7 +51,7 @@ public class SUBiInst extends DLXInstruction {
 				wrong("AddiInst: argI2 can only be const");
 			}
 		} else {
-			wrong("AddiInst: argI1 can only be either resgister or const");
+			wrong("SUBiInst: argI1 can only be either resgister or const");
 		}
 	}
 }

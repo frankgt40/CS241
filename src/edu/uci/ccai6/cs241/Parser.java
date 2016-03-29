@@ -37,7 +37,8 @@ public class Parser {
 	private boolean __returned = false;
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		Parser pa = new Parser("testCases/001.txt");
+		Conf.initialize();
+		Parser pa = new Parser("testCases/test024.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -320,7 +321,7 @@ public class Parser {
 				frame.addParameter(tokenValue, param);
 		        long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
 //			    __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
-		        __IR.putCode("POP "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
+		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
 				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
@@ -339,7 +340,7 @@ public class Parser {
 						frame.addParameter(tokenValue, param1);
 						  // popping backwards 
 //					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
-						__IR.putCode("POP "+ StackAbstract.getCurrFrame().__parameters.get(tokenValue).__offset +  " " +__funUtil.getFunName() + __SEP + tokenValue);
+						__IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
@@ -349,6 +350,10 @@ public class Parser {
 			}
 			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
 				__currToken = __lx.nextToken(); // Successfully finished
+				// Do the status saving things, sadly, we have to do it here.......
+				for (String instruction : Conf.getStatusSavingSequences()) {
+					__IR.putCode(instruction);
+				}
 			} else {
 				reportError("Missing a \')\'! In function formal parameter part.");
 			}
@@ -374,6 +379,11 @@ public class Parser {
 			}
 		} else {
 			reportError("Missing a \'{\'! In function function body.");
+		}
+		
+		// Restore the saved status, sadly we have to do it here....
+		for (String instruction : Conf.getStatusRestoreSequences()){
+			__IR.putCode(instruction);
 		}
 		if (!__returned) {
 			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);

@@ -26,6 +26,7 @@ public class CALLInst extends DLXInstruction {
 		} //else if (StackAbstract.getFrame(funcName).){
 //			wrong("CALLInst: something is wrong!");
 	//	}
+		System.out.println("End of CALLInst");
 		bellowValAssig(instruction);
 		return;
 	}

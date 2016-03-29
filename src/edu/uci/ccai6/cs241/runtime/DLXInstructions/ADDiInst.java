@@ -50,6 +50,9 @@ public class ADDiInst extends DLXInstruction{
 				__val = DLX.F1(op, arg3, arg1, arg2);
 				bellowValAssig(instruction);
 				return;
+			} else if (argI2 instanceof RegisterArg) {
+				arg2 = getRegNum(argI2.toString());
+				new DLXInstruction(new Instruction("1 ADD " + arg1 + " " + arg2 + " " +arg3));
 			} else {
 				wrong("AddiInst: argI2 can only be const");
 			}

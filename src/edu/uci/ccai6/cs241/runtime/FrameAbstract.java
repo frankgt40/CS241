@@ -24,6 +24,14 @@ public class FrameAbstract {
 	private int __localsLen = 0;
 	private int __currLocation = 0;
 	private int __currParamLocation = 0;
+	private int __startAddress = -1;
+	
+	public int get__startAddress() {
+		return __startAddress;
+	}
+	public void set__startAddress(int __startAddress) {
+		this.__startAddress = __startAddress;
+	}
 	public FrameAbstract(String name) {
 		__funcName = name;
 		__savedStatusLen = Conf.__savedRegs.size();
@@ -91,18 +99,6 @@ public class FrameAbstract {
 //		return rsl;
 //	}
 	
-	// called after setFakeRegs(List<String> regs)
-	public static List<String> getCalleeSequences() {
-		List<String> rsl = new ArrayList<String>();
-		
-		for (String regs : Conf.__savedRegs) {
-			rsl.add("PUSH " + regs);
-		}
-		
-		
-		
-		//
-		return rsl;
-	}
+	
 	
 }

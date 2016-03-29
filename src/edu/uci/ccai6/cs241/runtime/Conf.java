@@ -26,7 +26,7 @@ public class Conf {
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
-	{
+	public static void initialize(){
 		// Set the registers needed to be saved.
 		__savedRegs.add("R1");
 		__savedRegs.add("R2");
@@ -39,10 +39,37 @@ public class Conf {
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
 		__savedRegs.add(Conf.FRAME_P);
-		__savedRegs.add(Conf.STACK_P);
+		__savedRegs.add(Conf.RETURN_ADDRESS_REG);
 	}
 	public static int getRegNum(String reg) {
 		reg = reg.replaceFirst("R", "");
 		return Integer.parseInt(reg);
+	}
+	
+	// called after setFakeRegs(List<String> regs)
+	public static List<String> getStatusSavingSequences() {
+		List<String> rsl = new ArrayList<String>();
+
+		for (String regs : Conf.__savedRegs) {
+			rsl.add("PUSH " + regs);
+		}
+
+		rsl.add("ADDi " +  Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P); // Advance stack pointer to the next block
+		rsl.add("MOV " + Conf.STACK_P + " " + Conf.FRAME_P); // Advance frame pointer to the position of stack pointer
+		rsl.add("ADDi " + rsl.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P);
+		return rsl;
+	}
+	
+	public static List<String> getStatusRestoreSequences() {
+		List<String> rsl = new ArrayList<String>();
+
+		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
+			// in reverse order to pop the saved registers
+			rsl.add("POP " + Conf.__savedRegs.get(i));
+		}
+		
+
+		
+		return rsl;
 	}
 }

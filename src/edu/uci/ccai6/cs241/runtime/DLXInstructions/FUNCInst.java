@@ -18,7 +18,9 @@ public class FUNCInst extends DLXInstruction {
 			// When call main, needs to set up stack and frame pointers
 			frame = new FrameAbstract(funName);
 			StackAbstract.addFrame(frame);
-			
+			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			int address = DLXInstruction.__instructions.size()-1;
+			currFrame.set__startAddress(address);
 		} else {
 			// Other frames
 			
@@ -28,6 +30,10 @@ public class FUNCInst extends DLXInstruction {
 				frame = new FrameAbstract(funName);
 				StackAbstract.addFrame(frame);
 			}
+			FrameAbstract currFrame = StackAbstract.getCurrFrame();
+			int address = DLXInstruction.__instructions.size();
+			currFrame.set__startAddress(address);
 		}
+		bellowValAssig(instruction);
 	}
 }
