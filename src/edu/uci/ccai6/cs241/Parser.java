@@ -17,7 +17,6 @@ import edu.uci.ccai6.cs241.runtime.RuntimeEnv;
 import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLX;
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLXInstruction;
-import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.SSAConverter;
@@ -202,7 +201,12 @@ public class Parser {
 			while (__currToken.getType() == Token.TokenType.COMMA) {
 				__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.VARIABLE) {
-					VarScoper.declare(__currToken.getValue());
+					if(rsl.getType() == Type.ARRAY) {
+						__IR.putCode("ADDi "+Conf.STACK_P+" "+rsl.__size+" "+Conf.STACK_P);
+						VarScoper.declare(__currToken.getValue(), rsl.__size);
+					} else {
+						VarScoper.declare(__currToken.getValue());
+					}
 					//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 					//fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress());
 					fixed = rsl.fix(VarScoper.genVarName(__currToken.getValue()), __IR.getANewVarAddress());
