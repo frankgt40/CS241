@@ -2,6 +2,7 @@ package edu.uci.ccai6.cs241;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -313,6 +314,7 @@ public class Parser {
 		for (String instruction : Conf.getStatusSavingSequences()) {
 			__IR.putCode(instruction);
 		}
+		List<String> paramNames = new ArrayList<String>();
 		if (__currToken.getType() == Token.TokenType.L_PARENTHESIS) {
 			// Then there is a formalParam
 			__currToken = __lx.nextToken();
@@ -329,12 +331,7 @@ public class Parser {
 				frame.addParameter(tokenValue, param);
 		        long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
 //			    __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
-		        int param_idx = 0;
-		        AssignDestination paramAddr = __IR.putCode("ADDi " +Conf.FRAME_P + " " + 4*param_idx++);
-		        AssignDestination paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
-		        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + tokenValue);
-//		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
-				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		        paramNames.add(tokenValue);
 				__currToken = __lx.nextToken();
 
 				while (__currToken.getType() == Token.TokenType.COMMA) {
@@ -350,11 +347,7 @@ public class Parser {
 						param1.__type = LocalType.VAR;
 						param1.__offset =frame.getCurrParameterOffset();
 						frame.addParameter(tokenValue, param1);
-						  // popping backwards 
-//					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
-						paramAddr = __IR.putCode("ADDi " +Conf.FRAME_P + " " + 4*param_idx++);
-				        paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
-				        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + tokenValue);
+				        paramNames.add(tokenValue);
 //						__IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
@@ -369,8 +362,19 @@ public class Parser {
 //				for (String instruction : Conf.getStatusSavingSequences()) {
 //					__IR.putCode(instruction);
 //				}
+//				__IR.putCode("ADDi " +  Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P); // Advance stack pointer to the next block
+//				__IR.putCode("MOV " + Conf.STACK_P + " " + Conf.FRAME_P); // Advance frame pointer to the position of stack pointer
+//				__IR.putCode("ADDi " + (Conf.__savedRegs.size()+2) * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
 			} else {
 				reportError("Missing a \')\'! In function formal parameter part.");
+			}
+			int numParams = paramNames.size();
+			for(int i=0; i<numParams; i++) {
+		        AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.FRAME_P + " " + 4*(numParams-i-1));
+		        AssignDestination paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
+		        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + paramNames.get(i));
+//		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
+				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			}
 		} else {
 			// Then there is no formalParam
@@ -908,9 +912,6 @@ public class Parser {
 		// Suppose we use register R28 to store the return value
 		if (getCurrTokenVal().equals("return")) {
 			// Restore the saved status, sadly we have to do it here....
-			for (String instruction : Conf.getStatusRestoreSequences()){
-				__IR.putCode(instruction);
-			}
 			next();
 			String code = "";
 			if (__currToken.getType() != TokenType.SEMICOLON) {
@@ -919,8 +920,6 @@ public class Parser {
 				AssignDestination returnValue = expression();
 				code += "MOV " + returnValue.getDestination() + " " + Conf.RETURN_VAL_REG;
 				__IR.putCode(code);
-				__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
-				__returned = true;
 				// if (returnValue.isConstant()) {
 				// code += "MOV " + returnValue.getDestination() + register;
 				// } else if (returnValue.isArray()) {
@@ -933,9 +932,12 @@ public class Parser {
 			} else {
 				FrameAbstract currFrame = StackAbstract.getCurrFrame();
 				currFrame.set__hasReturnValue(false);
-				__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
-				__returned = true;
 			}
+			for (String instruction : Conf.getStatusRestoreSequences()){
+				__IR.putCode(instruction);
+			}
+			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+			__returned = true;
 		} else {
 			new Reporter(Reporter.ReportType.ERROR, "No return keyword!");
 		}
