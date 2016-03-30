@@ -475,10 +475,10 @@ public class SSAConverter {
 			    }
 			  
 				// BRA (ptr) shouldnt change
-			    if(inst.arg0 != null && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
+			    if(inst.arg0 != null && !(inst.arg0 instanceof RegisterArg) && inst.op != Operation.BRA) inst.arg0 = (mapping.containsKey(inst.arg0)) ? mapping.get(inst.arg0) : inst.arg0;
 			    // BGT (10) (ptr) ptr shouldnt change
-				if(inst.arg1 != null && !inst.op.isBranch()) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
-				if(inst.arg2 != null) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
+				if(inst.arg1 != null && !(inst.arg1 instanceof RegisterArg) && !inst.op.isBranch()) inst.arg1 = (mapping.containsKey(inst.arg1)) ? mapping.get(inst.arg1) : inst.arg1;
+				if(inst.arg2 != null && !(inst.arg2 instanceof RegisterArg)) inst.arg2 = (mapping.containsKey(inst.arg2)) ? mapping.get(inst.arg2) : inst.arg2;
 	
 				bb.instructions.set(index, inst);
 				index++;
