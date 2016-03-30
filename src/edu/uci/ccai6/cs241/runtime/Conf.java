@@ -1,6 +1,7 @@
 package edu.uci.ccai6.cs241.runtime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import edu.uci.ccai6.cs241.runtime.DLXInstructions.DLX;
@@ -25,7 +26,7 @@ public class Conf extends DLX{
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
-	public static final boolean IS_DEBUG = true;
+	public static final boolean IS_DEBUG = false;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
@@ -41,6 +42,7 @@ public class Conf extends DLX{
 		__savedRegs.add("R8");
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
+		__savedRegs.add(Conf.RETURN_ADDRESS_REG);
 		__savedRegs.add(Conf.FRAME_P);
 		__savedRegs.add(Conf.STACK_P);
 	}
@@ -52,20 +54,19 @@ public class Conf extends DLX{
 	// called after setFakeRegs(List<String> regs)
 	public static List<String> getStatusSavingSequences() {
 		List<String> rsl = new ArrayList<String>();
-
+		rsl.add("MOV " + Conf.STACK_P + " " + Conf.LOAD_REG_1); // temp store STACK_P value, will load into FRAME_P later
 		for (String regs : Conf.__savedRegs) {
 			rsl.add("PUSH " + regs);
 		}
-
-		rsl.add("ADDi " +  Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P); // Advance stack pointer to the next block
-		rsl.add("MOV " + Conf.STACK_P + " " + Conf.FRAME_P); // Advance frame pointer to the position of stack pointer
-		rsl.add("ADDi " + rsl.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P);
+		rsl.add("MOV " + Conf.LOAD_REG_1 + " " + Conf.FRAME_P); // now store it to FRAME_P
+		rsl.add("ADDi " + Conf.__savedRegs.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
 		return rsl;
 	}
 	
 	public static List<String> getStatusRestoreSequences() {
 		List<String> rsl = new ArrayList<String>();
-
+		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // destroy the frame
+		rsl.add("ADDi "+Conf.__savedRegs.size()*Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
 		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
 			// in reverse order to pop the saved registers
 			rsl.add("POP " + Conf.__savedRegs.get(i));
