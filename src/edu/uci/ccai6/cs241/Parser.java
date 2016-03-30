@@ -309,6 +309,10 @@ public class Parser {
 	protected void formalParam() {
 		FrameAbstract frame = StackAbstract.getCurrFrame();
 		__currToken = __lx.nextToken();
+		// Do the status saving things, sadly, we have to do it here.......
+		for (String instruction : Conf.getStatusSavingSequences()) {
+			__IR.putCode(instruction);
+		}
 		if (__currToken.getType() == Token.TokenType.L_PARENTHESIS) {
 			// Then there is a formalParam
 			__currToken = __lx.nextToken();
@@ -325,7 +329,11 @@ public class Parser {
 				frame.addParameter(tokenValue, param);
 		        long basePtr = __IR.getCurrPc()+1; // we need to pop params backwards
 //			    __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue);
-		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
+		        int param_idx = 0;
+		        AssignDestination paramAddr = __IR.putCode("ADDi " +Conf.FRAME_P + " " + 4*param_idx++);
+		        AssignDestination paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
+		        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + tokenValue);
+//		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
 				//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				__currToken = __lx.nextToken();
 
@@ -344,7 +352,10 @@ public class Parser {
 						frame.addParameter(tokenValue, param1);
 						  // popping backwards 
 //					      __IR.putCode("POP "+__funUtil.getFunName() + __SEP + tokenValue, basePtr);
-						__IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
+						paramAddr = __IR.putCode("ADDi " +Conf.FRAME_P + " " + 4*param_idx++);
+				        paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
+				        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + tokenValue);
+//						__IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
 						//__IR.putCode("LOAD " + __funUtil.findVarRealName(tokenValue) + " " + __funUtil.getFunName() + __SEP + tokenValue); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 						__currToken = __lx.nextToken();
 					} else {
@@ -355,9 +366,9 @@ public class Parser {
 			if (__currToken.getType() == Token.TokenType.R_PARENTHESIS) {
 				__currToken = __lx.nextToken(); // Successfully finished
 				// Do the status saving things, sadly, we have to do it here.......
-				for (String instruction : Conf.getStatusSavingSequences()) {
-					__IR.putCode(instruction);
-				}
+//				for (String instruction : Conf.getStatusSavingSequences()) {
+//					__IR.putCode(instruction);
+//				}
 			} else {
 				reportError("Missing a \')\'! In function formal parameter part.");
 			}
@@ -625,7 +636,6 @@ public class Parser {
 		    String funcName = __currToken.getValue();
 		    next();
 		    
-		    // TODO: push base ptr here? and move stack ptr to base ptr here too?
 		    if(__currToken.getType() != TokenType.L_PARENTHESIS) return __IR.putCode("CALL "+funcName);
 		    next(); // (
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {

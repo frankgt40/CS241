@@ -9,7 +9,7 @@ public class LOADInst extends DLXInstruction {
 		Arg arg1, arg2;
 		arg1 = instruction.arg0;
 		arg2 = instruction.arg1;
-		__val = DLX.F1(DLX.LDW, getRegNum(arg2.toString()), getRegNum(Conf.FRAME_P), Integer.parseInt(arg1.toString()));
+		__val = DLX.F1(DLX.LDW, getRegNum(arg2.toString()), getRegNum(Conf.FRAME_P), getRegNum(arg1.toString()));
 		bellowValAssig(instruction);
 		return;
 	}
