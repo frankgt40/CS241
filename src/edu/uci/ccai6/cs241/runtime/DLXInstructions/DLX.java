@@ -162,6 +162,7 @@ public class DLX {
 				case LDW:
 				case LDX: // remember: c == R[origc] because of F2 format
 					R[a] = M[(R[b]+c) / 4]; 
+//					System.out.println("LOAD "+R[a]+" from mem "+(R[b]+c)/4);
 					break;
 				case STW:
 				case STX: // remember: c == R[origc] because of F2 format
@@ -170,14 +171,16 @@ public class DLX {
 				case POP:
 					R[a] = M[R[b] / 4];
 					R[b] = R[b] + c;
+//					System.out.println("POP: "+R[a]+" to reg "+a+" to mem "+R[b]/4);
 					break;
 				case PSH:
 					R[b] = R[b] + c;
 					M[R[b] / 4] = R[a];
+//					if(b==29) System.out.println("PUSH: "+R[a]+" from reg "+a+" from mem "+R[b]/4);
 					break;
 				case BEQ:
 //					if (R[a] == 0) nextPC = PC + c;
-					if (R[a] == 0) nextPC = c/4;
+					if (R[a] == 0) nextPC = c/4-1;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -186,7 +189,7 @@ public class DLX {
 					break;
 				case BNE:
 //					if (R[a] != 0) nextPC = PC + c;
-					if (R[a] != 0) nextPC = c/4;
+					if (R[a] != 0) nextPC = c/4-1;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -195,7 +198,7 @@ public class DLX {
 					break;
 				case BLT:
 //					if (R[a] < 0) nextPC = PC + c;
-					if (R[a] < 0) nextPC = c/4;
+					if (R[a] < 0) nextPC = c/4-1;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -204,7 +207,7 @@ public class DLX {
 					break;
 				case BGE:
 //					System.out.println("C: "+c);
-					if (R[a] >= 0) nextPC = c/4;
+					if (R[a] >= 0) nextPC = c/4-1;
 //					System.out.println("C: "+c);
 //					System.out.println("NextPC: "+nextPC);
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
@@ -215,7 +218,7 @@ public class DLX {
 					break;
 				case BLE:
 //					if (R[a] <= 0) nextPC = PC + c;
-					if (R[a] <= 0) nextPC = c/4;
+					if (R[a] <= 0) nextPC = c/4-1;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
@@ -224,7 +227,7 @@ public class DLX {
 					break;
 				case BGT:
 //					if (R[a] > 0) nextPC = PC + c;
-					if (R[a] > 0) nextPC = c/4;
+					if (R[a] > 0) nextPC = c/4-1;
 					if ((nextPC < 0) || (nextPC > MemSize/4)) {
 						System.out.println(4*nextPC + " is no address in memory (0.." 
 							+ MemSize + ").");
