@@ -32,7 +32,9 @@ public class SUBiInst extends DLXInstruction {
 			} else if (argI2 instanceof RegisterArg) {
 				arg2 = getRegNum(argI2.toString());
 				// ADDi argI3 argI2 argI1
-				__val = DLX.F1(op, arg3, arg2, arg1);
+				new DLXInstruction(new Instruction("1 MOV " + argI1.toString() + " " + Conf.LOAD_REG_1));
+				arg1 = getRegNum(Conf.LOAD_REG_1);
+				__val = DLX.F1(SUB, arg3, arg1, arg2);
 				bellowValAssig(instruction);
 				return;
 			} else {
