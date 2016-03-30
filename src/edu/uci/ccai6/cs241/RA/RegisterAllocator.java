@@ -355,7 +355,9 @@ public class RegisterAllocator {
 			
 				// TODO: correct order?
 				if(colors.containsKey(ptr)) {
-					inst.arg2 = getRegister(colors.get(ptr));
+					// arg1 is for LOAD and maybe sth else?
+					if(inst.arg1 == null) inst.arg1 = getRegister(colors.get(ptr));
+					else inst.arg2 = getRegister(colors.get(ptr));
 				} else if(inst.arg2 instanceof RegisterArg) {
 					
 				} else {
