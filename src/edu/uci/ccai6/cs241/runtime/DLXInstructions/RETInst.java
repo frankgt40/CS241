@@ -8,18 +8,18 @@ import edu.uci.ccai6.cs241.ssa.Instruction;
 
 public class RETInst extends DLXInstruction {
 	public RETInst(Instruction instruction) {
-		Arg arg1 = instruction.arg0;
-		
-
 		for (String ins : Conf.getStatusRestoreSequences()){
 			new DLXInstruction(new Instruction(ins));
 		}
-		// Restore the R31 (return address)
-		new DLXInstruction(new Instruction("1 MOV " + Conf.FRAME_P + " " + Conf.STACK_P));
+
+//		new DLXInstruction(new Instruction("1 MOV " + Conf.STACK_P + " " + Conf.FRAME_P));
 		
 		__val = DLX.F2(DLX.RET, 0, 0, getRegNum(Conf.RETURN_ADDRESS_REG));
 		
-		
+		if (!StackAbstract.getLastFrameName().isEmpty()) {
+			String funcName = StackAbstract.getLastFrameName();
+			StackAbstract.setCurrFrame(funcName);
+		}
 //		// Dirty method! For getting the main function's body's first statement's address
 //		FrameAbstract currFrame = StackAbstract.getFrame("main");
 //		int address = DLXInstruction.__instructions.size();

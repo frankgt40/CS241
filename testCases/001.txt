@@ -1,13 +1,10 @@
 #Simple parsing test
 main
-var input;
 
+var rsl;
 function add(a, b);
 var g, f;
-array [2] i;
 {
-	let i[0] <- 1;
-	let i[1] <- 1;
 	let g <- 1;
 	let f <- 1;
 	
@@ -23,23 +20,10 @@ function sub(a, b);
 };
 
 {
-	let input <- call InputNum();
-	let input <- 9 / input;
-	let input <- 5 - input;
 	call OutputNum(22222);
-	let input <- call add(1, 2);
-	call OutputNum(input);
+	//let rsl <- call add(1, 2);
+	call OutputNum(call add(1, 2));
+	call OutputNewLine();
 	call OutputNum(22222);
-	call OutputNewLine();
-	let input <- call sub(4,2);
-	call OutputNum(input);
-	call OutputNewLine();
-	call OutputNewLine();
-	call OutputNum(5);
-	call OutputNewLine();
-	call OutputNum(7);
-	call OutputNewLine();
-	call OutputNum(9);
-	call OutputNum(input);
 }
 .

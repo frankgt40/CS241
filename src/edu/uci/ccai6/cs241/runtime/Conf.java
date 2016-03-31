@@ -26,11 +26,14 @@ public class Conf extends DLX{
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
-	public static final boolean IS_DEBUG = true;
+	public static final boolean IS_DEBUG = false;
 	
+	protected static boolean IS_INITIALIZED = false;
 	public static List<String> __savedRegs = new ArrayList<String>();
 
 	public static void initialize(){
+		if (IS_INITIALIZED) return;
+		
 		// Set the registers needed to be saved.
 		__savedRegs.add("R1");
 		__savedRegs.add("R2");
@@ -43,8 +46,9 @@ public class Conf extends DLX{
 		__savedRegs.add("R9");
 		__savedRegs.add("R10");
 		__savedRegs.add(Conf.RETURN_ADDRESS_REG);
-		__savedRegs.add(Conf.FRAME_P);
-		__savedRegs.add(Conf.STACK_P);
+//		__savedRegs.add(Conf.FRAME_P);
+//		__savedRegs.add(Conf.STACK_P);
+		IS_INITIALIZED = true;
 	}
 	public static int getRegNum(String reg) {
 		reg = reg.replaceFirst("R", "");
@@ -65,16 +69,19 @@ public class Conf extends DLX{
 	
 	public static List<String> getStatusRestoreSequences() {
 		List<String> rsl = new ArrayList<String>();
-//		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // destroy the frame
-		rsl.add("1 SUBi "+ Conf.FRAME_P + " " + Conf.__savedRegs.size()*Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P); // Erase all the locals
+		FrameAbstract frame = StackAbstract.getCurrFrame();
+		int len = frame.getCurrOffset();
+		
+		rsl.add("1 SUBi "+ Conf.FRAME_P + " " + len*Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P); // Erase all the locals
 		
 		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
 			// in reverse order to pop the saved registers
 			rsl.add("1 POP " + Conf.__savedRegs.get(i));
 		}
 		
-		rsl.add("1 SUBi " + Conf.FRAME_P + " " + StackAbstract.getCurrFrame().__parameters.keySet().size() + " " + Conf.FRAME_P); // Erase all the parameters
-//		rsl.add("1 POP " + Conf.STACK_P);
+		rsl.add("1 SUBi " + Conf.FRAME_P + " " + Conf.BLOCK_LEN*StackAbstract.getCurrFrame().__parameters.keySet().size() + " " + Conf.FRAME_P); // Erase all the parameters
+//		rsl.add("1 MOV " + Conf.STACK_P + " " +Conf.FRAME_P); // destroy the frame
+		rsl.add("1 POP " + Conf.STACK_P);
 		
 
 		

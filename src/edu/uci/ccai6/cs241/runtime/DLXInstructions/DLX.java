@@ -250,6 +250,9 @@ public class DLX {
 					nextPC = c / 4;
 					break;
 				case RET: 
+					if (Conf.IS_DEBUG) {
+						System.in.read();
+					}
 					if (origc == 0) break execloop; // remember: c==R[origc]
 					if ((c < 0) || (c > MemSize)) {
 						System.out.println(c + " is no address in memory (0.." 

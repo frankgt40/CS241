@@ -11,6 +11,13 @@ public class StackAbstract {
 	private static List<String> __staticAbstract = new ArrayList<String>();
 	private static Map<String, FrameAbstract> __stackAbstract = new HashMap<String, FrameAbstract>(); //<Function name --> its frame builder>
 	private static String __currFrame = "";
+	private static String __lastFrame = "";
+	public static void setLastFrame(String name){
+		__lastFrame = name;
+	}
+	public static String getLastFrameName() {
+		return __lastFrame;
+	}
 	public static FrameAbstract getFrame(String funcName) {
 		if (!funcName.isEmpty())
 			return __stackAbstract.get(funcName);

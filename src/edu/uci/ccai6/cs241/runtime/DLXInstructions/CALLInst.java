@@ -35,7 +35,8 @@ public class CALLInst extends DLXInstruction {
 		} else {
 			// Store R31 (return address)
 			
-			
+			String lastFuncName = StackAbstract.getCurrFrame().get__funcName();
+			StackAbstract.setLastFrame(lastFuncName);
 			StackAbstract.setCurrFrame(funcName);
 			
 			FrameAbstract targetFrame = StackAbstract.getCurrFrame();
