@@ -18,16 +18,23 @@ public class PUSHInst extends DLXInstruction{
 			// MOV Load_REG_1 const
 			new DLXInstruction(new Instruction("1 ADDi " + Conf.ZERO_REG + " " + argI1 + " " + Conf.LOAD_REG_1)); 
 			//
+			
 			arg1 = Integer.parseInt(argI1.toString());
-			__val = DLX.F1(DLX.PSH, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.STACK_P), Conf.BLOCK_LEN);
+			__val = DLX.F1(DLX.PSH, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.FRAME_P), 0);
+			bellowValAssig(instruction);
+			
+			new DLXInstruction(new Instruction("1 ADDi " + Conf.BLOCK_LEN + " " + Conf.FRAME_P + " " + Conf.FRAME_P));
 		} else if (argI1 instanceof RegisterArg){
 			// in register
 			arg1 = getRegNum(argI1.toString());
-			__val = DLX.F1(DLX.PSH, arg1, getRegNum(Conf.STACK_P), Conf.BLOCK_LEN);
+			__val = DLX.F1(DLX.PSH, arg1, getRegNum(Conf.FRAME_P), 0);
+			bellowValAssig(instruction);
+			
+			new DLXInstruction(new Instruction("1 ADDi " + Conf.BLOCK_LEN + " " + Conf.FRAME_P + " " + Conf.FRAME_P));
 		} else {
 			wrong("PUSH: wrong!");
 		}
-		bellowValAssig(instruction);
+//		bellowValAssig(instruction);
 		return;
 	}
 }

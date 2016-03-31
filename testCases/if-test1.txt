@@ -7,7 +7,7 @@ var c;
 procedure bar( x, z );
 var i, j, e;
 {
-	let i[b] <- (j + (0 * 2 )) / 3;
+	let b[i] <- (j + (0 * 2 )) / 3;
 	let j <- 0 +1 +(9 + 3 * c) /9 * b * a +11;
 };
 
@@ -29,6 +29,6 @@ var i, j, e;
 		let z <- 5
 	fi;
 	
-	let c <- foo
+	call OutputNum(c);
 	
 }.

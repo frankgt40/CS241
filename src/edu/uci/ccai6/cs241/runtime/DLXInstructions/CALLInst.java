@@ -13,6 +13,8 @@ public class CALLInst extends DLXInstruction {
 		Arg argI2 = instruction.arg1;
 		Arg argI3 = instruction.arg2;
 		String funcName = argI1.toString();
+		
+		new DLXInstruction(new Instruction("1 ADD " + Conf.FRAME_P + " "  + Conf.ZERO_REG + " " + Conf.STACK_P));
 		// Pre-defined functions: dealing with F2 type instructions
 		if (funcName.equals("OutputNum")) {
 			new DLXInstruction(new Instruction("1 POP " + Conf.LOAD_REG_1));
@@ -32,7 +34,7 @@ public class CALLInst extends DLXInstruction {
 		//System.out.println("End of CALLInst");
 		} else {
 			// Store R31 (return address)
-//			new DLXInstruction(new Instruction("1 PUSH " + Conf.RETURN_ADDRESS_REG));
+			
 			
 			StackAbstract.setCurrFrame(funcName);
 			
@@ -47,6 +49,8 @@ public class CALLInst extends DLXInstruction {
 //			new DLXInstruction(new Instruction("1 POP " + Conf.RETURN_ADDRESS_REG));
 			
 		}
+
+		new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 		return;
 	}
 }

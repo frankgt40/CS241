@@ -642,32 +642,10 @@ public class Parser {
 		    
 		    if(__currToken.getType() != TokenType.L_PARENTHESIS) return __IR.putCode("CALL "+funcName);
 		    next(); // (
+		    __IR.putCode("PUSH "+Conf.STACK_P);
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
 		      AssignDestination param_in = expression();
 
-//		      if (!StackAbstract.hasFrame(funcName)) {
-//		    	  StackAbstract.addFrame(new FrameAbstract(funcName));
-//		      }
-//		      FrameAbstract currFrame = StackAbstract.getCurrFrame();
-//		      Local parameter = new Local();
-//		      if (currFrame.__parameters.containsKey(parameter.__name)) {
-//		    	  
-//		      }
-//		      parameter.__name = param_in.getDestination();
-//				switch (param_in.getType()) {
-//				case ARRAY:
-////					parameter.__len = currFrame.__fakeRegToMem.get(param_in.getDestination()).__len;
-////					parameter.
-//					reportError("In funcCall(), you cannot pass an Array as a parameter!"); 
-//					break;
-//				case VARIABLE:
-//					parameter.__len = Conf.STACK_GROW_DELTA;
-//					parameter.__type = LocalType.VAR;
-//					parameter.__offset = currFrame.getCurrOffset();
-//					break;
-//				default:
-//					break;
-//				}
 		      __IR.putCode("PUSH "+param_in);
 		      if(__currToken.getType() == TokenType.COMMA) next();
 		      // this is correct but bad for error detection
@@ -933,9 +911,9 @@ public class Parser {
 				FrameAbstract currFrame = StackAbstract.getCurrFrame();
 				currFrame.set__hasReturnValue(false);
 			}
-			for (String instruction : Conf.getStatusRestoreSequences()){
-				__IR.putCode(instruction);
-			}
+//			for (String instruction : Conf.getStatusRestoreSequences()){
+//				__IR.putCode(instruction);
+//			}
 			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
 			__returned = true;
 		} else {

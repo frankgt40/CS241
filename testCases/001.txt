@@ -3,13 +3,17 @@ main
 var input;
 
 function add(a, b);
-var i, f;
+var g, f;
+array [2] i;
 {
-	let i <- 1;
+	let i[0] <- 1;
+	let i[1] <- 1;
+	let g <- 1;
 	let f <- 1;
 	
-	let i <- i + f + a + b;
-	return i;
+	let g <- g + f + a + b;
+
+	return g;
 };
 
 function sub(a, b);
@@ -22,8 +26,11 @@ function sub(a, b);
 	let input <- call InputNum();
 	let input <- 9 / input;
 	let input <- 5 - input;
+	call OutputNum(22222);
 	let input <- call add(1, 2);
 	call OutputNum(input);
+	call OutputNum(22222);
+	call OutputNewLine();
 	let input <- call sub(4,2);
 	call OutputNum(input);
 	call OutputNewLine();

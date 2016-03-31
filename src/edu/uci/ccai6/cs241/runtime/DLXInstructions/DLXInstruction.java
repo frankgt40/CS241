@@ -171,7 +171,7 @@ public class DLXInstruction extends DLX {
 		if (arg1 instanceof SpilledRegisterArg) {
 			if (!currFrame.__fakeRegToMem.containsKey(arg1.toString())) {
 				// If current frame has not recorded this variable in memory
-				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P + " " + Conf.FRAME_P));
 				Local local = new Local();
 				local.__len = Conf.BLOCK_LEN;
 				local.__name = arg2.toString();
@@ -190,7 +190,7 @@ public class DLXInstruction extends DLX {
 		if (arg2 instanceof SpilledRegisterArg) {
 			if (!currFrame.__fakeRegToMem.containsKey(arg2.toString())) {
 				// If current frame has not recorded this variable in memory
-				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P + " " + Conf.FRAME_P));
 				Local local = new Local();
 				local.__len = Conf.BLOCK_LEN;
 				local.__name = arg2.toString();
@@ -210,7 +210,7 @@ public class DLXInstruction extends DLX {
 		if (arg3 instanceof SpilledRegisterArg) {
 			if (!currFrame.__fakeRegToMem.containsKey(arg3.toString())) {
 				// If current frame has not recorded this variable in memory
-				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P + " " + Conf.FRAME_P));
 				Local local = new Local();
 				local.__len = Conf.BLOCK_LEN;
 				local.__name = arg2.toString();

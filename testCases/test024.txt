@@ -21,8 +21,8 @@ var a, b, c, d, e, f, g, h;
 		if c < d then
 			let g <- ( g - 5 ) * h;
 			while g > h do
-				//call OutputNum(h);
-				let h <- h + 1
+				call OutputNum(h);
+				let h <- h + 1;
 			od;
 			let g <- g + h
 		else

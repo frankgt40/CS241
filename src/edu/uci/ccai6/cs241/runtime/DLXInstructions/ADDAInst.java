@@ -5,16 +5,19 @@ import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.ConstArg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
+import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 
 public class ADDAInst extends DLXInstruction {
 	public ADDAInst(Instruction instruction) {
-		int op = DLX.ADDI, arg1 = 0, arg2 = 0, arg3 = 0;// Not sure at all!
+		int op = DLX.ADDI, arg1 = 0, arg2 = 0, arg3 = 0;
 		Arg argI1 = instruction.arg0;
 		Arg argI2 = instruction.arg1;
 		Arg argI3 = instruction.arg2;
 		
-		if (!(argI3 instanceof RegisterArg)) {
-			wrong("AddiInst: target can only be register");
+		if (argI3 instanceof SpilledRegisterArg) {
+			arg3 = getRegNum(Conf.STORE_TARGET);
+		} else if (!(argI3 instanceof RegisterArg)) {
+			wrong("AddiInst: target can only be register!!!!");
 		} else {
 			arg3 = getRegNum(argI3.toString());
 		}
@@ -46,6 +49,9 @@ public class ADDAInst extends DLXInstruction {
 				__val = DLX.F1(op, arg3, arg1, arg2);
 				bellowValAssig(instruction);
 				return;
+			} else if (argI2 instanceof RegisterArg) {
+				arg2 = getRegNum(argI2.toString());
+				new DLXInstruction(new Instruction("1 ADD " + argI1 + " " + argI2 + " " +argI3));
 			} else {
 				wrong("AddiInst: argI2 can only be const");
 			}

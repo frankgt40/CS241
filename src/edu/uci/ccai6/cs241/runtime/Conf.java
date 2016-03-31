@@ -26,7 +26,7 @@ public class Conf extends DLX{
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
-	public static final boolean IS_DEBUG = false;
+	public static final boolean IS_DEBUG = true;
 	
 	public static List<String> __savedRegs = new ArrayList<String>();
 
@@ -54,23 +54,27 @@ public class Conf extends DLX{
 	// called after setFakeRegs(List<String> regs)
 	public static List<String> getStatusSavingSequences() {
 		List<String> rsl = new ArrayList<String>();
-		rsl.add("MOV " + Conf.STACK_P + " " + Conf.LOAD_REG_1); // temp store STACK_P value, will load into FRAME_P later
+//		rsl.add("MOV " + Conf.STACK_P + " " + Conf.LOAD_REG_1); // temp store STACK_P value, will load into FRAME_P later
 		for (String regs : Conf.__savedRegs) {
 			rsl.add("PUSH " + regs);
 		}
-		rsl.add("MOV " + Conf.LOAD_REG_1 + " " + Conf.FRAME_P); // now store it to FRAME_P
-		rsl.add("ADDi " + Conf.__savedRegs.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
+//		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // now store it to FRAME_P
+//		rsl.add("ADDi " + Conf.__savedRegs.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
 		return rsl;
 	}
 	
 	public static List<String> getStatusRestoreSequences() {
 		List<String> rsl = new ArrayList<String>();
-		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // destroy the frame
-		rsl.add("ADDi "+Conf.__savedRegs.size()*Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
+//		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // destroy the frame
+		rsl.add("1 SUBi "+ Conf.FRAME_P + " " + Conf.__savedRegs.size()*Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P); // Erase all the locals
+		
 		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
 			// in reverse order to pop the saved registers
-			rsl.add("POP " + Conf.__savedRegs.get(i));
+			rsl.add("1 POP " + Conf.__savedRegs.get(i));
 		}
+		
+		rsl.add("1 SUBi " + Conf.FRAME_P + " " + StackAbstract.getCurrFrame().__parameters.keySet().size() + " " + Conf.FRAME_P); // Erase all the parameters
+//		rsl.add("1 POP " + Conf.STACK_P);
 		
 
 		

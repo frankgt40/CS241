@@ -13,7 +13,8 @@ public class POPInst extends DLXInstruction {
 		Arg argI3 = instruction.arg2;
 
 		if (argI1 instanceof RegisterArg) {
-			__val = DLX.F1(DLX.POP, getRegNum(argI1.toString()), getRegNum(Conf.STACK_P), -Conf.STACK_GROW_DELTA);
+			new DLXInstruction(new Instruction("1 SUBi " + Conf.FRAME_P + " " + Conf.BLOCK_LEN + " " + Conf.FRAME_P));
+			__val = DLX.F1(DLX.POP, getRegNum(argI1.toString()), getRegNum(Conf.FRAME_P), 0);
 //			new DLXInstruction(new Instruction("1 SUBi " +  Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
 		} else {
 			wrong("POP: I need a register!");

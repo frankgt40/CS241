@@ -21,7 +21,9 @@ public class DLX {
 	static final int MemSize = 10000; // bytes in memory (divisible by 4)
 	static int M[] = new int [MemSize/4];
 
-    
+
+	static int[] program;
+	
 	public static void main(String argv[]) throws Exception {
 		Conf.initialize();
 		String fileName = "output/001.dlx";
@@ -32,7 +34,7 @@ public class DLX {
 		while ((line = reader.readLine()) != null) {
 			code.add(DLXInstruction.str2int(line));
 		}
-		int[] program = new int[code.size()+1];
+		program = new int[code.size()+1];
 		for (int i = 0; i < code.size(); i++) {
 			program[i] = code.get(i).intValue();
 		}
@@ -71,10 +73,15 @@ public class DLX {
 				System.out.println();
 				System.out.print("[PC: "+PC+"]Instruction: "+DLX.disassemble(M[PC]));
 				System.out.println("All the registers we used: ");
-				for (String reg : Conf.__savedRegs) {
-					System.out.println("["+reg+"]: "+R[Conf.getRegNum(reg)]);
+				for (int i = 0; i < 31; i++) {
+					System.out.print("[R"+i+"]: "+R[i]+",");
 				}
 				System.out.println("["+Conf.RETURN_ADDRESS_REG+"]: "+R[Conf.getRegNum(Conf.RETURN_ADDRESS_REG)]);
+				System.out.println("Stack: ");
+				for (int i = program.length; i < R[Conf.getRegNum(Conf.FRAME_P)]/4;i++) {
+					System.out.println(M[i]);
+				}
+				
 			}
 			int nextPC = PC + 1;
 			if (format==2) {

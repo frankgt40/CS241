@@ -52,7 +52,7 @@ public class ADDiInst extends DLXInstruction{
 				return;
 			} else if (argI2 instanceof RegisterArg) {
 				arg2 = getRegNum(argI2.toString());
-				new DLXInstruction(new Instruction("1 ADD " + arg1 + " " + arg2 + " " +arg3));
+				new DLXInstruction(new Instruction("1 ADD " + argI1 + " " + argI2 + " " +argI3));
 			} else {
 				wrong("AddiInst: argI2 can only be const");
 			}
