@@ -20,18 +20,17 @@ public class CALLInst extends DLXInstruction {
 			new DLXInstruction(new Instruction("1 POP " + Conf.LOAD_REG_1));
 			__val = DLX.F2(DLX.WRD, 0, getRegNum(Conf.LOAD_REG_1), 0);
 			bellowValAssig(instruction);
+			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 		} else if (funcName.equals("OutputNewLine")) {
 			// Dealing with F1 type of instruction
 			__val = DLX.F1(DLX.WRL, 0, 0, 0);
 			bellowValAssig(instruction);
+			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 			return;
 		} else if (funcName.equals("InputNum")) {
 			__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
 			bellowValAssig(instruction);
-		 //else if (StackAbstract.getFrame(funcName).){
-//			wrong("CALLInst: something is wrong!");
-	//	}
-		//System.out.println("End of CALLInst");
+			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 		} else {
 			// Store R31 (return address)
 			
@@ -51,7 +50,7 @@ public class CALLInst extends DLXInstruction {
 			
 		}
 
-		new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
+//		new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 		return;
 	}
 }
