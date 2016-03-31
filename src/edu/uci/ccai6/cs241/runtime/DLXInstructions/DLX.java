@@ -92,6 +92,11 @@ public class DLX {
 				case ADD:
 				case ADDI:
 					R[a] = R[b] + c;
+					if (Conf.IS_DEBUG) {
+						if (a == 27) {
+							System.out.println("R[27]: " + R[a] +"@@@@@@@@@@@@@@");
+						}
+					}
 					break;
 				case SUB:
 				case SUBI:
