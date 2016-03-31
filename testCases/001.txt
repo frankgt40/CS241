@@ -21,8 +21,8 @@ function sub(a, b);
 
 {
 	call OutputNum(22222);
-	//let rsl <- call add(1, 2);
-	call OutputNum(call add(1, 2));
+	let rsl <- call add(1, 2);
+	call OutputNum(rsl);
 	call OutputNewLine();
 	call OutputNum(22222);
 }

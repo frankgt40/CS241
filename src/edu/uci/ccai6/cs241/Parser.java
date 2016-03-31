@@ -369,8 +369,8 @@ public class Parser {
 				reportError("Missing a \')\'! In function formal parameter part.");
 			}
 			int numParams = paramNames.size();
-			for(int i=0; i<numParams; i++) {
-		        AssignDestination paramAddr = __IR.putCode("ADDi " +Conf.STACK_P + " " + 4*(numParams-i-1));
+			for(int i=numParams-1; i>=0; i--) {
+		        AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.STACK_P + " " + Conf.BLOCK_LEN*(numParams-i-1));
 		        AssignDestination paramVal = __IR.putCode("LOAD "+paramAddr.getDestination());
 		        __IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + paramNames.get(i));
 //		        __IR.putCode("POP " +__funUtil.getFunName() + __SEP + tokenValue);
