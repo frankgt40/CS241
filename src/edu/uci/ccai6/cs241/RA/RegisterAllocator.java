@@ -352,12 +352,11 @@ public class RegisterAllocator {
 				inst.arg2 = new RegisterArg(Conf.RETURN_VAL_NUM);
 				colors.put(inst.pointer.pointer, Conf.RETURN_VAL_NUM);
 			} else {
-			
 				// TODO: correct order?
 				if(colors.containsKey(ptr)) {
 					// arg1 is for LOAD and maybe sth else?
 					if(inst.arg1 == null) inst.arg1 = getRegister(colors.get(ptr));
-					else inst.arg2 = getRegister(colors.get(ptr));
+					else if(!(inst.arg2 instanceof RegisterArg)) inst.arg2 = getRegister(colors.get(ptr));
 				} else if(inst.arg2 instanceof RegisterArg) {
 					
 				} else {
