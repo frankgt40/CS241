@@ -72,16 +72,16 @@ public class Conf extends DLX{
 		FrameAbstract frame = StackAbstract.getCurrFrame();
 		int len = frame.getCurrOffset();
 		
-		rsl.add("1 SUBi "+ Conf.FRAME_P + " " + len*Conf.STACK_GROW_DELTA + " " + Conf.FRAME_P); // Erase all the locals
+		rsl.add("1 SUBi "+ Conf.STACK_P + " " + len*Conf.STACK_GROW_DELTA + " " + Conf.STACK_P); // Erase all the locals
 		
 		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
 			// in reverse order to pop the saved registers
 			rsl.add("1 POP " + Conf.__savedRegs.get(i));
 		}
 		
-		rsl.add("1 SUBi " + Conf.FRAME_P + " " + Conf.BLOCK_LEN*StackAbstract.getCurrFrame().__parameters.keySet().size() + " " + Conf.FRAME_P); // Erase all the parameters
+		rsl.add("1 SUBi " + Conf.STACK_P + " " + Conf.BLOCK_LEN*StackAbstract.getCurrFrame().__parameters.keySet().size() + " " + Conf.STACK_P); // Erase all the parameters
 //		rsl.add("1 MOV " + Conf.STACK_P + " " +Conf.FRAME_P); // destroy the frame
-		rsl.add("1 POP " + Conf.STACK_P);
+		rsl.add("1 POP " + Conf.FRAME_P);
 		
 
 		

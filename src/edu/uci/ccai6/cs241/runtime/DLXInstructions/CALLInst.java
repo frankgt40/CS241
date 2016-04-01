@@ -14,23 +14,23 @@ public class CALLInst extends DLXInstruction {
 		Arg argI3 = instruction.arg2;
 		String funcName = argI1.toString();
 		
-		new DLXInstruction(new Instruction("1 ADD " + Conf.FRAME_P + " "  + Conf.ZERO_REG + " " + Conf.STACK_P));
+		new DLXInstruction(new Instruction("1 ADD " + Conf.STACK_P + " "  + Conf.ZERO_REG + " " + Conf.FRAME_P));
 		// Pre-defined functions: dealing with F2 type instructions
 		if (funcName.equals("OutputNum")) {
 			new DLXInstruction(new Instruction("1 POP " + Conf.LOAD_REG_1));
 			__val = DLX.F2(DLX.WRD, 0, getRegNum(Conf.LOAD_REG_1), 0);
 			bellowValAssig(instruction);
-			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
+			new DLXInstruction(new Instruction("1 POP "+ Conf.FRAME_P));
 		} else if (funcName.equals("OutputNewLine")) {
 			// Dealing with F1 type of instruction
 			__val = DLX.F1(DLX.WRL, 0, 0, 0);
 			bellowValAssig(instruction);
-			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
+			new DLXInstruction(new Instruction("1 POP "+ Conf.FRAME_P));
 			return;
 		} else if (funcName.equals("InputNum")) {
 			__val = DLX.F2(DLX.RDI, getRegNum(Conf.RETURN_VAL_REG), 0, 0);
 			bellowValAssig(instruction);
-			new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
+			new DLXInstruction(new Instruction("1 POP "+ Conf.FRAME_P));
 		} else {
 			// Store R31 (return address)
 			
@@ -50,7 +50,6 @@ public class CALLInst extends DLXInstruction {
 			
 		}
 
-//		new DLXInstruction(new Instruction("1 POP "+ Conf.STACK_P));
 		return;
 	}
 }

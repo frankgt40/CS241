@@ -38,7 +38,7 @@ public class Parser {
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/haha.txt");
+		Parser pa = new Parser("testCases/factorial.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -372,7 +372,7 @@ public class Parser {
 			for (String para : paramNames) {
 				Local parameter = StackAbstract.getCurrFrame().__parameters.get(para);
 				int delta = Conf.BLOCK_LEN*numParams - parameter.__offset;
-				AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.STACK_P + " " + delta); 
+				AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.FRAME_P + " " + delta); 
 				AssignDestination paramVal = __IR.putCode("LOAD " + paramAddr.getDestination());
 				__IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + para);
 			}
@@ -647,7 +647,7 @@ public class Parser {
 		    
 		    if(__currToken.getType() != TokenType.L_PARENTHESIS) return __IR.putCode("CALL "+funcName);
 		    next(); // (
-		    __IR.putCode("PUSH "+Conf.STACK_P);
+		    __IR.putCode("PUSH "+Conf.FRAME_P);
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
 		      AssignDestination param_in = expression();
 
