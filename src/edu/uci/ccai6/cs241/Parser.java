@@ -372,8 +372,8 @@ public class Parser {
 			for (String para : paramNames) {
 				Local parameter = StackAbstract.getCurrFrame().__parameters.get(para);
 				int delta = Conf.BLOCK_LEN*numParams - parameter.__offset;
-				AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.STACK_P + " " + delta + " " + Conf.LOAD_REG_1); 
-				AssignDestination paramVal = __IR.putCode("LOAD "+ Conf.LOAD_REG_1 + " " + paramAddr.getDestination());
+				AssignDestination paramAddr = __IR.putCode("SUBi " +Conf.STACK_P + " " + delta); 
+				AssignDestination paramVal = __IR.putCode("LOAD " + paramAddr.getDestination());
 				__IR.putCode("MOVE " +paramVal + " " + __funUtil.getFunName() + __SEP + para);
 			}
 //			for(int i=numParams-1; i>=0; i--) {
