@@ -51,11 +51,35 @@ public class Lexer {
 			if (isWS(ch)) 
 				continue;
 			// Eat all the comments
-			if (ch == '/' && __pBuffer.oracle() == '/') {
-				while ((ch = __pBuffer.next()) != '\n')
-					lexeme += ch;
-				new Reporter(Reporter.ReportType.VERBOSE,fileName(), lineNum(), charPos(), "Ignored comments: " + lexeme);
-				continue;
+			if (ch == '/' ) {
+				if (__pBuffer.oracle() == '/') {
+
+					while ((ch = __pBuffer.next()) != '\n')
+						lexeme += ch;
+					new Reporter(Reporter.ReportType.VERBOSE, fileName(), lineNum(), charPos(),
+							"Ignored comments: " + lexeme);
+					continue;
+				} else if (__pBuffer.oracle() == '*') {
+					while (true) {
+						if (__pBuffer.oracle() != '*')  {
+							ch = __pBuffer.next();
+							lexeme += ch;
+						} else {
+							ch = __pBuffer.next();
+							lexeme += ch;
+							if (__pBuffer.oracle() == '/') {
+								ch = __pBuffer.next();
+								lexeme += ch;
+								new Reporter(Reporter.ReportType.VERBOSE, fileName(), lineNum(), charPos(),
+										"Ignored comments: " + lexeme);
+								break;
+							} else {
+								continue;
+							}
+						}
+					}
+					continue;
+				}
 			}
 			if (ch == '#') {
 				while ((ch = __pBuffer.next()) != '\n')

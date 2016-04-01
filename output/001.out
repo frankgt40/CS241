@@ -1,5 +1,5 @@
 0 data:
-1 add:
+1 factIter:
 2 PUSH R1
 3 PUSH R2
 4 PUSH R3
@@ -11,59 +11,72 @@
 10 PUSH R9
 11 PUSH R10
 12 PUSH R31
-13 SUBi R29 8 R26
-14 LOAD R26 (13)
-15 MOVE (14) add_a
-16 SUBi R29 4 R26
-17 LOAD R26 (16)
-18 MOVE (17) add_b
-19 MOVE 1 add_g
-20 MOVE 1 add_f
-21 ADD add_g add_f
-22 ADD (21) add_a
-23 ADD (22) add_b
-24 MOVE (23) add_g
-25 MOV add_g R27
-26 RET R31
-27 sub:
-28 PUSH R1
-29 PUSH R2
-30 PUSH R3
-31 PUSH R4
-32 PUSH R5
-33 PUSH R6
-34 PUSH R7
-35 PUSH R8
-36 PUSH R9
-37 PUSH R10
-38 PUSH R31
-39 SUBi R29 8 R26
-40 LOAD R26 (39)
-41 MOVE (40) sub_a
-42 SUBi R29 4 R26
-43 LOAD R26 (42)
-44 MOVE (43) sub_b
-45 SUB sub_a sub_b
-46 MOVE (45) sub_a
-47 MOV sub_a R27
-48 RET R31
-49 .text
-50 main:
-51 PUSH R29
-52 PUSH 22222
-53 CALL OutputNum
-54 PUSH R29
-55 PUSH 1
-56 PUSH 2
-57 CALL add
-58 ADDi (57) 0
-59 MOVE (58) main_rsl
-60 PUSH R29
-61 PUSH main_rsl
-62 CALL OutputNum
-63 PUSH R29
-64 CALL OutputNewLine
-65 PUSH R29
-66 PUSH 22222
-67 CALL OutputNum
-68 end
+13 SUBi R29 4
+14 LOAD (13)
+15 MOVE (14) factIter_n
+16 MOVE 1 factIter_i
+17 MOVE 1 factIter_f
+25 PHI factIter_f factIter_f factIter_f
+24 PHI factIter_i factIter_i factIter_i
+18 CMP factIter_i factIter_n
+26 BGT R24 (27)
+19 MUL factIter_f factIter_i
+20 MOVE (19) factIter_f
+21 ADDi factIter_i 1
+22 MOVE (21) factIter_i
+23 BRA (25)
+27 NOOP
+28 MOV factIter_f R27
+29 RET R31
+30 factRec:
+31 PUSH R1
+32 PUSH R2
+33 PUSH R3
+34 PUSH R4
+35 PUSH R5
+36 PUSH R6
+37 PUSH R7
+38 PUSH R8
+39 PUSH R9
+40 PUSH R10
+41 PUSH R31
+42 SUBi R29 4
+43 LOAD (42)
+44 MOVE (43) factRec_n
+45 CMP factRec_n 1
+46 BGT R24 (48)
+47 MOV 1 R27
+48 PUSH R29
+49 SUBi factRec_n 1
+50 PUSH (49)
+51 CALL factRec
+52 MUL (51) factRec_n
+53 MOV (52) R27
+54 RET R31
+55 .text
+56 main:
+57 PUSH R29
+58 CALL InputNum
+59 ADDi (58) 0
+60 MOVE (59) main_input
+61 PUSH R29
+62 PUSH main_input
+63 CALL factIter
+64 ADDi (63) 0
+65 MOVE (64) main_rsl
+66 PUSH R29
+67 PUSH main_rsl
+68 CALL OutputNum
+69 PUSH R29
+70 CALL OutputNewLine
+71 PUSH R29
+72 PUSH main_input
+73 CALL factRec
+74 ADDi (73) 0
+75 MOVE (74) main_rsl
+76 PUSH R29
+77 PUSH main_rsl
+78 CALL OutputNum
+79 PUSH R29
+80 CALL OutputNewLine
+81 end

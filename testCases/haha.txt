@@ -1,11 +1,12 @@
 #Simple parsing test
 main
-var input;
+var input, rsl;
 
 function factIter(n);
-var i, f, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16;
+var i, f;//, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16;
 {
 	let i <- 1;
+	/*
 	let i1 <- 1;
 	let i2 <- 1;
 	let i3 <- 1;
@@ -21,13 +22,13 @@ var i, f, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16;
 	let i13 <- 1;
 	let i14 <- 1;
 	let i15 <- 1;
-	let i16 <- 1;
+	let i16 <- 1;*/
 	let f <- 1;
 	while i <= n do
 		let f <- f * i;
 		let i <- i + 1
 	od;
-	
+/*	
 	call OutputNum(i);
 	call OutputNum(i1);
 	call OutputNum(i2);
@@ -45,7 +46,8 @@ var i, f, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16;
 	call OutputNum(i14);
 	call OutputNum(i15);
 	call OutputNum(i16);
-	return f
+	*/
+	return f;
 };
 
 function factRec(n);
@@ -58,9 +60,11 @@ function factRec(n);
 
 {
 	let input <- call InputNum();
-	call OutputNum(call factIter(input));
+	let rsl <- call factIter(input);
+	call OutputNum(rsl);
 	call OutputNewLine();
-	call OutputNum(call factRec(input));
-	call OutputNewLine()
+	let rsl <- call factRec(input);
+	call OutputNum(rsl);
+	call OutputNewLine();
 }
 .
