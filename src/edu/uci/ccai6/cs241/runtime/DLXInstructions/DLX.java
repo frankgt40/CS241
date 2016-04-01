@@ -44,6 +44,7 @@ public class DLX {
 		
 		R[Conf.getRegNum(Conf.FRAME_P)] = program.length * Conf.BLOCK_LEN;
 		R[Conf.getRegNum(Conf.STACK_P)] = program.length * Conf.BLOCK_LEN;
+		R[Conf.getRegNum(Conf.STATIC_P)] = MemSize-1;
 		execute();
 	}
 
@@ -179,6 +180,7 @@ public class DLX {
 				case STW:
 				case STX: // remember: c == R[origc] because of F2 format
 					M[(R[b]+c) / 4] = R[a]; 
+//					System.out.println("STORE "+R[a]+" from reg "+ a+" to mem "+(R[b]+c)/4);
 					break;
 				case POP:
 					R[a] = M[R[b] / 4];

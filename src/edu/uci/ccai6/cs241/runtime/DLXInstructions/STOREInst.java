@@ -11,9 +11,10 @@ public class STOREInst extends DLXInstruction {
 		arg1 = instruction.arg0;
 		arg2 = instruction.arg1;
 		if (arg1 instanceof RegisterArg) {
-			__val = DLX.F2(DLX.STX, getRegNum(arg2.toString()), getRegNum(Conf.STACK_P), getRegNum(arg1.toString()));
+			__val = DLX.F2(DLX.STX,  getRegNum(arg1.toString()), getRegNum(Conf.ZERO_REG), getRegNum(arg2.toString()));
 		}  else {
-			__val = DLX.F1(DLX.STW, getRegNum(arg2.toString()), getRegNum(Conf.STACK_P), Integer.parseInt(arg1.toString()));	
+			new DLXInstruction(new Instruction("1 MOV " + getRegNum(arg1.toString()) + " " + Conf.LOAD_REG_1));
+			__val = DLX.F1(DLX.STX, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.ZERO_REG), getRegNum(arg2.toString()));	
 		}
 		bellowValAssig(instruction);
 		return;
