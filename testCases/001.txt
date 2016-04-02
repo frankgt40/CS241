@@ -1,7 +1,7 @@
 #Simple parsing test
 main
 
-var rsl;
+var rsl, i;
 function add(a, b);
 var g, f;
 {
@@ -14,8 +14,11 @@ var g, f;
 };
 
 function sub(a, b);
+array[6][10] x;
 {
 	let a <- a - b;
+	let x[1][5] <- x[1][5]+a;
+	call OutputNum(x[1][5]);
 	return a;
 };
 
@@ -23,8 +26,12 @@ function sub(a, b);
 	call OutputNum(22222);
 	let rsl <- call add(1, 2);
 	call OutputNum(rsl);
-	let rsl <- call sub(1, 2);
-	call OutputNum(rsl);
+	
+	while i<10000 do
+		let rsl <- call sub(1, 2);
+		call OutputNum(rsl);
+		let i<-i+1;
+	od;
 	call OutputNewLine();
 	call OutputNum(22222);
 }
