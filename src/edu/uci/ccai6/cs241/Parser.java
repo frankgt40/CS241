@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -691,11 +692,13 @@ public class Parser {
 			while (__currToken.getType() == Token.TokenType.L_BRACKET) {
 			    if(offset == -1 && !isArray) {
 			    	// fix var at first iteration..
+					FrameAbstract frame = StackAbstract.getCurrFrame();
+					int frameOffset = frame.__fakeRegToMem.get(originalIdName).__offset;
 			    	int stackOffset = VarScoper.storeLocalArray(idName);
 			    	if(stackOffset == -1) {
 			    		reportError(idName+" not a local array");
 			    	}
-			    	var = __IR.putCode("SUBi "+Conf.FRAME_P+" "+stackOffset);
+			    	var = __IR.putCode("ADDi "+Conf.FRAME_P+" "+frameOffset);
 			    }
 			    isArray = true;
 			    var.setIsArray(true);
@@ -705,7 +708,7 @@ public class Parser {
 				AssignDestination num = expression();
 				code = "MULi " + num.getDestination() + " " + IRGenerator.__DW; 		
 				num = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-				code = "ADDA " + var.getDestination() + " " + num.getDestination(); //a[i]= a + i * 4;
+				code = "ADD " + var.getDestination() + " " + num.getDestination(); //a[i]= a + i * 4;
 				var = __IR.putCode(code); //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				//__currToken = __lx.nextToken();
 				if (__currToken.getType() == Token.TokenType.R_BRACKET) {
@@ -860,7 +863,8 @@ public class Parser {
 		next();
 		
 		// compute intersection of assigned vars in both blocks
-		Set<String> whileVars = whileSS.getAssignedVars();
+		Set<String> whileVars = new HashSet<String>();
+		if(whileSS != null) whileVars = whileSS.getAssignedVars();
 		// point to CMP if no PHI's exist or first PHI pointer otherwise
 		// location of next PHI is curr+1+sizeof(PHIS)
 		__IR.putCode("BRA "+new AssignDestination(whileVars.size() == 0 ? startBlockPtr : __IR.getCurrPc()+1+whileVars.size()).getDestination());

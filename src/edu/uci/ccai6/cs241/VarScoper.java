@@ -1,9 +1,11 @@
 package edu.uci.ccai6.cs241;
 import java.util.*;
+
 import edu.uci.ccai6.cs241.*;
 import edu.uci.ccai6.cs241.runtime.FrameAbstract;
 import edu.uci.ccai6.cs241.runtime.Local;
 import edu.uci.ccai6.cs241.runtime.LocalType;
+import edu.uci.ccai6.cs241.runtime.StackAbstract;
 
 public class VarScoper {
 	private static List<String> __level1 = new ArrayList<String>();
@@ -59,11 +61,12 @@ public class VarScoper {
 	 */
 	public static void declareArray(String name, int size) {
 		String currFuncName = VarScoper.__currScope;
-		FrameAbstract frame = new FrameAbstract(currFuncName);
+		FrameAbstract frame = StackAbstract.getCurrFrame();
 		Local thisArray = new Local();
 		thisArray.__len = size;
 		thisArray.__name = name;
 		thisArray.__type = LocalType.ARRAY;
+		thisArray.__offset = frame.findCurrOffset();
 		int offset = frame.findCurrOffset() + size;
 		frame.__fakeRegToMem.put(name, thisArray);
 		frame.setCurrOffset(offset);

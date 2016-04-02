@@ -62,6 +62,8 @@ public class Conf extends DLX{
 		for (String regs : Conf.__savedRegs) {
 			rsl.add("PUSH " + regs);
 		}
+		FrameAbstract frame = StackAbstract.getCurrFrame();
+		frame.setCurrOffset(frame.getCurrOffset()+Conf.__savedRegs.size()*Conf.BLOCK_LEN);
 //		rsl.add("MOV " + Conf.FRAME_P + " " + Conf.STACK_P); // now store it to FRAME_P
 //		rsl.add("ADDi " + Conf.__savedRegs.size() * Conf.STACK_GROW_DELTA + " " + Conf.STACK_P+ " " + Conf.STACK_P);
 		return rsl;
@@ -70,9 +72,11 @@ public class Conf extends DLX{
 	public static List<String> getStatusRestoreSequences() {
 		List<String> rsl = new ArrayList<String>();
 		FrameAbstract frame = StackAbstract.getCurrFrame();
-		int len = frame.getCurrOffset();
 		
-		rsl.add("1 SUBi "+ Conf.STACK_P + " " + len*Conf.STACK_GROW_DELTA + " " + Conf.STACK_P); // Erase all the locals
+		// subtract saved registers since FP starts point to saved R1
+		int len = frame.getCurrOffset()-Conf.__savedRegs.size()*Conf.STACK_GROW_DELTA;
+		
+		rsl.add("1 SUBi "+ Conf.STACK_P + " " + len + " " + Conf.STACK_P); // Erase all the locals
 		
 		for (int i = Conf.__savedRegs.size()-1; i >=0 ; i--) {
 			// in reverse order to pop the saved registers
