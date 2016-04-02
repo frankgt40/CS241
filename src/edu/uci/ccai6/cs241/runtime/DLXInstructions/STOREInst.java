@@ -12,15 +12,10 @@ public class STOREInst extends DLXInstruction {
 		arg1 = instruction.arg0;
 		arg2 = instruction.arg1;
 		if (arg1 instanceof RegisterArg) {
-			if (arg2 instanceof ConstArg) {
-			__val = DLX.F2(DLX.STX,  getRegNum(arg1.toString()), getRegNum(Conf.FRAME_P), Integer.parseInt(arg2.toString()));
-			} else {
-				wrong("STOREInst: arg2 must be a const!");
-			}
+			__val = DLX.F2(DLX.STX,  getRegNum(arg1.toString()), getRegNum(Conf.ZERO_REG), getRegNum(arg2.toString()));
 		}  else {
-//			new DLXInstruction(new Instruction("1 MOV " + getRegNum(arg1.toString()) + " " + Conf.LOAD_REG_1));
-//			__val = DLX.F1(DLX.STX, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.ZERO_REG), getRegNum(arg2.toString()));	
-			wrong("STOREInst: arg1 must be a target register!");
+			new DLXInstruction(new Instruction("1 MOV " + getRegNum(arg1.toString()) + " " + Conf.LOAD_REG_1));
+			__val = DLX.F1(DLX.STX, getRegNum(Conf.LOAD_REG_1), getRegNum(Conf.ZERO_REG), getRegNum(arg2.toString()));	
 		}
 		bellowValAssig(instruction);
 		return;
