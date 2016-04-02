@@ -39,7 +39,7 @@ public class Parser {
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/factorial.txt");
+		Parser pa = new Parser("testCases/001.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -141,6 +141,9 @@ public class Parser {
 		if (__currToken.getValue().equals("main")) {
 			VarScoper.enter("main");
 			String funName = __currToken.getValue();
+			FrameAbstract frame = new FrameAbstract("main");
+			StackAbstract.addFrame(frame);
+			StackAbstract.setCurrFrame("main");
 			__IR.putCode("data:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__currToken = __lx.nextToken();
 			while (__currToken.getValue().equals("var") || __currToken.getValue().equals("array")) {
@@ -157,6 +160,7 @@ public class Parser {
 			//__IR.print();
 			
 			if (__currToken.getType() == Token.TokenType.L_BRACE) {
+				StackAbstract.setCurrFrame("main");
 				__currToken = __lx.nextToken();
 				// There is a statSequence
 				statSequence();
