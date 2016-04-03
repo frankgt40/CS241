@@ -28,7 +28,7 @@ function factRec(n);
 	let rsl <- call factIter(input);
 	call OutputNum(rsl);
 	call OutputNewLine();
-	let rsl <- call factIter(input);
+	let rsl <- call factRec(input);
 	call OutputNum(rsl);
 	call OutputNewLine();
 }

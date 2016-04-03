@@ -41,7 +41,7 @@ public class Parser {
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/test003.txt");
+		Parser pa = new Parser("testCases/factorial.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -426,12 +426,12 @@ public class Parser {
 			reportError("Missing a \'{\'! In function function body.");
 		}
 		
-		__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
-//		if (!__returned) {
-//			__IR.putCode("RET R31");
-//		} else {
-//			__returned = false;
-//		}
+//		__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+		if (!__returned) {
+			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+		} else {
+			__returned = false;
+		}
 	}
 	protected AssignDestination statSequence() {
 		AssignDestination left = statement();
@@ -944,8 +944,8 @@ public class Parser {
 //			for (String instruction : Conf.getStatusRestoreSequences()){
 //				__IR.putCode(instruction);
 //			}
-//			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
-//			__returned = true;
+			__IR.putCode("RET " + Conf.RETURN_ADDRESS_REG);
+			__returned = true;
 		} else {
 			new Reporter(Reporter.ReportType.ERROR, "No return keyword!");
 		}
