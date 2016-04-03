@@ -85,6 +85,9 @@ public class VarScoper {
 		}
 		__arraySize.put(fullName, size);
 	}
+	public static int getArraySize(String fullName) {
+		return __arraySize.containsKey(fullName) ? __arraySize.get(fullName) : 0;
+	}
 	public static void declare(String varName) {
 		if (__inLevel2) {
 			if (__level2.contains(varName)) {
@@ -138,7 +141,9 @@ public class VarScoper {
               String genName = "main" + __CONNECTOR + varName;
               
               // for optimization, not all vars in main have to be global variable
-              if(!__currScope.equals("main")) storeGlobalVar(genName);
+              if(!__currScope.equals("main")) {
+            	  storeGlobalVar(genName);
+              }
               return genName;
 			} else {
 				new Reporter(Reporter.ReportType.ERROR, "Undefined variable:" + varName + "!");

@@ -468,7 +468,7 @@ public class SSAConverter {
 			for(Instruction inst : bb.instructions) {
 			  
 				// TODO: lazy way to fix this ... havent thought about the best way
-			    if(inst.op != Operation.MOV && inst.skipOptimize()) { 
+			    if(inst.skipCopyProp()) { 
 			    	bb.instructions.set(index, inst);
 		            index++;
 		            continue;

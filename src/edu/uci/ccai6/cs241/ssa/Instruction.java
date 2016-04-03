@@ -118,6 +118,10 @@ public class Instruction {
 	      || (arg1 != null && arg1 instanceof RegisterArg) || (arg2 != null && arg2 instanceof RegisterArg);
 	}
 	
+	public boolean skipCopyProp() {
+		  return  (op == Operation.CALL) || (op == Operation.FUNC);
+	}
+	
 	public String toString() {
 		String out = pointer+" ";
 		out += op+" ";
