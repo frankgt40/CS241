@@ -37,9 +37,11 @@ public class Parser {
 	private PrintWriter __out;
 	private boolean __returned = false;
 	
+	private static int mainLocalArraySize = 0;
+	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/001.txt");
+		Parser pa = new Parser("testCases/test003.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
@@ -158,6 +160,7 @@ public class Parser {
 			__IR.putCode(".text");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			__IR.putCode("main:");//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			//__IR.print();
+			if(mainLocalArraySize != 0) __IR.putCode("ADDi "+Conf.STACK_P+" "+mainLocalArraySize+" "+Conf.STACK_P);
 			
 			if (__currToken.getType() == Token.TokenType.L_BRACE) {
 				StackAbstract.setCurrFrame("main");
@@ -193,7 +196,18 @@ public class Parser {
 			//rsl.setFirstPart(rsl.getFirstPart() + __IR.getANewVarAddress() + ", "); //New var address in IR!
 			//String fixed = rsl.fix(__IR.getScopeName()+__currToken.getValue(), __IR.getANewVarAddress()); 
 			if(rsl.getType() == Type.ARRAY) {
-				__IR.putCode("ADDi "+Conf.STACK_P+" "+rsl.__size+" "+Conf.STACK_P);
+				// TODO: how to not increase SP when its a global array?
+				// thats hard to do since we wont know the array is global until
+				// we went through all functions,
+				// 
+				// 
+				if(!StackAbstract.getCurrFrame().get__funcName().equals("main"))
+					__IR.putCode("ADDi "+Conf.STACK_P+" "+rsl.__size+" "+Conf.STACK_P);
+				else {
+					// if its an array in main, we want to call ADDi after
+					// calling all other functions
+					mainLocalArraySize += rsl.__size;
+				}
 				VarScoper.declare(__currToken.getValue(), rsl.__size);
 			} else {
 				VarScoper.declare(__currToken.getValue());
@@ -649,10 +663,10 @@ public class Parser {
 		    next();
 		    String funcName = __currToken.getValue();
 		    next();
-		    
+
+		    __IR.putCode("PUSH "+Conf.FRAME_P);
 		    if(__currToken.getType() != TokenType.L_PARENTHESIS) return __IR.putCode("CALL "+funcName);
 		    next(); // (
-		    __IR.putCode("PUSH "+Conf.FRAME_P);
 		    while(__currToken.getType() != TokenType.R_PARENTHESIS) {
 		      AssignDestination param_in = expression();
 
@@ -688,7 +702,8 @@ public class Parser {
 			int offset;
             if( (offset = VarScoper.getGlobalVarOffset(idName)) != -1) {
               // get offset of global variable
-              var = __IR.putCode("SUBi "+Conf.STATIC_P+" "+offset);
+            	offset += VarScoper.getArraySize(idName);
+            	var = __IR.putCode("SUBi "+Conf.STATIC_P+" "+offset);
             }
             
             String code = "";
@@ -726,7 +741,9 @@ public class Parser {
 			// we LOAD if
 			// 1) is a right side in assignment AND
 			// 2) is in memory => either array or global variable
-            if(!isDest && (isArray || (offset != -1))) var = __IR.putCode("LOAD "+var.getDestination());
+            if(!isDest && (isArray || (offset != -1))) {
+            	var = __IR.putCode("LOAD "+var.getDestination());
+            }
 			//__IR.print();
 			// return the idName who has the address of the array item
 //			num.setDestination(idName);
