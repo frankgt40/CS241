@@ -177,6 +177,7 @@ public class RegisterAllocator {
 	/**
 	 * Insert a move instruction to the last location of dest block
 	 * by last means, last but before branch or CMP
+	 * TODO: is it correct? not before CMP, maybe beginning of block?
 	 * @param move
 	 * @param dest
 	 */
@@ -220,7 +221,6 @@ public class RegisterAllocator {
 				for(Instruction whileInst : bb.nextIndirect.instructions) {
 					switch(whileInst.op) {
 					case CMP:
-					case LOAD:
 						if(whileInst.arg1 instanceof PointerArg) {
 							int num = ((PointerArg)whileInst.arg1).pointer;
 							sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
@@ -236,9 +236,7 @@ public class RegisterAllocator {
 						}
 						continue;
 					default:
-						if(!whileInst.op.isBranch()) {
-							new Reporter(ReportType.ERROR, "In RA, cmp block expects branch but its "+whileInst);
-						}
+					  // otherwise do nothing
 						break;
 					}
 				}
