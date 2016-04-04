@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import edu.uci.ccai6.cs241.Reporter;
+import edu.uci.ccai6.cs241.Reporter.ReportType;
 import edu.uci.ccai6.cs241.runtime.Conf;
 import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.BasicBlock;
@@ -216,14 +218,29 @@ public class RegisterAllocator {
 					&& bb.index == bb.nextIndirect.nextDirect.index) {
 				// if its in while block, get def in PHI's in while statement
 				for(Instruction whileInst : bb.nextIndirect.instructions) {
-					if(whileInst.op != Operation.PHI) 
-						break; // no more phi and we dont care about the rest, exit
-					if(!(whileInst.arg0 instanceof PointerArg))
+					switch(whileInst.op) {
+					case CMP:
+					case LOAD:
+						if(whileInst.arg1 instanceof PointerArg) {
+							int num = ((PointerArg)whileInst.arg1).pointer;
+							sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
+							alive.add(num);
+							universe.add(num);
+						}
+					case PHI:
+						if(whileInst.arg0 instanceof PointerArg) {
+							int num = ((PointerArg)whileInst.arg0).pointer;
+							sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
+							alive.add(num);
+							universe.add(num);
+						}
 						continue;
-					int num = ((PointerArg)whileInst.arg0).pointer;
-					sparseEdges.addAll(SimpleEdge.createEdges(num, alive));
-					alive.add(num);
-					universe.add(num);
+					default:
+						if(!whileInst.op.isBranch()) {
+							new Reporter(ReportType.ERROR, "In RA, cmp block expects branch but its "+whileInst);
+						}
+						break;
+					}
 				}
 			}
 			numInsts += bb.instructions.size();
