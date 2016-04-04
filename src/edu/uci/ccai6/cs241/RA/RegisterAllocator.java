@@ -182,7 +182,7 @@ public class RegisterAllocator {
 		int idx;
 		for(idx=dest.instructions.size()-1; idx>=0; idx--) {
 			Instruction prevBlockInst = dest.instructions.get(idx);
-			if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP) continue;
+			if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP || prevBlockInst.op == Operation.LOAD) continue;
 			break;
 		}
 		dest.instructions.add(idx+1, move);
@@ -281,6 +281,7 @@ public class RegisterAllocator {
 		}
 		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, phiClusters, MAX_COLORS);
 		instructionColor = reassignInvalidColors(instructionColor, MAX_COLORS);
+		System.out.println("colors: "+instructionColor);
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
@@ -438,6 +439,7 @@ public class RegisterAllocator {
 		Map<Integer, Integer> colors = color(universe, edges, phis, maxColors);
 		
 		int validColor = determineColor(colors, clusterNeighbors);
+		
 		// add nodes back
 		universe.addAll(xCluster);
 		
@@ -484,12 +486,19 @@ public class RegisterAllocator {
 		// if there is no c+1 in the sorted list, assign validColor to c+1
 		// otherwise, c = max(invalid)+1
 		int validColor = invalid.get(invalid.size()-1)+1;
-		for(int i=0; i<invalid.size()-1; i++) {
-			if(invalid.get(i+1)-invalid.get(i) > 1) {
-				validColor = invalid.get(i)+1;
+		for(int i=1; ; i++) {
+			if(!invalidColors.contains(i)) {
+				validColor = i;
 				break;
 			}
 		}
+//		int validColor = invalid.get(invalid.size()-1)+1;
+//		for(int i=0; i<invalid.size()-1; i++) {
+//			if(invalid.get(i+1)-invalid.get(i) > 1) {
+//				validColor = invalid.get(i)+1;
+//				break;
+//			}
+//		}
 		return validColor;
 		
 	}
