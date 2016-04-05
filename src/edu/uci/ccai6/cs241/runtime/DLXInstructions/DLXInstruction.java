@@ -14,6 +14,7 @@ import edu.uci.ccai6.cs241.runtime.StackAbstract;
 import edu.uci.ccai6.cs241.ssa.Arg;
 import edu.uci.ccai6.cs241.ssa.ConstArg;
 import edu.uci.ccai6.cs241.ssa.Instruction;
+import edu.uci.ccai6.cs241.ssa.Instruction.Operation;
 import edu.uci.ccai6.cs241.ssa.RegisterArg;
 import edu.uci.ccai6.cs241.ssa.SpilledRegisterArg;
 
@@ -171,16 +172,18 @@ public class DLXInstruction extends DLX {
 		if (arg1 instanceof SpilledRegisterArg) {
 			if (!currFrame.__fakeRegToMem.containsKey(arg1.toString())) {
 				// If current frame has not recorded this variable in memory
-//				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
-//				Local local = new Local();
-//				local.__len = Conf.BLOCK_LEN;
-//				local.__name = arg2.toString();
-//				local.__offset = currFrame.getCurrOffset();
-//				local.__type = LocalType.VAR;
-//				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
-//				currFrame.__fakeRegToMem.put(arg2.toString(), local);
-//				new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
-				wrong("DLXInstruction(Instruction): arg1 sould be wrote to stack before loading!!!!");
+				if (instruction.op == Instruction.Operation.LOAD) {				
+					Local local = new Local();
+					local.__len = Conf.BLOCK_LEN;
+					local.__name = arg1.toString();
+					local.__offset = currFrame.getCurrOffset();
+					local.__type = LocalType.VAR;
+					currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
+					currFrame.__fakeRegToMem.put(arg1.toString(), local);
+					new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
+					local.setIsStored(true);
+				} else 
+					wrong("1DLXInstruction(Instruction): " + arg1.toString() +" sould be written to stack before loading!!!!");
 			}
 			Local local = currFrame.addOrGetLocal(arg1);
 			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
@@ -189,25 +192,36 @@ public class DLXInstruction extends DLX {
 			instruction.setArg(1, argNew);
 			
 		}
+
 		if (arg2 instanceof SpilledRegisterArg) {
+			Local local;
 			if (!currFrame.__fakeRegToMem.containsKey(arg2.toString())) {
 				// If current frame has not recorded this variable in memory
-//				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
-//				Local local = new Local();
-//				local.__len = Conf.BLOCK_LEN;
-//				local.__name = arg2.toString();
-//				local.__offset = currFrame.getCurrOffset();
-//				local.__type = LocalType.VAR;
-//				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
-//				currFrame.__fakeRegToMem.put(arg2.toString(), local);
-//				new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
-				wrong("DLXInstruction(Instruction): arg2 sould be wrote to stack before loading!!!!");
+				local = new Local();
+				local.__len = Conf.BLOCK_LEN;
+				local.__name = arg2.toString();
+				local.__offset = currFrame.getCurrOffset();
+				local.__type = LocalType.VAR;
+				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
+				currFrame.__fakeRegToMem.put(arg2.toString(), local);
+			} else {
+				local = currFrame.__fakeRegToMem.get(arg2.toString());
 			}
-			Local local = currFrame.addOrGetLocal(arg2);
-			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
 			
-			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_2));
-			instruction.setArg(2, argNew);
+			Operation oper = instruction.op;
+			switch (oper) {
+			case LOAD:
+			case MOV:
+				// Don't need to be loaded!
+				break;
+			default:
+				// OP arg1 arg2(LOAD first) arg3
+				new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
+				Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_2));
+				instruction.setArg(2, argNew);
+				break;
+			}
+			
 		}
 		
 		// If arg3 is fake, have to assign it with a resgister and store it later
@@ -325,6 +339,12 @@ public class DLXInstruction extends DLX {
 			Local local = currFrame.addOrGetLocal(arg3);
 			// STORE VAL TARGET_ADDRESS
 			new DLXInstruction(new Instruction("1 STORE " + Conf.STORE_TARGET+ " " + local.__offset));
+			if (!local.isStored()) {
+				// Not stored before, has to allocate a space on stack
+				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_P + " " + Conf.BLOCK_LEN + " " + Conf.STACK_P));
+				// Then set it stored
+				local.setIsStored(true);
+			}
 		}
 	}
 

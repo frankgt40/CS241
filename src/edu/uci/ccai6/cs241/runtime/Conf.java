@@ -26,7 +26,7 @@ public class Conf extends DLX{
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
-	public static final boolean IS_DEBUG = false;
+	public static final boolean IS_DEBUG = true;
 	
 	protected static boolean IS_INITIALIZED = false;
 	public static List<String> __savedRegs = new ArrayList<String>();

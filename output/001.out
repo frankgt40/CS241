@@ -1,5 +1,5 @@
 0 data:
-1 factIter:
+1 max:
 2 PUSH R1
 3 PUSH R2
 4 PUSH R3
@@ -11,76 +11,129 @@
 10 PUSH R9
 11 PUSH R10
 12 PUSH R31
-13 SUBi R28 4
+13 SUBi R28 20
 14 LOAD (13)
-15 MOVE (14) factIter_n
-16 MOVE 1 factIter_i
-17 MOVE 1 factIter_f
-25 PHI factIter_f factIter_f factIter_f
-24 PHI factIter_i factIter_i factIter_i
-18 CMP factIter_i factIter_n
-26 BGT R24 (27)
-19 MUL factIter_f factIter_i
-20 MOVE (19) factIter_f
-21 ADDi factIter_i 1
-22 MOVE (21) factIter_i
-23 BRA (25)
-27 NOOP
-28 MOV factIter_f R27
-29 RET R31
-30 factRec:
-31 PUSH R1
-32 PUSH R2
-33 PUSH R3
-34 PUSH R4
-35 PUSH R5
-36 PUSH R6
-37 PUSH R7
-38 PUSH R8
-39 PUSH R9
-40 PUSH R10
-41 PUSH R31
-42 SUBi R28 4
-43 LOAD (42)
-44 MOVE (43) factRec_n
-45 CMP factRec_n 1
-46 BGT R24 (49)
-47 MOV 1 R27
-48 RET R31
-49 PUSH R28
-50 SUBi factRec_n 1
-51 PUSH (50)
-52 CALL factRec
-53 MUL (52) factRec_n
-54 MOV (53) R27
-55 RET R31
-56 .text
-57 main:
-58 PUSH R28
-59 PUSH 12345
-60 CALL OutputNum
-61 PUSH R28
-62 CALL InputNum
-63 ADDi (62) 0
-64 MOVE (63) main_input
-65 PUSH R28
-66 PUSH main_input
-67 CALL factIter
-68 ADDi (67) 0
-69 MOVE (68) main_rsl
-70 PUSH R28
-71 PUSH main_rsl
-72 CALL OutputNum
-73 PUSH R28
-74 CALL OutputNewLine
-75 PUSH R28
-76 PUSH main_input
-77 CALL factRec
-78 ADDi (77) 0
-79 MOVE (78) main_rsl
-80 PUSH R28
-81 PUSH main_rsl
-82 CALL OutputNum
-83 PUSH R28
-84 CALL OutputNewLine
-85 end
+15 MOVE (14) max_a1
+16 SUBi R28 16
+17 LOAD (16)
+18 MOVE (17) max_a2
+19 SUBi R28 12
+20 LOAD (19)
+21 MOVE (20) max_a3
+22 SUBi R28 8
+23 LOAD (22)
+24 MOVE (23) max_a4
+25 SUBi R28 4
+26 LOAD (25)
+27 MOVE (26) max_a5
+28 ADDi R29 20 R29
+29 ADDi R28 44
+30 MULi 1 4
+31 ADD (29) (30)
+32 STORE max_a1 (31)
+33 ADDi R28 44
+34 MULi 2 4
+35 ADD (33) (34)
+36 STORE max_a2 (35)
+37 ADDi R28 44
+38 MULi 3 4
+39 ADD (37) (38)
+40 STORE max_a3 (39)
+41 ADDi R28 44
+42 MULi 4 4
+43 ADD (41) (42)
+44 STORE max_a4 (43)
+45 ADDi R28 44
+46 MULi 5 4
+47 ADD (45) (46)
+48 STORE max_a5 (47)
+49 MOVE 5 max_size
+50 MOVE 2 max_i
+51 ADDi R28 44
+52 MULi 1 4
+53 ADD (51) (52)
+54 LOAD (53)
+55 MOVE (54) max_temp
+83 PHI max_temp max_temp max_temp
+82 PHI max_i max_i max_i
+56 CMP max_i max_size
+84 BGT R24 (85)
+57 PUSH R28
+58 PUSH max_i
+59 CALL OutputNum
+60 PUSH R28
+61 CALL OutputNewLine
+62 ADDi R28 44
+63 MULi max_i 4
+64 ADD (62) (63)
+65 LOAD (64)
+66 CMP (65) max_temp
+67 BLE R24 (73)
+68 ADDi R28 44
+69 MULi max_i 4
+70 ADD (68) (69)
+71 LOAD (70)
+72 MOVE (71) max_temp
+73 PHI max_temp max_temp max_temp
+74 ADDi max_i 1
+75 MOVE (74) max_i
+76 PUSH R28
+77 PUSH max_temp
+78 CALL OutputNum
+79 PUSH R28
+80 CALL OutputNewLine
+81 BRA (83)
+85 NOOP
+86 MOV max_temp R27
+87 RET R31
+88 .text
+89 main:
+90 ADDi R29 20 R29
+91 ADDi R28 0
+92 MULi 1 4
+93 ADD (91) (92)
+94 STORE 22 (93)
+95 ADDi R28 0
+96 MULi 2 4
+97 ADD (95) (96)
+98 STORE 61 (97)
+99 ADDi R28 0
+100 MULi 3 4
+101 ADD (99) (100)
+102 STORE 17 (101)
+103 ADDi R28 0
+104 MULi 4 4
+105 ADD (103) (104)
+106 STORE 34 (105)
+107 ADDi R28 0
+108 MULi 5 4
+109 ADD (107) (108)
+110 STORE 11 (109)
+111 PUSH R28
+112 ADDi R28 0
+113 MULi 1 4
+114 ADD (112) (113)
+115 LOAD (114)
+116 PUSH (115)
+117 ADDi R28 0
+118 MULi 2 4
+119 ADD (117) (118)
+120 LOAD (119)
+121 PUSH (120)
+122 ADDi R28 0
+123 MULi 3 4
+124 ADD (122) (123)
+125 LOAD (124)
+126 PUSH (125)
+127 ADDi R28 0
+128 MULi 4 4
+129 ADD (127) (128)
+130 LOAD (129)
+131 PUSH (130)
+132 CALL max
+133 ADDi (132) 0
+134 MOVE (133) main_maxnumber
+135 PUSH R28
+136 PUSH main_maxnumber
+137 CALL OutputNum
+138 end

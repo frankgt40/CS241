@@ -41,7 +41,7 @@ public class Parser {
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		Conf.initialize();
-		Parser pa = new Parser("testCases/factorial.txt");
+		Parser pa = new Parser("testCases/001.txt");
 		pa.setOutFile("output/001.out");
 		pa.computation();
 		if (__isWriteToFile) {
