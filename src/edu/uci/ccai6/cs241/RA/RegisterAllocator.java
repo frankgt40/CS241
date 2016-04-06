@@ -177,7 +177,11 @@ public class RegisterAllocator {
 	/**
 	 * Insert a move instruction to the last location of dest block
 	 * by last means, last but before branch or CMP
-	 * TODO: is it correct? not before CMP, maybe beginning of block?
+	 * TODO: is it correct?: insert before BLE to eliminate dependencies
+	 * 
+	 * CMP R1 R3 R24
+	 * insert here??
+	 * BLE R24 (199)
 	 * @param move
 	 * @param dest
 	 */
@@ -185,7 +189,7 @@ public class RegisterAllocator {
 		int idx;
 		for(idx=dest.instructions.size()-1; idx>=0; idx--) {
 			Instruction prevBlockInst = dest.instructions.get(idx);
-			if(prevBlockInst.op.isBranch() || prevBlockInst.op == Operation.CMP || prevBlockInst.op == Operation.LOAD) continue;
+			if(prevBlockInst.op.isBranch()) continue;
 			break;
 		}
 		dest.instructions.add(idx+1, move);
@@ -296,7 +300,6 @@ public class RegisterAllocator {
 		}
 		Map<Integer, Integer> instructionColor = color(universe, sparseEdges, phiClusters, MAX_COLORS);
 		instructionColor = reassignInvalidColors(instructionColor, MAX_COLORS);
-		System.out.println("colors: "+instructionColor);
 		List<Instruction> out = new ArrayList<Instruction>();
 		for(BasicBlock bb : bbs) {
 			for(Instruction inst : bb.instructions) {
