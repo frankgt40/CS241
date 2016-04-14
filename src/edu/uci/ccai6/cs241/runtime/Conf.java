@@ -18,7 +18,7 @@ public class Conf extends DLX{
 	public static final String LOAD_REG_1 = "R26";
 	public static final String LOAD_REG_2 = "R25";
 	public static final String LOAD_REG_3 = "R24";
-	public static final int CMP_REG_NUM = 24;
+	public static final int CMP_REG_NUM = 23;
 	public static final String CMP_REG = "R"+CMP_REG_NUM;
 	public static final int GEN_REG_NUM = 8;
 	public static final String ZERO_REG = "R0";
@@ -26,7 +26,7 @@ public class Conf extends DLX{
 	public static final String STORE_TARGET = LOAD_REG_3;
 	public static final String RETURN_ADDRESS_REG = "R31";
 	public static final String END_REG = "0";
-	public static final boolean IS_DEBUG = true;
+	public static final boolean IS_DEBUG = false;
 	
 	protected static boolean IS_INITIALIZED = false;
 	public static List<String> __savedRegs = new ArrayList<String>();

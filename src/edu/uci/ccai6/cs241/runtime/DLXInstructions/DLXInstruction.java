@@ -168,6 +168,16 @@ public class DLXInstruction extends DLX {
 		Arg arg3 = instruction.arg2;
 		FrameAbstract currFrame = StackAbstract.getCurrFrame();
 		
+		List<Instruction> spilled = new ArrayList<Instruction>();
+		Instruction tmp;
+		
+		if(arg1 instanceof SpilledRegisterArg || 
+				arg2 instanceof SpilledRegisterArg || 
+				arg3 instanceof SpilledRegisterArg)
+			System.out.println("before: "+instruction);
+			
+		
+		
 		// If the src args have fake ones, load it here
 		if (arg1 instanceof SpilledRegisterArg) {
 			if (!currFrame.__fakeRegToMem.containsKey(arg1.toString())) {
@@ -186,11 +196,16 @@ public class DLXInstruction extends DLX {
 					wrong("1DLXInstruction(Instruction): " + arg1.toString() +" sould be written to stack before loading!!!!");
 			}
 			Local local = currFrame.addOrGetLocal(arg1);
-			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
+			tmp = new Instruction("1 ADDi " + Conf.FRAME_P + " " + local.__offset + " " + Conf.LOAD_REG_1);
+			new DLXInstruction(tmp);
+			spilled.add(tmp);
+			tmp = new Instruction("1 LOAD " + Conf.LOAD_REG_1 + " " + Conf.LOAD_REG_1);
+			new DLXInstruction(tmp);
+			spilled.add(tmp);
+//			new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_1));
 			
 			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_1));
 			instruction.setArg(1, argNew);
-			
 		}
 
 		if (arg2 instanceof SpilledRegisterArg) {
@@ -204,6 +219,7 @@ public class DLXInstruction extends DLX {
 				local.__type = LocalType.VAR;
 				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
 				currFrame.__fakeRegToMem.put(arg2.toString(), local);
+				new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
 			} else {
 				local = currFrame.__fakeRegToMem.get(arg2.toString());
 			}
@@ -211,12 +227,40 @@ public class DLXInstruction extends DLX {
 			Operation oper = instruction.op;
 			switch (oper) {
 			case LOAD:
+				// LOAD R SR
+				// ==
+				// LOAD R LR1
+				// MOV LR1 -> SR
+				
+				// first load R into LOAD_REG_1
+				// NOTE: has to use instruction.arg0 instead of arg1 since it could be changed
+				// by eariler block
+				tmp = new Instruction("1 LOAD "+instruction.arg0+" "+Conf.LOAD_REG_1); 
+				new DLXInstruction(tmp);
+				spilled.add(tmp);
+				
+				// then change arg1 to LOAD_REG_1 
+				Arg argNew2 = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_1));
+				instruction.setArg(1, argNew2);
 			case MOV:
-				// Don't need to be loaded!
+				// MOVE R -> SR
+				// ==
+				// ADDi FP offset(SR) LR1
+				// STORE R -> LR1
+				tmp = new Instruction("1 ADDi " + Conf.FRAME_P + " " + local.__offset + " " + Conf.STORE_TARGET);
+				new DLXInstruction(tmp);
+				spilled.add(tmp);
+				instruction = new Instruction("1 STORE " + instruction.arg0 + " " + Conf.STORE_TARGET);
+				
 				break;
 			default:
 				// OP arg1 arg2(LOAD first) arg3
-				new DLXInstruction(new Instruction("1 LOAD " + local.__offset + " " + Conf.LOAD_REG_2));
+				tmp = new Instruction("1 ADDi " + Conf.FRAME_P + " " + local.__offset + " " + Conf.LOAD_REG_2);
+				new DLXInstruction(tmp);
+				spilled.add(tmp);
+				tmp = new Instruction("1 LOAD " + Conf.LOAD_REG_2 + " " + Conf.LOAD_REG_2);
+				new DLXInstruction(tmp);
+				spilled.add(tmp);
 				Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_2));
 				instruction.setArg(2, argNew);
 				break;
@@ -226,20 +270,46 @@ public class DLXInstruction extends DLX {
 		
 		// If arg3 is fake, have to assign it with a resgister and store it later
 		if (arg3 instanceof SpilledRegisterArg) {
+			Local local = new Local();
 			if (!currFrame.__fakeRegToMem.containsKey(arg3.toString())) {
 				// If current frame has not recorded this variable in memory
 //				new DLXInstruction(new Instruction("1 ADDi " + Conf.STACK_GROW_DELTA + " " + Conf.STACK_P + " " + Conf.STACK_P));
-				Local local = new Local();
+
 				local.__len = Conf.BLOCK_LEN;
 				local.__name = arg2.toString();
 				local.__offset = currFrame.getCurrOffset();
 				local.__type = LocalType.VAR;
 				currFrame.setCurrOffset(currFrame.getCurrOffset() + Conf.STACK_GROW_DELTA);
 				currFrame.__fakeRegToMem.put(arg2.toString(), local);
-//				new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
+				new DLXInstruction(new Instruction("1 PUSH " + 0)); // Give the spilled register a space on the stack
+			} else {
+				local = currFrame.__fakeRegToMem.get(arg3.toString());
 			}
-			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.STORE_TARGET));
+			// op R1 R2 SR
+			// ==
+			// op R1 R2 LOAD_REG_1
+			// ADDi FP offset STORE_TARGET
+			// STORE LOAD_REG_1 STORE_TARGET
+			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.LOAD_REG_1));
 			instruction.setArg(3, argNew);
+			tmp = instruction;
+			new DLXInstruction(tmp);
+			spilled.add(tmp);
+			tmp = new Instruction("1 ADDi " + Conf.FRAME_P + " " + local.__offset + " " + Conf.STORE_TARGET);
+			new DLXInstruction(tmp);
+			spilled.add(tmp);
+//			Arg argNew = new RegisterArg(Conf.getRegNum(Conf.STORE_TARGET));
+//			instruction.setArg(3, argNew);
+			instruction = new Instruction("1 STORE " + Conf.LOAD_REG_1 + " " + Conf.STORE_TARGET);
+			
+			
+		}
+		
+		if(Conf.IS_DEBUG && !spilled.isEmpty()) {
+			spilled.add(instruction);
+			for(Instruction inst : spilled)
+				System.out.println("AFTER" +inst);
+			
 		}
 		
 		// F1
