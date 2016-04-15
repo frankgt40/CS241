@@ -19,6 +19,8 @@ var a, b, c, d, e;
 	od;
 	
 	let e <- c - a + b;
-	let a <- a + b
+	let a <- a + b;
+	call OutputNum(e);
+	call OutputNum(a);
 }
 .

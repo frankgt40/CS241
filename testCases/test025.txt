@@ -14,7 +14,7 @@ var a, b, c, d, e, f, g;
 		let b <- 5;
 		let e <- c + b + d
 	else
-		let f <- a / d;
+		let f <- a / d; //Exception in thread "main" java.lang.ArithmeticException: / by zero
 		let g <- d / a
 	fi;
 	

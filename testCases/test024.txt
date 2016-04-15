@@ -15,7 +15,7 @@ var a, b, c, d, e, f, g, h;
 	let g <- 7;
 	let h <- 8;
 	
-	while (b / 4 + 5) < 8 do
+	while (b / 4 + 5) < 8 do //Infinite loop!
 		call OutputNum(b);
 		let a <- a * 7 + 9;
 		if c < d then

@@ -7,11 +7,12 @@ var a, b, c, d;
 	let d <- 4;
 	
 	if a< b then
-		let a <- a + 1;
+		let a <- a + 1; // a==2
 		while c < d do
 			let c <- c + 2;
 			let d <- d + 1
-		od
+		od;
+		call OutputNum(c); // c==5, d==5, a==2
 	else
 		let a <- a + 2;
 		while c < d do
@@ -19,7 +20,8 @@ var a, b, c, d;
 			let d <- d + 2
 		od
 	fi;
-	
+	// a==2, b==2, c==5, d==5
+	// This is a infinite loop!
 	while b < d do
 		if a > d then
 			let b <- c

@@ -13,6 +13,7 @@ var q, foo, af, too;
 		od;
 		let too <- foo+5
 	fi;
-	let af<-too+foo+q
+	let af<-too+foo+q;
+	call OutputNum(af);
 }
 .

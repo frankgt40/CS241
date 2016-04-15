@@ -20,22 +20,24 @@ var c, d;
 {
 	let c <- 1
 };
-function boo( a, b );
+function boo( a, b ); // a==2, b==4, x==8, y==1718
 var i;
 {
 	let i <- 0;
 	while i < y do
-		let x <- x * x
+		let x <- x * x // Has problem here! x value is too large!
 	od;
 	return x + 4
 	
 };
 {
-	call foo( );
-	call bar( 1 );
-	let x <- 3 + 7 - 2;
-	let y <- ( 895 * 2 * 2 ) / 2;
+	call foo( ); // x==1, y==2
+	call bar( 1 ); // x==1, y==1
+	let x <- 3 + 7 - 2; // x==8, y==1
+	let y <- ( 895 * 2 * 2 ) / 2; // x==8, y==1718
+	call OutputNum(y); // Has problem here!
 	call baz( x, y );
-	let y <- y + call boo( 2, 4 )
+	let y <- y + call boo( 2, 4 );
+	call OutputNum(y);
 }
 .

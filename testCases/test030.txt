@@ -15,6 +15,7 @@ var a, b, c;
 			od
 		od
 	fi;
-	let b <- c + 1
+	let b <- c + 1;
+	call OutputNum(b);
 }
 .
